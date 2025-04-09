@@ -1,0 +1,27 @@
+# Build results
+**/Debug/
+**/Release/
+**/x64/
+**/x86/
+**/ipch/
+**/*.obj
+**/*.log
+**/*.tlog
+**/*.pch
+**/*.pdb
+**/*.ilk
+**/*.aps
+**/*.ncb
+**/*.suo
+**/*.user
+**/*.opendb
+**/*.VC.db
+**/*.VC.opendb
+
+# Visual Studio files
+.vs/
+*.vcxproj.user
+
+# Backup files
+*.bak
+*.tmp
