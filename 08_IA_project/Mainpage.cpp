@@ -1,5 +1,6 @@
 #include "MainPage.h"
 #include "BatchManager.h"
+#include "SpiritManager.h"
 #include "OakAgingManager.h"
 #include "BottledWhiskyManager.h"
 #include <iostream>
@@ -9,28 +10,28 @@ void MainPage::run() {
 
     do {
         displayMenu();
-        std::cout << "¹øÈ£¸¦ ¼±ÅÃÇÏ¼¼¿ä: ";
+        std::cout << "ë²ˆí˜¸ë¥¼ ì„ íƒí•˜ì„¸ìš”: ";
         std::cin >> choice;
-        std::cin.ignore(); // ¿£ÅÍ ÀÔ·Â ¹«½Ã
+        std::cin.ignore(); // ì—”í„° ìž…ë ¥ ë¬´ì‹œ
 
         handleSelection(choice);
     } while (choice != 0);
 }
 
 void MainPage::displayMenu() {
-    std::cout << "\n=== À§½ºÅ° »ý»ê °ü¸® ½Ã½ºÅÛ ===\n";
-    std::cout << "1. ¿øÀç·á Ç×¸ñ °ü¸®\n";
-    std::cout << "2. ¹èÄ¡ °ü¸®\n";
-    std::cout << "3. ½ºÇÇ¸´ °ü¸®\n";
-    std::cout << "4. ¿ÀÅ©Åë ¼÷¼º °ü¸®\n";
-    std::cout << "5. º´ÀÔ ¹× ¿Ï¼ºÇ° °ü¸®\n";
-    std::cout << "0. Á¾·á\n";
+    std::cout << "\n=== ìœ„ìŠ¤í‚¤ ìƒì‚° ê´€ë¦¬ ì‹œìŠ¤í…œ ===\n";
+    std::cout << "1. ì›ìž¬ë£Œ í•­ëª© ê´€ë¦¬\n";
+    std::cout << "2. ë°°ì¹˜ ê´€ë¦¬\n";
+    std::cout << "3. ìŠ¤í”¼ë¦¿ ê´€ë¦¬\n";
+    std::cout << "4. ì˜¤í¬í†µ ìˆ™ì„± ê´€ë¦¬\n";
+    std::cout << "5. ë³‘ìž… ë° ì™„ì„±í’ˆ ê´€ë¦¬\n";
+    std::cout << "0. ì¢…ë£Œ\n";
 }
 
 void MainPage::handleSelection(int choice) {
     switch (choice) {
     case 1:
-        std::cout << "\n[¿øÀç·á Ç×¸ñ °ü¸® ±â´ÉÀº ±¸Çö ¿¹Á¤ÀÔ´Ï´Ù]\n";
+        std::cout << "\n[ì›ìž¬ë£Œ í•­ëª© ê´€ë¦¬ ê¸°ëŠ¥ì€ êµ¬í˜„ ì˜ˆì •ìž…ë‹ˆë‹¤]\n";
         break;
     case 2: {
         BatchManager manager;
@@ -39,7 +40,7 @@ void MainPage::handleSelection(int choice) {
         break;
     }
     case 3:
-        std::cout << "\n[½ºÇÇ¸´ °ü¸® ±â´ÉÀº ±¸Çö ¿¹Á¤ÀÔ´Ï´Ù]\n";
+        std::cout << "\n[ìŠ¤í”¼ë¦¿ ê´€ë¦¬ ê¸°ëŠ¥ì€ êµ¬í˜„ ì˜ˆì •ìž…ë‹ˆë‹¤]\n";
         break;
     case 4: {
         OakAgingManager oakManager;
@@ -52,10 +53,10 @@ void MainPage::handleSelection(int choice) {
         break;
     }
     case 0:
-        std::cout << "\nÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n";
+        std::cout << "\ní”„ë¡œê·¸ëž¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n";
         break;
     default:
-        std::cout << "\nÀß¸øµÈ ¼±ÅÃÀÔ´Ï´Ù. ´Ù½Ã ÀÔ·ÂÇØÁÖ¼¼¿ä.\n";
+        std::cout << "\nìž˜ëª»ëœ ì„ íƒìž…ë‹ˆë‹¤. ë‹¤ì‹œ ìž…ë ¥í•´ì£¼ì„¸ìš”.\n";
         break;
     }
 }
