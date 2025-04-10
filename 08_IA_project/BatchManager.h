@@ -5,16 +5,26 @@
 struct FermentationBatch {
     std::string batch_id;
     std::string start_date;
+    std::string particle_size;
+    std::string yeast_type;
+    std::string ingredients;
+    double amount_liters;
     double temperature;
     int humidity;
     int duration_hours;
 };
 
 class BatchManager {
+private:
+    std::vector<FermentationBatch> batches;
+
 public:
-    //std::vector<FermentationBatch> loadBatchesFromFile(const std::string& filename);
-    // ¶óÀÌºê·¯¸® ¾øÀÌ ÅëÇÕµÈ ½Ã½ºÅÛ¿¡¼­ °³¹ß ÁøÇàÇÏ±â À§ÇÑ ÄÚµå º¯°æ
     std::vector<FermentationBatch> getDummyBatches();
     void displayBatches(const std::vector<FermentationBatch>& batches);
-};
+    void run();  // ì „ì²´ ì‹œìŠ¤í…œ ë©”ë‰´ ì‹¤í–‰
 
+    void addBatch();
+    void updateBatch();
+    void deleteBatch();
+    void searchBatch();
+};
