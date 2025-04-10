@@ -42,7 +42,7 @@ void MainPage::handleSelection(int choice) {
         break;
     case 4: {
         OakAgingManager oakManager;
-        oakManager.showOakList();
+        oakManager.OakListRun();
         break;
     }
     case 5:
