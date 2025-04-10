@@ -128,12 +128,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BatchManager.cpp" />
+    <ClCompile Include="BottledWhiskyManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mainpage.cpp" />
     <ClCompile Include="oakAgingManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BatchManager.h" />
+    <ClInclude Include="BottledWhiskyManager.h" />
     <ClInclude Include="MainPage.h" />
     <ClInclude Include="oakAgingManager.h" />
   </ItemGroup>

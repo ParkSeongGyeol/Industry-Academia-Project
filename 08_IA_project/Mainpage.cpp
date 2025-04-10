@@ -1,6 +1,7 @@
 #include "MainPage.h"
 #include "BatchManager.h"
 #include "OakAgingManager.h"
+#include "BottledWhiskyManager.h"
 #include <iostream>
 
 void MainPage::run() {
@@ -45,9 +46,11 @@ void MainPage::handleSelection(int choice) {
         oakManager.OakListRun();
         break;
     }
-    case 5:
-        std::cout << "\n[병입 및 완성품 관리 기능은 구현 예정입니다]\n";
+    case 5: {
+        BottledWhiskyManager WhiskyManager;
+        WhiskyManager.BottledListRun();
         break;
+    }
     case 0:
         std::cout << "\n프로그램을 종료합니다.\n";
         break;
