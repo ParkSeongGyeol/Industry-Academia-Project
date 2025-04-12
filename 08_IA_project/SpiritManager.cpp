@@ -4,29 +4,29 @@
 
 void SpiritManager::addSpirit() {
     Spirit spirit;
-    std::cout << "\n=== ìŠ¤í”¼ë¦¿ ì¶”ê°€ ===\n";
+    std::cout << "\n=== ½ºÇÇ¸´ Ãß°¡ ===\n";
     std::cout << "ID: "; std::cin >> spirit.id;
     std::cin.ignore();
-    std::cout << "ë³´ê´€ ìž¥ì†Œ: "; std::getline(std::cin, spirit.storage_location);
-    std::cout << "ì´ë™ ê¸°ë¡: "; std::getline(std::cin, spirit.transfer_history);
-    std::cout << "ìƒì‚° ë‚ ì§œ (YYYY-MM-DD): "; std::getline(std::cin, spirit.production_date);
-    std::cout << "ë„ìˆ˜(%): "; std::cin >> spirit.alcohol_percentage;
-    std::cout << "ìƒì‚°ëŸ‰(L): "; std::cin >> spirit.yield_liters;
+    std::cout << "º¸°ü Àå¼Ò: "; std::getline(std::cin, spirit.storage_location);
+    std::cout << "ÀÌµ¿ ±â·Ï: "; std::getline(std::cin, spirit.transfer_history);
+    std::cout << "»ý»ê ³¯Â¥ (YYYY-MM-DD): "; std::getline(std::cin, spirit.production_date);
+    std::cout << "µµ¼ö(%): "; std::cin >> spirit.alcohol_percentage;
+    std::cout << "»ý»ê·®(L): "; std::cin >> spirit.yield_liters;
     std::cin.ignore();
-    std::cout << "ì›ìž¬ë£Œ í•¨ëŸ‰: "; std::getline(std::cin, spirit.raw_material_ratio);
-    std::cout << "ë°œíš¨ ê¸°ê°„(ì¼): "; std::cin >> spirit.fermentation_days;
+    std::cout << "¿øÀç·á ÇÔ·®: "; std::getline(std::cin, spirit.raw_material_ratio);
+    std::cout << "¹ßÈ¿ ±â°£(ÀÏ): "; std::cin >> spirit.fermentation_days;
     std::cin.ignore();
-    std::cout << "ì´ˆë¥˜ ëŠì€ ì‹œì : "; std::getline(std::cin, spirit.first_cut_time);
-    std::cout << "í›„ë¥˜ ê·¸ë§Œ ë°›ì€ ì‹œì : "; std::getline(std::cin, spirit.last_cut_time);
-    std::cout << "ì¦ë¥˜ íšŸìˆ˜: "; std::cin >> spirit.distillation_count;
+    std::cout << "ÃÊ·ù ²÷Àº ½ÃÁ¡: "; std::getline(std::cin, spirit.first_cut_time);
+    std::cout << "ÈÄ·ù ±×¸¸ ¹ÞÀº ½ÃÁ¡: "; std::getline(std::cin, spirit.last_cut_time);
+    std::cout << "Áõ·ù È½¼ö: "; std::cin >> spirit.distillation_count;
 
     spirits.push_back(spirit);
-    std::cout << "âœ… ìŠ¤í”¼ë¦¿ ì¶”ê°€ ì™„ë£Œ!\n";
+    std::cout << "? ½ºÇÇ¸´ Ãß°¡ ¿Ï·á!\n";
 }
 
 void SpiritManager::deleteSpirit() {
     std::string id;
-    std::cout << "ì‚­ì œí•  ìŠ¤í”¼ë¦¿ ID ìž…ë ¥: ";
+    std::cout << "»èÁ¦ÇÒ ½ºÇÇ¸´ ID ÀÔ·Â: ";
     std::cin >> id;
 
     auto it = std::remove_if(spirits.begin(), spirits.end(), [&](const Spirit& s) {
@@ -35,27 +35,27 @@ void SpiritManager::deleteSpirit() {
 
     if (it != spirits.end()) {
         spirits.erase(it, spirits.end());
-        std::cout << "âœ… ì‚­ì œ ì™„ë£Œ!\n";
+        std::cout << "? »èÁ¦ ¿Ï·á!\n";
     }
     else {
-        std::cout << "í•´ë‹¹ IDì˜ ìŠ¤í”¼ë¦¿ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+        std::cout << "ÇØ´ç IDÀÇ ½ºÇÇ¸´À» Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
     }
 }
 
 void SpiritManager::displaySpirits() {
-    std::cout << "\n=== ìŠ¤í”¼ë¦¿ ëª©ë¡ ===\n";
+    std::cout << "\n=== ½ºÇÇ¸´ ¸ñ·Ï ===\n";
     for (const auto& s : spirits) {
         std::cout << "ID: " << s.id << "\n"
-            << "ë³´ê´€ ìž¥ì†Œ: " << s.storage_location << "\n"
-            << "ì´ë™ ê¸°ë¡: " << s.transfer_history << "\n"
-            << "ìƒì‚° ë‚ ì§œ: " << s.production_date << "\n"
-            << "ë„ìˆ˜: " << s.alcohol_percentage << "%\n"
-            << "ìƒì‚°ëŸ‰: " << s.yield_liters << "L\n"
-            << "ì›ìž¬ë£Œ í•¨ëŸ‰: " << s.raw_material_ratio << "\n"
-            << "ë°œíš¨ ê¸°ê°„: " << s.fermentation_days << "ì¼\n"
-            << "ì´ˆë¥˜ ëŠì€ ì‹œì : " << s.first_cut_time << "\n"
-            << "í›„ë¥˜ ì¢…ë£Œ ì‹œì : " << s.last_cut_time << "\n"
-            << "ì¦ë¥˜ íšŸìˆ˜: " << s.distillation_count << "\n"
+            << "º¸°ü Àå¼Ò: " << s.storage_location << "\n"
+            << "ÀÌµ¿ ±â·Ï: " << s.transfer_history << "\n"
+            << "»ý»ê ³¯Â¥: " << s.production_date << "\n"
+            << "µµ¼ö: " << s.alcohol_percentage << "%\n"
+            << "»ý»ê·®: " << s.yield_liters << "L\n"
+            << "¿øÀç·á ÇÔ·®: " << s.raw_material_ratio << "\n"
+            << "¹ßÈ¿ ±â°£: " << s.fermentation_days << "ÀÏ\n"
+            << "ÃÊ·ù ²÷Àº ½ÃÁ¡: " << s.first_cut_time << "\n"
+            << "ÈÄ·ù Á¾·á ½ÃÁ¡: " << s.last_cut_time << "\n"
+            << "Áõ·ù È½¼ö: " << s.distillation_count << "\n"
             << "--------------------------\n";
     }
 }
@@ -63,13 +63,13 @@ void SpiritManager::displaySpirits() {
 void SpiritManager::run() {
     int choice;
     do {
-        std::cout << "\n===== ìŠ¤í”¼ë¦¿ ê´€ë¦¬ ë©”ë‰´ =====\n";
-        std::cout << "1. ìŠ¤í”¼ë¦¿ ëª©ë¡ ë³´ê¸°\n";
-        std::cout << "2. ìŠ¤í”¼ë¦¿ ì¶”ê°€\n";
-        std::cout << "3. ìŠ¤í”¼ë¦¿ ì‚­ì œ\n";
-        std::cout << "4. ìŠ¤í”¼ë¦¿ ìˆ˜ì •\n";
-        std::cout << "0. ì¢…ë£Œ\n";
-        std::cout << "ì„ íƒ >> ";
+        std::cout << "\n===== ½ºÇÇ¸´ °ü¸® ¸Þ´º =====\n";
+        std::cout << "1. ½ºÇÇ¸´ ¸ñ·Ï º¸±â\n";
+        std::cout << "2. ½ºÇÇ¸´ Ãß°¡\n";
+        std::cout << "3. ½ºÇÇ¸´ »èÁ¦\n";
+        std::cout << "4. ½ºÇÇ¸´ ¼öÁ¤\n";
+        std::cout << "0. Á¾·á\n";
+        std::cout << "¼±ÅÃ >> ";
         std::cin >> choice;
 
         switch (choice) {
@@ -77,59 +77,59 @@ void SpiritManager::run() {
         case 2: addSpirit(); break;
         case 3: deleteSpirit(); break;
         case 4: updateSpirit(); break;
-        case 0: std::cout << "ì¢…ë£Œí•©ë‹ˆë‹¤.\n"; break;
-        default: std::cout << "ìž˜ëª»ëœ ìž…ë ¥ìž…ë‹ˆë‹¤.\n"; break;
+        case 0: std::cout << "Á¾·áÇÕ´Ï´Ù.\n"; break;
+        default: std::cout << "Àß¸øµÈ ÀÔ·ÂÀÔ´Ï´Ù.\n"; break;
         }
 
     } while (choice != 0);
 }
 void SpiritManager::updateSpirit() {
     std::string id;
-    std::cout << "\nìˆ˜ì •í•  ìŠ¤í”¼ë¦¿ ID ìž…ë ¥: ";
+    std::cout << "\n¼öÁ¤ÇÒ ½ºÇÇ¸´ ID ÀÔ·Â: ";
     std::cin >> id;
 
     for (auto& s : spirits) {
         if (s.id == id) {
             std::cin.ignore();
-            std::cout << "=== ìŠ¤í”¼ë¦¿ ì •ë³´ ìˆ˜ì • ===\n";
+            std::cout << "=== ½ºÇÇ¸´ Á¤º¸ ¼öÁ¤ ===\n";
 
-            std::cout << "ë³´ê´€ ìž¥ì†Œ (" << s.storage_location << "): ";
+            std::cout << "º¸°ü Àå¼Ò (" << s.storage_location << "): ";
             std::getline(std::cin, s.storage_location);
 
-            std::cout << "ì´ë™ ê¸°ë¡ (" << s.transfer_history << "): ";
+            std::cout << "ÀÌµ¿ ±â·Ï (" << s.transfer_history << "): ";
             std::getline(std::cin, s.transfer_history);
 
-            std::cout << "ìƒì‚° ë‚ ì§œ (" << s.production_date << "): ";
+            std::cout << "»ý»ê ³¯Â¥ (" << s.production_date << "): ";
             std::getline(std::cin, s.production_date);
 
-            std::cout << "ë„ìˆ˜ (%) (" << s.alcohol_percentage << "): ";
+            std::cout << "µµ¼ö (%) (" << s.alcohol_percentage << "): ";
             std::cin >> s.alcohol_percentage;
 
-            std::cout << "ìƒì‚°ëŸ‰ (L) (" << s.yield_liters << "): ";
+            std::cout << "»ý»ê·® (L) (" << s.yield_liters << "): ";
             std::cin >> s.yield_liters;
 
             std::cin.ignore();
-            std::cout << "ì›ìž¬ë£Œ í•¨ëŸ‰ (" << s.raw_material_ratio << "): ";
+            std::cout << "¿øÀç·á ÇÔ·® (" << s.raw_material_ratio << "): ";
             std::getline(std::cin, s.raw_material_ratio);
 
-            std::cout << "ë°œíš¨ ê¸°ê°„ (ì¼) (" << s.fermentation_days << "): ";
+            std::cout << "¹ßÈ¿ ±â°£ (ÀÏ) (" << s.fermentation_days << "): ";
             std::cin >> s.fermentation_days;
             std::cin.ignore();
 
-            std::cout << "ì´ˆë¥˜ ëŠì€ ì‹œì  (" << s.first_cut_time << "): ";
+            std::cout << "ÃÊ·ù ²÷Àº ½ÃÁ¡ (" << s.first_cut_time << "): ";
             std::getline(std::cin, s.first_cut_time);
 
-            std::cout << "í›„ë¥˜ ì¢…ë£Œ ì‹œì  (" << s.last_cut_time << "): ";
+            std::cout << "ÈÄ·ù Á¾·á ½ÃÁ¡ (" << s.last_cut_time << "): ";
             std::getline(std::cin, s.last_cut_time);
 
-            std::cout << "ì¦ë¥˜ íšŸìˆ˜ (" << s.distillation_count << "): ";
+            std::cout << "Áõ·ù È½¼ö (" << s.distillation_count << "): ";
             std::cin >> s.distillation_count;
 
-            std::cout << "âœ… ìŠ¤í”¼ë¦¿ ìˆ˜ì • ì™„ë£Œ!\n";
+            std::cout << "? ½ºÇÇ¸´ ¼öÁ¤ ¿Ï·á!\n";
             return;
         }
     }
 
-    std::cout << "í•´ë‹¹ IDì˜ ìŠ¤í”¼ë¦¿ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+    std::cout << "ÇØ´ç IDÀÇ ½ºÇÇ¸´À» Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
 }
 

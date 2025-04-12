@@ -10,7 +10,7 @@ std::vector<FermentationBatch> BatchManager::getDummyBatches() {
 }
 
 void BatchManager::displayBatches(const std::vector<FermentationBatch>& batches) {
-    std::cout << "\n=== Î∞úÌö® Î∞∞Ïπò Î™©Î°ù ===" << std::endl;
+    std::cout << "\n=== πﬂ»ø πËƒ° ∏Ò∑œ ===" << std::endl;
     for (const auto& batch : batches) {
         std::cout << "Batch ID: " << batch.batch_id << std::endl;
         std::cout << "Start Date: " << batch.start_date << std::endl;
@@ -18,7 +18,7 @@ void BatchManager::displayBatches(const std::vector<FermentationBatch>& batches)
         std::cout << "Yeast Type: " << batch.yeast_type << std::endl;
         std::cout << "Ingredients: " << batch.ingredients << std::endl;
         std::cout << "Amount (liters): " << batch.amount_liters << std::endl;
-        std::cout << "Temperature: " << batch.temperature << "¬∞C" << std::endl;
+        std::cout << "Temperature: " << batch.temperature << "°∆C" << std::endl;
         std::cout << "Humidity: " << batch.humidity << "%" << std::endl;
         std::cout << "Duration: " << batch.duration_hours << " hours" << std::endl;
         std::cout << "------------------------" << std::endl;
@@ -27,7 +27,7 @@ void BatchManager::displayBatches(const std::vector<FermentationBatch>& batches)
 
 void BatchManager::addBatch() {
     FermentationBatch newBatch;
-    std::cout << "=== ÏÉà Î∞∞Ïπò Ï∂îÍ∞Ä ===\n";
+    std::cout << "=== ªı πËƒ° √ﬂ∞° ===\n";
     std::cout << "Batch ID: "; std::cin >> newBatch.batch_id;
     std::cout << "Start Date (YYYY-MM-DD): "; std::cin >> newBatch.start_date;
     std::cout << "Particle Size: "; std::cin >> newBatch.particle_size;
@@ -35,58 +35,58 @@ void BatchManager::addBatch() {
     std::cin.ignore();
     std::cout << "Ingredients: "; std::getline(std::cin, newBatch.ingredients);
     std::cout << "Amount (liters): "; std::cin >> newBatch.amount_liters;
-    std::cout << "Temperature (¬∞C): "; std::cin >> newBatch.temperature;
+    std::cout << "Temperature (°∆C): "; std::cin >> newBatch.temperature;
     std::cout << "Humidity (%): "; std::cin >> newBatch.humidity;
     std::cout << "Duration (hours): "; std::cin >> newBatch.duration_hours;
 
     batches.push_back(newBatch);
-    std::cout << "? Î∞∞ÏπòÍ∞Ä Ï∂îÍ∞ÄÎêòÏóàÏäµÎãàÎã§.\n";
+    std::cout << "? πËƒ°∞° √ﬂ∞°µ«æ˙Ω¿¥œ¥Ÿ.\n";
 }
 
 void BatchManager::updateBatch() {
     std::string id;
-    std::cout << "ÏàòÏ†ïÌï† Î∞∞Ïπò ID ÏûÖÎ†•: ";
+    std::cout << "ºˆ¡§«“ πËƒ° ID ¿‘∑¬: ";
     std::cin >> id;
 
     for (auto& batch : batches) {
         if (batch.batch_id == id) {
-            std::cout << "=== ÏàòÏ†ïÌï† Ï†ïÎ≥¥ ÏûÖÎ†• ===\n";
-            std::cout << "Start Date (ÌòÑÏû¨: " << batch.start_date << "): ";
+            std::cout << "=== ºˆ¡§«“ ¡§∫∏ ¿‘∑¬ ===\n";
+            std::cout << "Start Date («ˆ¿Á: " << batch.start_date << "): ";
             std::cin >> batch.start_date;
 
-            std::cout << "Particle Size (ÌòÑÏû¨: " << batch.particle_size << "): ";
+            std::cout << "Particle Size («ˆ¿Á: " << batch.particle_size << "): ";
             std::cin >> batch.particle_size;
 
-            std::cout << "Yeast Type (ÌòÑÏû¨: " << batch.yeast_type << "): ";
+            std::cout << "Yeast Type («ˆ¿Á: " << batch.yeast_type << "): ";
             std::cin >> batch.yeast_type;
 
-            std::cin.ignore(); // getline Ï†ÑÏóê ÏûÖÎ†• Î≤ÑÌçº Ï¥àÍ∏∞Ìôî
-            std::cout << "Ingredients (ÌòÑÏû¨: " << batch.ingredients << "): ";
+            std::cin.ignore(); // getline ¿¸ø° ¿‘∑¬ πˆ∆€ √ ±‚»≠
+            std::cout << "Ingredients («ˆ¿Á: " << batch.ingredients << "): ";
             std::getline(std::cin, batch.ingredients);
 
-            std::cout << "Amount (liters) (ÌòÑÏû¨: " << batch.amount_liters << "): ";
+            std::cout << "Amount (liters) («ˆ¿Á: " << batch.amount_liters << "): ";
             std::cin >> batch.amount_liters;
 
-            std::cout << "Temperature (ÌòÑÏû¨: " << batch.temperature << "): ";
+            std::cout << "Temperature («ˆ¿Á: " << batch.temperature << "): ";
             std::cin >> batch.temperature;
 
-            std::cout << "Humidity (ÌòÑÏû¨: " << batch.humidity << "): ";
+            std::cout << "Humidity («ˆ¿Á: " << batch.humidity << "): ";
             std::cin >> batch.humidity;
 
-            std::cout << "Duration (hours) (ÌòÑÏû¨: " << batch.duration_hours << "): ";
+            std::cout << "Duration (hours) («ˆ¿Á: " << batch.duration_hours << "): ";
             std::cin >> batch.duration_hours;
 
-            std::cout << "? Î∞∞ÏπòÍ∞Ä Î™®Îëê ÏàòÏ†ïÎêòÏóàÏäµÎãàÎã§.\n";
+            std::cout << "? πËƒ°∞° ∏µŒ ºˆ¡§µ«æ˙Ω¿¥œ¥Ÿ.\n";
             return;
         }
     }
 
-    std::cout << "Ìï¥Îãπ IDÏùò Î∞∞ÏπòÎ•º Ï∞æÏùÑ Ïàò ÏóÜÏäµÎãàÎã§.\n";
+    std::cout << "«ÿ¥Á ID¿« πËƒ°∏¶ √£¿ª ºˆ æ¯Ω¿¥œ¥Ÿ.\n";
 }
 
 void BatchManager::deleteBatch() {
     std::string id;
-    std::cout << "ÏÇ≠Ï†úÌï† Î∞∞Ïπò ID ÏûÖÎ†•: ";
+    std::cout << "ªË¡¶«“ πËƒ° ID ¿‘∑¬: ";
     std::cin >> id;
 
     auto it = std::remove_if(batches.begin(), batches.end(), [&](const FermentationBatch& b) {
@@ -95,16 +95,16 @@ void BatchManager::deleteBatch() {
 
     if (it != batches.end()) {
         batches.erase(it, batches.end());
-        std::cout << "? Î∞∞ÏπòÍ∞Ä ÏÇ≠Ï†úÎêòÏóàÏäµÎãàÎã§.\n";
+        std::cout << "? πËƒ°∞° ªË¡¶µ«æ˙Ω¿¥œ¥Ÿ.\n";
     }
     else {
-        std::cout << "Ìï¥Îãπ IDÏùò Î∞∞ÏπòÎ•º Ï∞æÏùÑ Ïàò ÏóÜÏäµÎãàÎã§.\n";
+        std::cout << "«ÿ¥Á ID¿« πËƒ°∏¶ √£¿ª ºˆ æ¯Ω¿¥œ¥Ÿ.\n";
     }
 }
 
 void BatchManager::searchBatch() {
     std::string id;
-    std::cout << "Ï°∞ÌöåÌï† Î∞∞Ïπò ID ÏûÖÎ†•: ";
+    std::cout << "¡∂»∏«“ πËƒ° ID ¿‘∑¬: ";
     std::cin >> id;
 
     for (const auto& batch : batches) {
@@ -115,7 +115,7 @@ void BatchManager::searchBatch() {
         }
     }
 
-    std::cout << "Ìï¥Îãπ IDÏùò Î∞∞ÏπòÎ•º Ï∞æÏùÑ Ïàò ÏóÜÏäµÎãàÎã§.\n";
+    std::cout << "«ÿ¥Á ID¿« πËƒ°∏¶ √£¿ª ºˆ æ¯Ω¿¥œ¥Ÿ.\n";
 }
 
 void BatchManager::run() {
@@ -123,14 +123,14 @@ void BatchManager::run() {
 
     int choice;
     do {
-        std::cout << "\n======= Î∞úÌö® Î∞∞Ïπò Í¥ÄÎ¶¨ Î©îÎâ¥ =======\n";
-        std::cout << "1. Î∞∞Ïπò Î™©Î°ù Ï°∞Ìöå\n";
-        std::cout << "2. ÏÉà Î∞∞Ïπò Ï∂îÍ∞Ä\n";
-        std::cout << "3. Î∞∞Ïπò ÏàòÏ†ï\n";
-        std::cout << "4. Î∞∞Ïπò ÏÇ≠Ï†ú\n";
-        std::cout << "5. Î∞∞Ïπò Í≤ÄÏÉâ\n";
-        std::cout << "0. Ï¢ÖÎ£å\n";
-        std::cout << "ÏÑ†ÌÉù >> ";
+        std::cout << "\n======= πﬂ»ø πËƒ° ∞¸∏Æ ∏ﬁ¥∫ =======\n";
+        std::cout << "1. πËƒ° ∏Ò∑œ ¡∂»∏\n";
+        std::cout << "2. ªı πËƒ° √ﬂ∞°\n";
+        std::cout << "3. πËƒ° ºˆ¡§\n";
+        std::cout << "4. πËƒ° ªË¡¶\n";
+        std::cout << "5. πËƒ° ∞Àªˆ\n";
+        std::cout << "0. ¡æ∑·\n";
+        std::cout << "º±≈√ >> ";
         std::cin >> choice;
 
         switch (choice) {
@@ -139,8 +139,8 @@ void BatchManager::run() {
         case 3: updateBatch(); break;
         case 4: deleteBatch(); break;
         case 5: searchBatch(); break;
-        case 0: std::cout << "ÌîÑÎ°úÍ∑∏Îû®ÏùÑ Ï¢ÖÎ£åÌï©ÎãàÎã§.\n"; break;
-        default: std::cout << "ÏûòÎ™ªÎêú ÏûÖÎ†•ÏûÖÎãàÎã§.\n"; break;
+        case 0: std::cout << "«¡∑Œ±◊∑•¿ª ¡æ∑·«’¥œ¥Ÿ.\n"; break;
+        default: std::cout << "¿ﬂ∏¯µ» ¿‘∑¬¿‘¥œ¥Ÿ.\n"; break;
         }
 
     } while (choice != 0);

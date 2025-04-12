@@ -11,22 +11,22 @@ void MainPage::run() {
 
     do {
         displayMenu();
-        std::cout << "ë²ˆí˜¸ë¥¼ ì„ íƒí•˜ì„¸ìš”: ";
+        std::cout << "¹øÈ£¸¦ ¼±ÅÃÇÏ¼¼¿ä: ";
         std::cin >> choice;
-        std::cin.ignore(); // ì—”í„° ìž…ë ¥ ë¬´ì‹œ
+        std::cin.ignore(); // ¿£ÅÍ ÀÔ·Â ¹«½Ã
 
         handleSelection(choice);
     } while (choice != 0);
 }
 
 void MainPage::displayMenu() {
-    std::cout << "\n=== ìœ„ìŠ¤í‚¤ ìƒì‚° ê´€ë¦¬ ì‹œìŠ¤í…œ ===\n";
-    std::cout << "1. ì›ìž¬ë£Œ í•­ëª© ê´€ë¦¬\n";
-    std::cout << "2. ë°°ì¹˜ ê´€ë¦¬\n";
-    std::cout << "3. ìŠ¤í”¼ë¦¿ ê´€ë¦¬\n";
-    std::cout << "4. ì˜¤í¬í†µ ìˆ™ì„± ê´€ë¦¬\n";
-    std::cout << "5. ë³‘ìž… ë° ì™„ì„±í’ˆ ê´€ë¦¬\n";
-    std::cout << "0. ì¢…ë£Œ\n";
+    std::cout << "\n=== À§½ºÅ° »ý»ê °ü¸® ½Ã½ºÅÛ ===\n";
+    std::cout << "1. ¿øÀç·á Ç×¸ñ °ü¸®\n";
+    std::cout << "2. ¹èÄ¡ °ü¸®\n";
+    std::cout << "3. ½ºÇÇ¸´ °ü¸®\n";
+    std::cout << "4. ¿ÀÅ©Åë ¼÷¼º °ü¸®\n";
+    std::cout << "5. º´ÀÔ ¹× ¿Ï¼ºÇ° °ü¸®\n";
+    std::cout << "0. Á¾·á\n";
 }
 
 void MainPage::handleSelection(int choice) {
@@ -42,25 +42,26 @@ void MainPage::handleSelection(int choice) {
         manager.displayBatches(batches);
         break;
     }
-    case 3:
+    case 3: {
         SpiritManager spiritManager;
         spiritManager.run();
         break;
+    }
     case 4: {
         OakAgingManager oakManager;
         oakManager.OakListRun();
         break;
     }
     case 5: {
-        BottledWhiskyManager WhiskyManager;
-        WhiskyManager.BottledListRun();
+        BottledWhiskyManager whiskyManager;
+        whiskyManager.BottledListRun();
         break;
     }
     case 0:
-        std::cout << "\ní”„ë¡œê·¸ëž¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n";
+        std::cout << "\nÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n";
         break;
     default:
-        std::cout << "\nìž˜ëª»ëœ ì„ íƒìž…ë‹ˆë‹¤. ë‹¤ì‹œ ìž…ë ¥í•´ì£¼ì„¸ìš”.\n";
+        std::cout << "\nÀß¸øµÈ ¼±ÅÃÀÔ´Ï´Ù. ´Ù½Ã ÀÔ·ÂÇØÁÖ¼¼¿ä.\n";
         break;
     }
 }

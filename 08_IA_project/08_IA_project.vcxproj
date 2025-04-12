@@ -130,7 +130,7 @@
     <ClCompile Include="BatchManager.cpp" />
     <ClCompile Include="BottledWhiskyManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mainpage.cpp" />
+    <ClCompile Include="MainPage.cpp" />
     <ClCompile Include="oakAgingManager.cpp" />
     <ClCompile Include="RawMeterialManager.cpp" />
     <ClCompile Include="SpiritManager.cpp" />
