@@ -1,4 +1,5 @@
 #include "MainPage.h"
+#include "UIUtils.h"
 #include "RawMaterialManager.h"
 #include "BatchManager.h"
 #include "SpiritManager.h"
@@ -6,62 +7,88 @@
 #include "BottledWhiskyManager.h"
 #include <iostream>
 
+using namespace UIUtils;
+
 void MainPage::run() {
     int choice;
 
     do {
-        displayMenu();
-        std::cout << "번호를 선택하세요: ";
+        displayDashboard();
+        std::cout << "\n입력 >> ";
         std::cin >> choice;
-        std::cin.ignore(); // 엔터 입력 무시
+        std::cin.ignore();
 
         handleSelection(choice);
     } while (choice != 0);
 }
 
-void MainPage::displayMenu() {
-    std::cout << "\n=== 위스키 생산 관리 시스템 ===\n";
-    std::cout << "1. 원재료 항목 관리\n";
-    std::cout << "2. 배치 관리\n";
-    std::cout << "3. 스피릿 관리\n";
-    std::cout << "4. 오크통 숙성 관리\n";
-    std::cout << "5. 병입 및 완성품 관리\n";
-    std::cout << "0. 종료\n";
+void MainPage::displayDashboard() {
+    RawMaterialManager raw;
+    BatchManager batch;
+    SpiritManager spirit;
+    OakAgingManager oak;
+    BottledWhiskyManager bottle;
+
+    std::vector<std::string> infoLines = {
+        batch.getSummary(),           // ex) "배치 수: 2개"
+        raw.getSummary(),             // ex) "원재료: 3종 / 300kg"
+        spirit.getSummary(),          // ex) "스피릿: 2종 / 평균 도수: 64%"
+        oak.getSummary(),             // ex) "숙성통 수: 2개"
+        bottle.getSummary()           // ex) "병입: 10병 / 평균가: 23000원"
+    };
+
+    std::vector<std::string> menu = {
+        "[1] 원재료 관리",
+        "[2] 배치 관리",
+        "[3] 스피릿 관리",
+        "[4] 오크통 숙성 관리",
+        "[5] 병입 및 완성품 관리",
+        "[0] 종료"
+    };
+
+    system("cls"); // Windows
+    std::cout << "=== 위스키 생산 관리 시스템 ===\n\n";
+    UIUtils::drawDashboard(infoLines, menu, 72, 30); // 넓이 고정
+
+    //std::cout << "\n입력 >> ";
 }
+
+
+
 
 void MainPage::handleSelection(int choice) {
     switch (choice) {
     case 1: {
-        RawMaterialManager rawManager;
-        rawManager.showRawMaterials();
+        RawMaterialManager raw;
+        raw.showRawMaterials();
         break;
     }
     case 2: {
-        BatchManager manager;
-        auto batches = manager.getDummyBatches();
-        manager.displayBatches(batches);
+        BatchManager batch;
+        auto list = batch.getDummyBatches();
+        batch.displayBatches(list);
         break;
     }
     case 3: {
-        SpiritManager spiritManager;
-        spiritManager.run();
+        SpiritManager s;
+        s.run();
         break;
     }
     case 4: {
-        OakAgingManager oakManager;
-        oakManager.OakListRun();
+        OakAgingManager oak;
+        oak.showOakList();
         break;
     }
     case 5: {
-        BottledWhiskyManager whiskyManager;
-        whiskyManager.BottledListRun();
+        BottledWhiskyManager b;
+        b.BottledListRun();
         break;
     }
     case 0:
-        std::cout << "\n프로그램을 종료합니다.\n";
+        std::cout << "프로그램을 종료합니다.\n";
         break;
     default:
-        std::cout << "\n잘못된 선택입니다. 다시 입력해주세요.\n";
+        std::cout << "잘못된 선택입니다.\n";
         break;
     }
 }

@@ -2,6 +2,23 @@
 #include <iostream>
 #include <algorithm>
 
+std::string SpiritManager::getSummary() {
+    int count = spirits.size();
+    double totalYield = 0, totalAbv = 0;
+
+    for (const auto& s : spirits) {
+        totalYield += s.yield_liters;
+        totalAbv += s.alcohol_percentage;
+    }
+
+    std::string result = "½ºÇÇ¸´: " + std::to_string(count) + "Á¾";
+    if (count > 0) {
+        result += " / Æò±Õ µµ¼ö: " + std::to_string(static_cast<int>(totalAbv / count)) + "%";
+    }
+    return result;
+}
+
+
 void SpiritManager::addSpirit() {
     Spirit spirit;
     std::cout << "\n=== ½ºÇÇ¸´ Ãß°¡ ===\n";

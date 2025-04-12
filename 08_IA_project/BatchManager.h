@@ -19,6 +19,7 @@ private:
     std::vector<FermentationBatch> batches;
 
 public:
+    std::string getSummary(); // 요약 정보 반환
     std::vector<FermentationBatch> getDummyBatches();
     void displayBatches(const std::vector<FermentationBatch>& batches);
     void run();  // 전체 시스템 메뉴 실행

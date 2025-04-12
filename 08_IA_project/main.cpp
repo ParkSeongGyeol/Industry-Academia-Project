@@ -1,7 +1,7 @@
 #include "MainPage.h"
 
 int main() {
-    MainPage page;
-    page.run();
+    MainPage mainPage;
+    mainPage.run();
     return 0;
 }

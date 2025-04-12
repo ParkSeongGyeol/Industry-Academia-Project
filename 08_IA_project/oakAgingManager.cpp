@@ -63,6 +63,13 @@ void OakAgingManager::OakListRun() {
 
 
 // OakAgingManager 기능 정의
+
+std::string OakAgingManager::getSummary() {
+    // 현재는 더미 2개 고정
+    return "숙성통 수: 2개";
+}
+
+
 void OakAgingManager::showOakList() {
     if (oakList.empty()) {
         cout << "등록된 오크통이 없습니다.\n";

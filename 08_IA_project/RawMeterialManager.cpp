@@ -1,6 +1,17 @@
 #include "RawMaterialManager.h"
 #include <iostream>
 
+// === RawMaterialManager 클래스 구현 ===
+
+std::string RawMaterialManager::getSummary() {
+    auto list = getDummyRawMaterials();
+    int totalKg = 0;
+    for (const auto& item : list)
+        totalKg += item.stock_kg;
+
+    return "원재료: " + std::to_string(list.size()) + "종 / " + std::to_string(totalKg) + "kg";
+}
+
 std::vector<RawMaterial> RawMaterialManager::getDummyRawMaterials() {
     return {
         {"보리", "곡물", "스코틀랜드", 1200},
@@ -21,3 +32,4 @@ void RawMaterialManager::showRawMaterials() {
         std::cout << "------------------------" << std::endl;
     }
 }
+

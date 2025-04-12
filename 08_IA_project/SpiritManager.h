@@ -21,6 +21,7 @@ private:
     std::vector<Spirit> spirits;
 
 public:
+    std::string getSummary(); // 요약 정보 반환
     void run();
     void addSpirit();
     void deleteSpirit();

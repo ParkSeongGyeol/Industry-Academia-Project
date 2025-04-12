@@ -2,6 +2,11 @@
 #include <iostream>
 #include <algorithm>
 
+std::string BatchManager::getSummary() {
+    auto batches = getDummyBatches();
+    return "배치 수: " + std::to_string(batches.size()) + "개";
+}
+
 std::vector<FermentationBatch> BatchManager::getDummyBatches() {
     return {
         {"B001", "2025-03-01", "medium", "saccharomyces", "rice, barley", 100.0, 22.5, 65, 72},

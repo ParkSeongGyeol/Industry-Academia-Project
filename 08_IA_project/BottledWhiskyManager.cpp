@@ -27,6 +27,8 @@ void BottledWhisky::decreaseStock(int count) {
     totalVolume -= perBottleVolume * count;
 }
 
+
+// === ShipmentRecord 클래스 구현 ===
 ShipmentRecord::ShipmentRecord(string name, string date, int qty, double price)
     : productName(name), date(date), quantity(qty), totalPrice(price) {
 }
@@ -35,6 +37,25 @@ void ShipmentRecord::ShowInfo() const {
     cout << "[출고기록] 날짜: " << date << ", 제품명: " << productName
         << ", 출고 수량: " << quantity << "병, 총 가격: " << totalPrice << "원" << endl;
 }
+
+
+// === BottledWhiskyManager 클래스 구현 ===
+std::string BottledWhiskyManager::getSummary() {
+    int totalCount = 0;
+    double totalPrice = 0;
+
+    for (const auto& w : inventory) {
+        totalCount += w.getBottleCount();
+        totalPrice += w.getPricePerBottle();
+    }
+
+    std::string result = "병입: " + std::to_string(totalCount) + "병";
+    if (!inventory.empty()) {
+        result += " / 평균가: " + std::to_string(static_cast<int>(totalPrice / inventory.size())) + "원";
+    }
+    return result;
+}
+
 
 // 전체 재고 출력
 void BottledWhiskyManager::showInventory() {
