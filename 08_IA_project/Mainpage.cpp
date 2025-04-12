@@ -1,4 +1,5 @@
 #include "MainPage.h"
+#include "RawMaterialManager.h"
 #include "BatchManager.h"
 #include "SpiritManager.h"
 #include "OakAgingManager.h"
@@ -30,9 +31,11 @@ void MainPage::displayMenu() {
 
 void MainPage::handleSelection(int choice) {
     switch (choice) {
-    case 1:
-        std::cout << "\n[원재료 항목 관리 기능은 구현 예정입니다]\n";
+    case 1: {
+        RawMaterialManager rawManager;
+        rawManager.showRawMaterials();
         break;
+    }
     case 2: {
         BatchManager manager;
         auto batches = manager.getDummyBatches();
