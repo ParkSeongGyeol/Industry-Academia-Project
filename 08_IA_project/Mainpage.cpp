@@ -43,7 +43,8 @@ void MainPage::handleSelection(int choice) {
         break;
     }
     case 3:
-        std::cout << "\n[스피릿 관리 기능은 구현 예정입니다]\n";
+        SpiritManager spiritManager;
+        spiritManager.run();
         break;
     case 4: {
         OakAgingManager oakManager;
