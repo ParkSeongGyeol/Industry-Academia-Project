@@ -129,6 +129,8 @@
   <ItemGroup>
     <ClCompile Include="BatchManager.cpp" />
     <ClCompile Include="BottledWhiskyManager.cpp" />
+    <ClCompile Include="FileExporter.cpp" />
+    <ClCompile Include="StorageEnvironment.cpp" />
     <ClCompile Include="UIUtils.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainPage.cpp" />
@@ -139,6 +141,8 @@
   <ItemGroup>
     <ClInclude Include="BatchManager.h" />
     <ClInclude Include="BottledWhiskyManager.h" />
+    <ClInclude Include="FileExporter.h" />
+    <ClInclude Include="StorageEnvironment.h" />
     <ClInclude Include="UIUtils.h" />
     <ClInclude Include="MainPage.h" />
     <ClInclude Include="OakAgingManager.h" />
