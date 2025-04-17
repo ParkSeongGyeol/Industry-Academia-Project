@@ -197,7 +197,7 @@ void BottledWhiskyManager::showShipmentLog() {
 }
 
 // 병입 위스키 관리 메뉴 실행
-void BottledWhiskyManager::BottledListRun() {
+void BottledWhiskyManager::showBottledWhiskyPage() {
     int choice;
 
     do {

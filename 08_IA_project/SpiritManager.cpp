@@ -77,7 +77,7 @@ void SpiritManager::displaySpirits() {
     }
 }
 
-void SpiritManager::run() {
+void SpiritManager::showSpiritPage() {
     int choice;
     do {
         std::cout << "\n===== 스피릿 관리 메뉴 =====\n";

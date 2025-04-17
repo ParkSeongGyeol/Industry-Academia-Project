@@ -46,7 +46,7 @@ private:
 
 public:
 	std::string getSummary(); // 요약 정보 반환
-	void OakListRun();
+	void showOakAgingPage();
 	void showOakList();
 	void addOakBox();
 	void updateOakBox();

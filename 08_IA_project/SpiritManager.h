@@ -22,7 +22,7 @@ private:
 
 public:
     std::string getSummary(); // 요약 정보 반환
-    void run();
+    void showSpiritPage();
     void addSpirit();
     void deleteSpirit();
     void displaySpirits();

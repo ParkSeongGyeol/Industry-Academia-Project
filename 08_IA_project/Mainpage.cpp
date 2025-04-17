@@ -60,7 +60,7 @@ void MainPage::handleSelection(int choice) {
     switch (choice) {
     case 1: {
         RawMaterialManager raw;
-        raw.showRawMaterials();
+        raw.showRawMaterialPage();
         break;
     }
     case 2: {
@@ -71,17 +71,17 @@ void MainPage::handleSelection(int choice) {
     }
     case 3: {
         SpiritManager s;
-        s.run();
+        s.showSpiritPage();
         break;
     }
     case 4: {
         OakAgingManager oak;
-        oak.showOakList();
+        oak.showOakAgingPage();
         break;
     }
     case 5: {
         BottledWhiskyManager b;
-        b.BottledListRun();
+        b.showBottledWhiskyPage();
         break;
     }
     case 0:

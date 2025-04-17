@@ -82,7 +82,7 @@ private:
 
 public:
     std::string getSummary(); // 요약 정보 반환
-    void BottledListRun();     // 시작
+    void showBottledWhiskyPage();     // 시작
     void showInventory();      // 현재 재고 출력
     void addWhisky();          // 병입 위스키 추가
     void shipWhisky();         // 출고 기록 생성 및 재고 감소

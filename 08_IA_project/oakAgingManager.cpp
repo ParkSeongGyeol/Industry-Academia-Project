@@ -37,7 +37,7 @@ void OakBox::setWaterAbsorptionTime(int t) { waterAbsorptionTime = t; }
 void OakBox::setRoasted(bool r) { roasted = r; }
 void OakBox::setWoodType(string wood) { woodType = wood; }
 
-void OakAgingManager::OakListRun() {
+void OakAgingManager::showOakAgingPage() {
     int choice;
 
     do {
