@@ -16,10 +16,16 @@ struct RawMaterial {
 
 class RawMaterialManager {
 public:
-    std::string getSummary();
-    void showInventory();      // 현재 보유 재고만
-    void showAllMaterials();   // 전체 이력 조회
-    void showRawMaterialPage();                // 콘솔 메뉴 루프
+    std::string getSummary();   // 화면에 띄워줄 정보
+    std::vector<std::string> getPageInfoLines();
+
+    void showInventory();       // 현재 보유 재고만
+    void showAllMaterials();    // 전체 이력 조회
+    void showRawMaterialPage(); // 콘솔 메뉴 루프
+    void addMaterial();
+    void updateMaterial();
+    void deleteMaterial();      // 출고 처리
+    void searchMaterial();
 
 private:
     std::vector<RawMaterial> materials;
