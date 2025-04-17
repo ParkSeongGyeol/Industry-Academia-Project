@@ -45,6 +45,7 @@ namespace UIUtils {
         for (const auto& row : grid)
             drawRow(row, width);
     }
+
     void UIUtils::drawDashboard(
         const std::vector<std::string>& infoLines,
         const std::vector<std::string>& menuLines,
@@ -52,21 +53,25 @@ namespace UIUtils {
         int rightWidth
     ) {
         size_t maxLines = std::max(infoLines.size(), menuLines.size());
+
+        // 빈 줄로 보정하여 줄 수 맞추기
+        std::vector<std::string> left = infoLines;
+        std::vector<std::string> right = menuLines;
+        left.resize(maxLines, "");
+        right.resize(maxLines, "");
+
         std::string leftBorder = "+" + std::string(leftWidth - 2, '-') + "+";
         std::string rightBorder = "+" + std::string(rightWidth - 2, '-') + "+";
 
-        // 상단 테두리
         std::cout << leftBorder << rightBorder << "\n";
 
         for (size_t i = 0; i < maxLines; ++i) {
-            std::string leftContent = (i < infoLines.size()) ? centerText(infoLines[i], leftWidth - 2) : std::string(leftWidth - 2, ' ');
-            std::string rightContent = (i < menuLines.size()) ? centerText(menuLines[i], rightWidth - 2) : std::string(rightWidth - 2, ' ');
+            std::string leftContent = centerText(left[i], leftWidth - 2);
+            std::string rightContent = centerText(right[i], rightWidth - 2);
             std::cout << "|" << leftContent << "|" << rightContent << "|\n";
         }
 
-        // 하단 테두리
         std::cout << leftBorder << rightBorder << "\n";
     }
-
 
 }
