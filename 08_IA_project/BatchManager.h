@@ -28,4 +28,7 @@ public:
     void updateBatch();
     void deleteBatch();
     void searchBatch();
+
+    double predictFermentation(const FermentationBatch& batch);
+    void predictBatchFermentation();  // 사용자 요청 기반 예측 실행
 };

@@ -35,7 +35,16 @@ bool BottledWhisky::isLabeled() const { return labeled; }
 void BottledWhisky::setLabelName(string name) { labelName = name; }
 void BottledWhisky::setBatchNumber(string num) { batchNumber = num; }
 void BottledWhisky::setExportTarget(string target) { exportTarget = target; }
+void BottledWhisky::setName(string name) { productName = name; }
+
+void BottledWhisky::setBottleCount(int count) { bottleCount = count;}
+
+void BottledWhisky::setTotalVolume(double volume) { totalVolume = volume; }
+void BottledWhisky::setPricePerBottle(double price) { pricePerBottle = price; }
+
 void BottledWhisky::setLabeled(bool value) { labeled = value; }
+
+
 
 // 출고 시 병 수와 총 용량을 감소시키는 함수
 void BottledWhisky::decreaseStock(int count) {
@@ -119,24 +128,91 @@ void BottledWhiskyManager::updateWhisky() {
 
     for (auto& w : inventory) {
         if (w.getName() == name) {
-            int choice;
-            cout << "[1] 라벨명" << endl;
-            cout << "[2] 배치번호" << endl;
-            cout << "[3] 출고대상" << endl;
-            cout << "[4] 라벨 여부\n선택: ";
-            cin >> choice;
-            switch (choice) {
-            case 1: { string label; cout << "새 라벨명: "; cin >> label; w.setLabelName(label); break; }
-            case 2: { string batch; cout << "새 배치번호: "; cin >> batch; w.setBatchNumber(batch); break; }
-            case 3: { string target; cout << "새 출고 대상: "; cin >> target; w.setExportTarget(target); break; }
-            case 4: { int l; cout << "라벨 여부 (1: O, 0: X): "; cin >> l; w.setLabeled(l == 1); break; }
-            default: cout << "잘못된 선택입니다.\n";
+            while (true) {
+                int choice;
+                cout << "\n[수정할 항목 선택]\n";
+                cout << "[1] 제품명\n";
+                cout << "[2] 라벨명\n";
+                cout << "[3] 배치번호\n";
+                cout << "[4] 출고대상\n";
+                cout << "[5] 수량(병)\n";
+                cout << "[6] 총 용량(L)\n";
+                cout << "[7] 병당 가격\n";
+                cout << "[8] 라벨 여부\n";
+                cout << "[0] 수정을 완료하고 나가기\n";
+                cout << "선택: ";
+                cin >> choice;
+
+                switch (choice) {
+                case 1: {
+                    string newName;
+                    cout << "새 제품명: ";
+                    cin >> newName;
+                    w.setName(newName);
+                    break;
+                }
+                case 2: {
+                    string label;
+                    cout << "새 라벨명: ";
+                    cin >> label;
+                    w.setLabelName(label);
+                    break;
+                }
+                case 3: {
+                    string batch;
+                    cout << "새 배치번호: ";
+                    cin >> batch;
+                    w.setBatchNumber(batch);
+                    break;
+                }
+                case 4: {
+                    string target;
+                    cout << "새 출고 대상: ";
+                    cin >> target;
+                    w.setExportTarget(target);
+                    break;
+                }
+                case 5: {
+                    int count;
+                    cout << "새 수량(병): ";
+                    cin >> count;
+                    w.setBottleCount(count);
+                    break;
+                }
+                case 6: {
+                    double volume;
+                    cout << "새 총 용량(L): ";
+                    cin >> volume;
+                    w.setTotalVolume(volume);
+                    break;
+                }
+                case 7: {
+                    double price;
+                    cout << "새 병당 가격: ";
+                    cin >> price;
+                    w.setPricePerBottle(price);
+                    break;
+                }
+                case 8: {
+                    int l;
+                    cout << "라벨 여부 (1: O, 0: X): ";
+                    cin >> l;
+                    w.setLabeled(l == 1);
+                    break;
+                }
+                case 0:
+                    cout << "수정을 완료했습니다.\n";
+                    return;
+                default:
+                    cout << "잘못된 선택입니다.\n";
+                }
             }
-            return;
         }
     }
+
     cout << "해당 제품을 찾을 수 없습니다.\n";
 }
+
 
 void BottledWhiskyManager::deleteWhisky() {
     string name;
