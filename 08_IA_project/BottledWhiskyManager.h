@@ -49,6 +49,13 @@ public:
     void setLabelName(string name);
     void setBatchNumber(string num);
     void setExportTarget(string target);
+    void setName(string name);
+
+    void setBottleCount(int count);
+
+    void setTotalVolume(double volume);
+    void setPricePerBottle(double price);
+
     void setLabeled(bool value);
 
     // 출고 시 재고 감소

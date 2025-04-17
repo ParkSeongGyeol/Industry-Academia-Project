@@ -76,7 +76,7 @@ void MainPage::handleSelection(int choice) {
     }
     case 4: {
         OakAgingManager oak;
-        oak.showOakList();
+        oak.OakListRun();
         break;
     }
     case 5: {

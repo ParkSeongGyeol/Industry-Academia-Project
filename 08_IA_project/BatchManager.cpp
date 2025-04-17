@@ -134,6 +134,7 @@ void BatchManager::run() {
         std::cout << "3. 배치 수정\n";
         std::cout << "4. 배치 삭제\n";
         std::cout << "5. 배치 검색\n";
+        std::cout << "6. 발효 정도 예측\n";
         std::cout << "0. 종료\n";
         std::cout << "선택 >> ";
         std::cin >> choice;
@@ -144,9 +145,45 @@ void BatchManager::run() {
         case 3: updateBatch(); break;
         case 4: deleteBatch(); break;
         case 5: searchBatch(); break;
+        case 6: predictBatchFermentation(); break;
         case 0: std::cout << "프로그램을 종료합니다.\n"; break;
         default: std::cout << "잘못된 입력입니다.\n"; break;
         }
 
     } while (choice != 0);
+}
+
+double BatchManager::predictFermentation(const FermentationBatch& batch) {
+    // 입자 크기에 따른 계수
+    double size_factor = 1.0;
+    if (batch.particle_size == "fine") size_factor = 1.2;
+    else if (batch.particle_size == "medium") size_factor = 1.0;
+    else if (batch.particle_size == "coarse") size_factor = 0.8;
+
+    // 간단한 점수 계산 (임의의 모델)
+    double score = (batch.temperature * 0.8) + (batch.humidity * 0.2) +(batch.duration_hours * 1.5);
+
+    score *= size_factor;
+
+    // 0 ~ 100 범위로 조정
+    if (score > 100) score = 100;
+    if (score < 0) score = 0;
+
+    return score;
+}
+
+void BatchManager::predictBatchFermentation() {
+    std::string id;
+    std::cout << "예측할 배치 ID 입력: ";
+    std::cin >> id;
+
+    for (const auto& batch : batches) {
+        if (batch.batch_id == id) {
+            double prediction = predictFermentation(batch);
+            std::cout << "예측된 발효 정도: " << prediction << "% 입니다.\n";
+            return;
+        }
+    }
+
+    std::cout << "해당 ID의 배치를 찾을 수 없습니다.\n";
 }

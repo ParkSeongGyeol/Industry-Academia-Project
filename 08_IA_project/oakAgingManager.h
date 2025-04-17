@@ -34,10 +34,19 @@ public:
 
 	// Setter
 	void setOrigin(string o);
+	void setWoodType(string wood);
+	void setType(string t);
+	void setId(string id);
+
 	void setAgingCount(int count);
 	void setWaterAbsorptionTime(int t);
+	void setRipeningPeriod(int p);
+	
+	void setEvaporationRate(double e);
+	void setTemperature(double t);
+	void setHumidity(double h);
+
 	void setRoasted(bool r);
-	void setWoodType(string wood);
 };
 
 class OakAgingManager {
