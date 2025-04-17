@@ -123,7 +123,7 @@ void BatchManager::searchBatch() {
     std::cout << "해당 ID의 배치를 찾을 수 없습니다.\n";
 }
 
-void BatchManager::run() {
+void BatchManager::showBatchPage() {
     batches = getDummyBatches();
 
     int choice;
@@ -146,12 +146,13 @@ void BatchManager::run() {
         case 4: deleteBatch(); break;
         case 5: searchBatch(); break;
         case 6: predictBatchFermentation(); break;
-        case 0: std::cout << "프로그램을 종료합니다.\n"; break;
+        case 0: std::cout << "메인 메뉴로 돌아갑니다.\n"; break;
         default: std::cout << "잘못된 입력입니다.\n"; break;
         }
 
     } while (choice != 0);
 }
+
 
 double BatchManager::predictFermentation(const FermentationBatch& batch) {
     // 입자 크기에 따른 계수

@@ -49,12 +49,7 @@ void MainPage::displayDashboard() {
     system("cls"); // Windows
     std::cout << "=== 위스키 생산 관리 시스템 ===\n\n";
     UIUtils::drawDashboard(infoLines, menu, 72, 30); // 넓이 고정
-
-    //std::cout << "\n입력 >> ";
 }
-
-
-
 
 void MainPage::handleSelection(int choice) {
     switch (choice) {
@@ -65,8 +60,7 @@ void MainPage::handleSelection(int choice) {
     }
     case 2: {
         BatchManager batch;
-        auto list = batch.getDummyBatches();
-        batch.displayBatches(list);
+        batch.showBatchPage();
         break;
     }
     case 3: {
