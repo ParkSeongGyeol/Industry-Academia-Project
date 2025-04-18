@@ -1,5 +1,6 @@
 #include "RawMaterialManager.h"
 #include "UIUtils.h"
+#include "StorageEnvironment.h"
 #include <iostream>
 #include <set>
 #include <map>
@@ -8,16 +9,16 @@
 
 using namespace std;
 
-std::string RawMaterialManager::getSummary() {  // 메인 페이지로 이동할 정보
+std::string RawMaterialManager::getSummary() {
     double totalKg = 0;
     for (const auto& item : materials)
-        if (item.exit_date.empty()) // 출고되지 않은 재고만
+        if (item.exit_date.empty())
             totalKg += item.weight_kg;
 
     return "원재료: " + to_string(materials.size()) + "종 / " + to_string((int)totalKg) + "kg";
 }
 
-std::vector<std::string> RawMaterialManager::getPageInfoLines() {   // 이 페이지에서 보여줄 정보
+std::vector<std::string> RawMaterialManager::getPageInfoLines() {
     int totalKinds = 0;
     double totalWeight = 0;
     std::set<std::string> storagePlaces;
@@ -49,7 +50,6 @@ std::vector<std::string> RawMaterialManager::getPageInfoLines() {   // 이 페이지
 
     return lines;
 }
-
 
 void RawMaterialManager::initializeDummyData() {
     materials = {
@@ -109,9 +109,9 @@ void RawMaterialManager::showRawMaterialPage() {
             "[4] 원재료 정보 수정",
             "[5] 원재료 삭제 (출고 처리)",
             "[6] 원재료 검색",
+            "[7] 보관 장소 환경정보 보기",  
             "[0] 메인으로 돌아가기"
         };
-
 
         UIUtils::drawDashboard(infoLines, menu, 72, 30);
         cout << "\n입력 >> ";
@@ -124,10 +124,10 @@ void RawMaterialManager::showRawMaterialPage() {
         case 4: updateMaterial(); break;
         case 5: deleteMaterial(); break;
         case 6: searchMaterial(); break;
+        case 7: showStorageEnvironment(); break;  
         case 0: cout << "메인으로 돌아갑니다...\n"; break;
         default: cout << "잘못된 입력입니다.\n"; break;
         }
-
 
         if (choice != 0) {
             cout << "\n계속하려면 Enter를 누르세요...";
@@ -227,4 +227,21 @@ void RawMaterialManager::searchMaterial() {
     if (!found) {
         cout << "해당 이름의 원재료를 찾을 수 없습니다.\n";
     }
+}
+
+void RawMaterialManager::showStorageEnvironment() {
+    std::vector<StorageEnvironment> storageList = {
+        {"창고 A", 18.5f, 55.2f},
+        {"지하 저장고", 12.0f, 70.0f},
+        {"실험실 보관소", 22.3f, 40.0f}
+    };
+
+    std::cout << "\n=== 보관 장소 환경 정보 조회 ===\n";
+    for (const auto& storage : storageList) {
+        std::cout << "-----------------------------\n";
+        storage.displayInfo();
+    }
+
+    std::cout << "\n계속하려면 Enter를 누르세요...";
+    std::cin.ignore(); std::cin.get();
 }

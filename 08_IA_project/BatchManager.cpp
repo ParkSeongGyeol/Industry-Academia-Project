@@ -1,12 +1,14 @@
 #include "BatchManager.h"
+#include "FileExporter.h"
 #include <iostream>
+#include <filesystem>
 #include <algorithm>
 
 std::string BatchManager::getSummary() {
     auto batches = getDummyBatches();
     return "배치 수: " + std::to_string(batches.size()) + "개";
 }
-// BatchManager.cpp 또는 헤더에 정의
+
 std::string FermentationBatch::toCSV() const {
     return batch_id + "," + start_date + "," + particle_size + "," +
         yeast_type + "," + ingredients + "," +
@@ -74,7 +76,7 @@ void BatchManager::updateBatch() {
             std::cout << "Yeast Type (현재: " << batch.yeast_type << "): ";
             std::cin >> batch.yeast_type;
 
-            std::cin.ignore(); // getline 전에 입력 버퍼 초기화
+            std::cin.ignore();
             std::cout << "Ingredients (현재: " << batch.ingredients << "): ";
             std::getline(std::cin, batch.ingredients);
 
@@ -132,56 +134,6 @@ void BatchManager::searchBatch() {
     std::cout << "해당 ID의 배치를 찾을 수 없습니다.\n";
 }
 
-void BatchManager::showBatchPage() {
-    batches = getDummyBatches();
-
-    int choice;
-    do {
-        std::cout << "\n======= 발효 배치 관리 메뉴 =======\n";
-        std::cout << "1. 배치 목록 조회\n";
-        std::cout << "2. 새 배치 추가\n";
-        std::cout << "3. 배치 수정\n";
-        std::cout << "4. 배치 삭제\n";
-        std::cout << "5. 배치 검색\n";
-        std::cout << "6. 발효 정도 예측\n";
-        std::cout << "0. 종료\n";
-        std::cout << "선택 >> ";
-        std::cin >> choice;
-
-        switch (choice) {
-        case 1: displayBatches(batches); break;
-        case 2: addBatch(); break;
-        case 3: updateBatch(); break;
-        case 4: deleteBatch(); break;
-        case 5: searchBatch(); break;
-        case 6: predictBatchFermentation(); break;
-        case 0: std::cout << "메인 메뉴로 돌아갑니다.\n"; break;
-        default: std::cout << "잘못된 입력입니다.\n"; break;
-        }
-
-    } while (choice != 0);
-}
-
-
-double BatchManager::predictFermentation(const FermentationBatch& batch) {
-    // 입자 크기에 따른 계수
-    double size_factor = 1.0;
-    if (batch.particle_size == "fine") size_factor = 1.2;
-    else if (batch.particle_size == "medium") size_factor = 1.0;
-    else if (batch.particle_size == "coarse") size_factor = 0.8;
-
-    // 간단한 점수 계산 (임의의 모델)
-    double score = (batch.temperature * 0.8) + (batch.humidity * 0.2) +(batch.duration_hours * 1.5);
-
-    score *= size_factor;
-
-    // 0 ~ 100 범위로 조정
-    if (score > 100) score = 100;
-    if (score < 0) score = 0;
-
-    return score;
-}
-
 void BatchManager::predictBatchFermentation() {
     std::string id;
     std::cout << "예측할 배치 ID 입력: ";
@@ -196,4 +148,63 @@ void BatchManager::predictBatchFermentation() {
     }
 
     std::cout << "해당 ID의 배치를 찾을 수 없습니다.\n";
+}
+
+double BatchManager::predictFermentation(const FermentationBatch& batch) {
+    double size_factor = 1.0;
+    if (batch.particle_size == "fine") size_factor = 1.2;
+    else if (batch.particle_size == "medium") size_factor = 1.0;
+    else if (batch.particle_size == "coarse") size_factor = 0.8;
+
+    double score = (batch.temperature * 0.8) + (batch.humidity * 0.2) + (batch.duration_hours * 1.5);
+    score *= size_factor;
+
+    return std::clamp(score, 0.0, 100.0);
+}
+
+//  CSV 출력 기능
+void BatchManager::exportFermentationStatusToCSV() {
+    std::string filename = "fermentation_status.csv";
+    if (FileExporter::exportToCSV(batches, filename)) {
+        std::cout << "발효 상태가 성공적으로 CSV로 출력되었습니다.\n";
+        std::cout << "저장 경로: " << std::filesystem::current_path() / filename << "\n";
+    }
+    else {
+        std::cout << "CSV 출력 실패: 파일을 열 수 없습니다.\n";
+    }
+
+    std::cout << "\n계속하려면 Enter를 누르세요...";
+    std::cin.ignore(); std::cin.get();
+}
+
+void BatchManager::showBatchPage() {
+    batches = getDummyBatches();
+
+    int choice;
+    do {
+        std::cout << "\n======= 발효 배치 관리 메뉴 =======\n";
+        std::cout << "1. 배치 목록 조회\n";
+        std::cout << "2. 새 배치 추가\n";
+        std::cout << "3. 배치 수정\n";
+        std::cout << "4. 배치 삭제\n";
+        std::cout << "5. 배치 검색\n";
+        std::cout << "6. 발효 정도 예측\n";
+        std::cout << "7. 발효 상태 CSV 출력\n";  
+        std::cout << "0. 종료\n";
+        std::cout << "선택 >> ";
+        std::cin >> choice;
+
+        switch (choice) {
+        case 1: displayBatches(batches); break;
+        case 2: addBatch(); break;
+        case 3: updateBatch(); break;
+        case 4: deleteBatch(); break;
+        case 5: searchBatch(); break;
+        case 6: predictBatchFermentation(); break;
+        case 7: exportFermentationStatusToCSV(); break; //  연결
+        case 0: std::cout << "메인 메뉴로 돌아갑니다.\n"; break;
+        default: std::cout << "잘못된 입력입니다.\n"; break;
+        }
+
+    } while (choice != 0);
 }

@@ -6,6 +6,4 @@ public:
 private:
     void displayDashboard();         // 정보 요약 + 메뉴 출력
     void handleSelection(int choice);
-    void exportCSVTest();               //  FileExporter용
-    void showStorageEnvironmentTest();  //  StorageEnvironment용
 };

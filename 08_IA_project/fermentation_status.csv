@@ -1,3 +1,3 @@
 BatchID,StartDate,ParticleSize,YeastType,Ingredients,Amount(L),Temperature,Humidity,Duration(H)
-F001,2025-04-15,medium,saccharomyces,rice, barley,100.000000,25.400000,60,72
-F002,2025-04-14,fine,brettanomyces,corn, wheat,85.000000,26.100000,58,48
+B001,2025-03-01,medium,saccharomyces,rice, barley,100.000000,22.500000,65,72
+B002,2025-03-05,fine,brettanomyces,corn, wheat,85.000000,21.000000,70,48

@@ -3,7 +3,7 @@
 #include <algorithm>
 
 std::string SpiritManager::getSummary() {
-    int count = spirits.size();
+    size_t count = spirits.size();
     double totalYield = 0, totalAbv = 0;
 
     for (const auto& s : spirits) {
