@@ -5,6 +5,9 @@
 #include "SpiritManager.h"
 #include "OakAgingManager.h"
 #include "BottledWhiskyManager.h"
+#include "StorageEnvironment.h"
+#include "FileExporter.h"
+#include <algorithm>
 #include <iostream>
 
 using namespace UIUtils;
@@ -43,6 +46,8 @@ void MainPage::displayDashboard() {
         "[3] 스피릿 관리",
         "[4] 오크통 숙성 관리",
         "[5] 병입 및 완성품 관리",
+        "[6] 발효 상태 CSV 출력",                
+        "[7] 보관 장소 정보 보기",
         "[0] 종료"
     };
 
@@ -78,6 +83,12 @@ void MainPage::handleSelection(int choice) {
         b.showBottledWhiskyPage();
         break;
     }
+    case 6:
+        exportCSVTest();
+        break;
+    case 7:
+        showStorageEnvironmentTest();
+        break;
     case 0:
         std::cout << "프로그램을 종료합니다.\n";
         break;
@@ -86,3 +97,32 @@ void MainPage::handleSelection(int choice) {
         break;
     }
 }
+void MainPage::exportCSVTest() {
+    std::vector<FermentationBatch> batches = {
+        {"F001", "2025-04-15", "medium", "saccharomyces", "rice, barley", 100.0, 25.4, 60, 72},
+        {"F002", "2025-04-14", "fine", "brettanomyces", "corn, wheat", 85.0, 26.1, 58, 48}
+    };
+
+    std::string outputFilename = "fermentation_status.csv";
+    if (FileExporter::exportToCSV(batches, outputFilename)) {
+        std::cout << "발효 상태가 성공적으로 출력되었습니다.\n";
+        std::cout << "저장 경로: " << std::filesystem::current_path() / outputFilename << "\n";
+    }
+    else {
+        std::cout << "출력 실패! 파일을 열 수 없습니다.\n";
+    }
+}
+void MainPage::showStorageEnvironmentTest() {
+    std::vector<StorageEnvironment> storageList = {
+        {"창고 A", 18.5f, 55.2f},
+        {"지하 저장고", 12.0f, 70.0f},
+        {"실험실 보관소", 22.3f, 40.0f}
+    };
+
+    std::cout << "=== 보관 장소 환경 정보 조회 ===\n";
+    for (const auto& storage : storageList) {
+        std::cout << "-----------------------------\n";
+        storage.displayInfo();
+    }
+}
+

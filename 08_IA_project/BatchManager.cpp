@@ -6,6 +6,15 @@ std::string BatchManager::getSummary() {
     auto batches = getDummyBatches();
     return "배치 수: " + std::to_string(batches.size()) + "개";
 }
+// BatchManager.cpp 또는 헤더에 정의
+std::string FermentationBatch::toCSV() const {
+    return batch_id + "," + start_date + "," + particle_size + "," +
+        yeast_type + "," + ingredients + "," +
+        std::to_string(amount_liters) + "," +
+        std::to_string(temperature) + "," +
+        std::to_string(humidity) + "," +
+        std::to_string(duration_hours);
+}
 
 std::vector<FermentationBatch> BatchManager::getDummyBatches() {
     return {
