@@ -1,4 +1,5 @@
 #include "BottledWhiskyManager.h"
+#include "UIUtils.h"
 #include <iostream>
 
 using namespace std;
@@ -277,15 +278,43 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
     int choice;
 
     do {
-        cout << "\n[병입 및 완성품 관리 메뉴]\n";
-        cout << "1. 재고 목록 보기\n";
-        cout << "2. 제품 추가\n";
-        cout << "3. 제품 출고\n";
-        cout << "4. 출고 기록 보기\n";
-        cout << "5. 완제품 수정\n";
-        cout << "6. 완제품 삭제\n";
-        cout << "0. 메인 메뉴로 돌아가기\n";
-        cout << "선택: ";
+        system("cls");
+
+        // 좌측 정보 구성 (infoLines)
+        vector<string> infoLines;
+        int totalCount = 0;
+        double totalVolume = 0, totalValue = 0;
+
+        for (const auto& w : inventory) {
+            totalCount += w.getBottleCount();
+            totalVolume += w.getTotalVolume();
+            totalValue += w.getBottleCount() * w.getPricePerBottle();
+        }
+
+        infoLines.push_back("▶ 전체 병 수량: " + to_string(totalCount) + "병");
+        infoLines.push_back("▶ 전체 용량: " + to_string((int)totalVolume) + "L");
+        if (totalCount > 0) {
+            infoLines.push_back("▶ 평균 병당 가격: " + to_string((int)(totalValue / totalCount)) + "원");
+        }
+        else {
+            infoLines.push_back("▶ 평균 병당 가격: -");
+        }
+
+        // 우측 메뉴 구성 (menuLines)
+        vector<string> menu = {
+            "[1] 재고 목록 보기",
+            "[2] 제품 추가",
+            "[3] 제품 출고",
+            "[4] 출고 기록 보기",
+            "[5] 완제품 수정",
+            "[6] 완제품 삭제",
+            "[0] 메인 메뉴로 돌아가기"
+        };
+
+        // 대시보드 출력
+        UIUtils::drawDashboard(infoLines, menu, 72, 30);
+
+        cout << "\n입력 >> ";
         cin >> choice;
 
         switch (choice) {
@@ -295,8 +324,16 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
         case 4: showShipmentLog(); break;
         case 5: updateWhisky(); break;
         case 6: deleteWhisky(); break;
-        case 0: cout << "메인 메뉴로 돌아갑니다.\n"; break;
-        default: cout << "잘못된 입력입니다.\n";
+        case 0: cout << "메인 메뉴로 돌아갑니다...\n"; break;
+        default: cout << "잘못된 입력입니다.\n"; break;
         }
+
+        if (choice != 0) {
+            cout << "\n계속하려면 Enter를 누르세요...";
+            cin.ignore(); cin.get();
+        }
+
     } while (choice != 0);
 }
+
+
