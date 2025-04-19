@@ -4,49 +4,46 @@
 
 namespace UIUtils {
 
-    std::string UIUtils::centerText(const std::string& text, int width) {
+    // 텍스트 가운데 정렬
+    std::string centerText(const std::string& text, int width) {
         int pad = width - static_cast<int>(text.length());
-        if (pad <= 0) {
-            return text.substr(0, width); // 길면 잘라냄
-        }
-
+        if (pad <= 0) return text.substr(0, width); // 길면 자르기
         int padLeft = pad / 2;
         int padRight = pad - padLeft;
         return std::string(padLeft, ' ') + text + std::string(padRight, ' ');
     }
 
-
+    // 단일 박스 출력
     void drawBox(const std::string& content, int width) {
         std::string centered = centerText(content, width - 2);
-
         std::cout << "+" << std::string(width - 2, '-') << "+\n";
         std::cout << "|" << centered << "|\n";
         std::cout << "+" << std::string(width - 2, '-') << "+\n";
     }
 
+    // 한 줄의 여러 박스 출력
     void drawRow(const std::vector<std::string>& contents, int width) {
-        // 상단 테두리
         for (const auto& content : contents)
             std::cout << "+" << std::string(width - 2, '-');
         std::cout << "+\n";
 
-        // 내용 줄
         for (const auto& content : contents)
             std::cout << "|" << centerText(content, width - 2);
         std::cout << "|\n";
 
-        // 하단 테두리
         for (const auto& content : contents)
             std::cout << "+" << std::string(width - 2, '-');
         std::cout << "+\n";
     }
 
+    // 여러 줄의 박스 그리드 출력
     void drawGrid(const std::vector<std::vector<std::string>>& grid, int width) {
         for (const auto& row : grid)
             drawRow(row, width);
     }
 
-    void UIUtils::drawDashboard(
+    // 대시보드 형태로 양쪽 출력 (정보 / 메뉴)
+    void drawDashboard(
         const std::vector<std::string>& infoLines,
         const std::vector<std::string>& menuLines,
         int leftWidth,
@@ -54,7 +51,6 @@ namespace UIUtils {
     ) {
         size_t maxLines = std::max(infoLines.size(), menuLines.size());
 
-        // 빈 줄로 보정하여 줄 수 맞추기
         std::vector<std::string> left = infoLines;
         std::vector<std::string> right = menuLines;
         left.resize(maxLines, "");
@@ -74,4 +70,14 @@ namespace UIUtils {
         std::cout << leftBorder << rightBorder << "\n";
     }
 
-}
+    // 문자열 집합을 한 줄로 연결
+    std::string joinStrings(const std::set<std::string>& items, const std::string& delimiter) {
+        std::string result;
+        for (const auto& item : items) {
+            if (!result.empty()) result += delimiter;
+            result += item;
+        }
+        return result;
+    }
+
+} // namespace UIUtils

@@ -15,7 +15,7 @@ void MainPage::run() {
 
     do {
         displayDashboard();
-        std::cout << "\n입력 >> ";
+        std::cout << "\n메뉴 번호를 입력하세요 >> ";
         std::cin >> choice;
         std::cin.ignore();
 
@@ -47,9 +47,14 @@ void MainPage::displayDashboard() {
         "[0] 종료"
     };
 
-    system("cls"); // Windows 전용
+#ifdef _WIN32
+    system("cls");  // Windows
+#else
+    system("clear");  // Linux/Mac
+#endif
+
     std::cout << "=== 위스키 생산 관리 시스템 ===\n\n";
-    UIUtils::drawDashboard(infoLines, menu, 72, 30);
+    UIUtils::drawDashboard(infoLines, menu, 72, 30); // 너비, 높이 설정
 }
 
 void MainPage::handleSelection(int choice) {
@@ -65,8 +70,8 @@ void MainPage::handleSelection(int choice) {
         break;
     }
     case 3: {
-        SpiritManager s;
-        s.showSpiritPage();
+        SpiritManager spirit;
+        spirit.showSpiritPage();
         break;
     }
     case 4: {
@@ -75,15 +80,16 @@ void MainPage::handleSelection(int choice) {
         break;
     }
     case 5: {
-        BottledWhiskyManager b;
-        b.showBottledWhiskyPage();
+        BottledWhiskyManager bottle;
+        bottle.showBottledWhiskyPage();
         break;
     }
     case 0:
         std::cout << "프로그램을 종료합니다.\n";
         break;
     default:
-        std::cout << "잘못된 선택입니다.\n";
+        std::cout << " 잘못된 선택입니다. 0~5 사이의 번호를 입력하세요.\n";
+        pauseConsole(); // 사용자 입력 대기
         break;
     }
 }
