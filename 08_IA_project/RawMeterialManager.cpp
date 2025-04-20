@@ -34,15 +34,15 @@ std::vector<std::string> RawMaterialManager::getPageInfoLines() {
     }
 
     std::vector<std::string> lines;
-    lines.push_back("▶ 현재 보유 원재료: " + std::to_string(totalKinds) + "종 / " + std::to_string((int)totalWeight) + "kg");
+    lines.push_back("현재 보유 원재료: " + std::to_string(totalKinds) + "종 / " + std::to_string((int)totalWeight) + "kg");
 
-    std::string typeSummary = "▶ 종류별 수량: ";
+    std::string typeSummary = "종류별 수량: ";
     for (const auto& pair : typeCount) {
         typeSummary += pair.first + ": " + std::to_string(pair.second) + "개  ";
     }
     lines.push_back(typeSummary);
 
-    std::string storageSummary = "▶ 보관 위치: ";
+    std::string storageSummary = "보관 위치: ";
     for (const auto& place : storagePlaces) {
         storageSummary += place + "  ";
     }

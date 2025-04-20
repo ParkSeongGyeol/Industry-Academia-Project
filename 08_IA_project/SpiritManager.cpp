@@ -1,4 +1,5 @@
 #include "SpiritManager.h"
+#include "UIUtils.h"
 #include <iostream>
 #include <algorithm>
 
@@ -18,6 +19,65 @@ std::string SpiritManager::getSummary() {
     return result;
 }
 
+std::vector<std::string> SpiritManager::getPageInfoLines() {
+    std::vector<std::string> lines;
+
+    size_t count = spirits.size();
+    double totalYield = 0;
+    double totalAbv = 0;
+    for (const auto& s : spirits) {
+        totalYield += s.yield_liters;
+        totalAbv += s.alcohol_percentage;
+    }
+
+    lines.push_back("등록된 스피릿 수: " + std::to_string(count) + "개");
+    if (count > 0) {
+        lines.push_back("총 생산량: " + std::to_string((int)totalYield) + "L");
+        lines.push_back("평균 도수: " + std::to_string((int)(totalAbv / count)) + "%");
+    }
+    else {
+        lines.push_back("총 생산량: 0L");
+        lines.push_back("평균 도수: -");
+    }
+
+    return lines;
+}
+
+void SpiritManager::showSpiritPage() {
+    int choice;
+    do {
+        system("cls");
+        std::cout << "=== 스피릿 관리 메뉴 ===\n\n";
+
+        std::vector<std::string> infoLines = getPageInfoLines();
+        std::vector<std::string> menu = {
+            "[1] 스피릿 목록 보기",
+            "[2] 스피릿 추가",
+            "[3] 스피릿 삭제",
+            "[4] 스피릿 수정",
+            "[0] 메인으로 돌아가기"
+        };
+
+        UIUtils::drawDashboard(infoLines, menu, 72, 30);
+        std::cout << "\n입력 >> ";
+        std::cin >> choice;
+
+        switch (choice) {
+        case 1: displaySpirits(); break;
+        case 2: addSpirit(); break;
+        case 3: deleteSpirit(); break;
+        case 4: updateSpirit(); break;
+        case 0: std::cout << "메인으로 돌아갑니다...\n"; break;
+        default: std::cout << "잘못된 입력입니다.\n"; break;
+        }
+
+        if (choice != 0) {
+            std::cout << "\n계속하려면 Enter를 누르세요...";
+            std::cin.ignore(); std::cin.get();
+        }
+
+    } while (choice != 0);
+}
 
 void SpiritManager::addSpirit() {
     Spirit spirit;
@@ -77,29 +137,6 @@ void SpiritManager::displaySpirits() {
     }
 }
 
-void SpiritManager::showSpiritPage() {
-    int choice;
-    do {
-        std::cout << "\n===== 스피릿 관리 메뉴 =====\n";
-        std::cout << "1. 스피릿 목록 보기\n";
-        std::cout << "2. 스피릿 추가\n";
-        std::cout << "3. 스피릿 삭제\n";
-        std::cout << "4. 스피릿 수정\n";
-        std::cout << "0. 종료\n";
-        std::cout << "선택 >> ";
-        std::cin >> choice;
-
-        switch (choice) {
-        case 1: displaySpirits(); break;
-        case 2: addSpirit(); break;
-        case 3: deleteSpirit(); break;
-        case 4: updateSpirit(); break;
-        case 0: std::cout << "종료합니다.\n"; break;
-        default: std::cout << "잘못된 입력입니다.\n"; break;
-        }
-
-    } while (choice != 0);
-}
 void SpiritManager::updateSpirit() {
     std::string id;
     std::cout << "\n수정할 스피릿 ID 입력: ";

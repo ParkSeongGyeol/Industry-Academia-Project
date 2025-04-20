@@ -31,6 +31,19 @@ public:
 
 	// Getter
 	string getId() const;
+	std::string getType() const;
+	std::string getOrigin() const;
+	std::string getWoodType() const;
+
+	int getRipeningPeriod() const;
+	int getAgingCount() const;
+	int getWaterAbsorptionTime() const;
+
+	double getEvaporationRate() const;
+	double getTemperature() const;
+	double getHumidity() const;
+
+	bool isRoasted() const;
 
 	// Setter
 	void setOrigin(string o);
@@ -55,6 +68,8 @@ private:
 
 public:
 	std::string getSummary(); // 요약 정보 반환
+	std::vector<std::string> getPageInfoLines();
+
 	void showOakAgingPage();
 	void showOakList();
 	void addOakBox();

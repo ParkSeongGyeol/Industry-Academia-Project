@@ -1,9 +1,8 @@
 #include "OakAgingManager.h"
+#include "UIUtils.h"
 #include <iostream>
 
 using namespace std;
-
-// 클래스 항목 헤더 파일로 이동
 
 OakBox::OakBox(string id, string t, string o, string wood,
     int period, int count, int waterTime,
@@ -13,7 +12,6 @@ OakBox::OakBox(string id, string t, string o, string wood,
     ripeningPeriod(period), agingCount(count), waterAbsorptionTime(waterTime),
     evaporationRate(evarate), temperature(temp), humidity(hum),
     roasted(roast) {}
-
 
 void OakBox::ShowInfo() const {
     cout << "오크통 ID : " << boxId << endl;
@@ -29,9 +27,24 @@ void OakBox::ShowInfo() const {
     cout << "로스팅 여부: " << (roasted ? "로스팅됨" : "로스팅 안됨") << endl;
 }
 
-// Getter / Setter 정의
+// Getter 
 string OakBox::getId() const { return boxId; }
+std::string OakBox::getType() const { return type; }
+std::string OakBox::getOrigin() const { return origin; }
+std::string OakBox::getWoodType() const { return woodType; }
 
+int OakBox::getRipeningPeriod() const { return ripeningPeriod; }
+int OakBox::getAgingCount() const { return agingCount; }
+int OakBox::getWaterAbsorptionTime() const { return waterAbsorptionTime; }
+
+double OakBox::getEvaporationRate() const { return evaporationRate; }
+double OakBox::getTemperature() const { return temperature; }
+double OakBox::getHumidity() const { return humidity; }
+
+bool OakBox::isRoasted() const { return roasted; }
+
+
+// Setter 정의
 void OakBox::setOrigin(string o) { origin = o; }
 void OakBox::setWoodType(string wood) { woodType = wood; }
 void OakBox::setType(string t) { type = t; }
@@ -47,42 +60,73 @@ void OakBox::setHumidity(double h) { humidity = h; }
 
 void OakBox::setRoasted(bool r) { roasted = r; }
 
-
-
-
+// OakAgingManager 기능 정의
 
 void OakAgingManager::showOakAgingPage() {
     int choice;
 
     do {
-        cout << "\n[오크통 숙성 관리 메뉴]\n";
-        cout << "1. 오크통 목록 보기\n";
-        cout << "2. 오크통 추가\n";
-        cout << "3. 오크통 수정\n";
-        cout << "4. 오크통 삭제\n";
-        cout << "0. 뒤로 가기\n";
-        cout << "선택: ";
-        cin >> choice;
+        system("cls");
+        std::cout << "=== 오크통 숙성 관리 메뉴 ===\n\n";
+
+        std::vector<std::string> infoLines = getPageInfoLines();
+        std::vector<std::string> menu = {
+            "[1] 오크통 목록 보기",
+            "[2] 오크통 추가",
+            "[3] 오크통 수정",
+            "[4] 오크통 삭제",
+            "[0] 메인으로 돌아가기"
+        };
+
+        UIUtils::drawDashboard(infoLines, menu, 72, 30);
+        std::cout << "\n입력 >> ";
+        std::cin >> choice;
 
         switch (choice) {
         case 1: showOakList(); break;
         case 2: addOakBox(); break;
         case 3: updateOakBox(); break;
         case 4: deleteOakBox(); break;
-        case 0: cout << "메인 메뉴로 돌아갑니다.\n"; break;
-        default: cout << "잘못된 입력입니다.\n";
+        case 0: std::cout << "메인으로 돌아갑니다.\n"; break;
+        default: std::cout << "잘못된 입력입니다.\n"; break;
         }
+
+        if (choice != 0) {
+            std::cout << "\n계속하려면 Enter를 누르세요...";
+            std::cin.ignore(); std::cin.get();
+        }
+
     } while (choice != 0);
 }
-
-
-// OakAgingManager 기능 정의
 
 std::string OakAgingManager::getSummary() {
     // 현재는 더미 2개 고정
     return "숙성통 수: 2개";
 }
 
+std::vector<std::string> OakAgingManager::getPageInfoLines() {
+    std::vector<std::string> lines;
+    size_t count = oakList.size();
+    int totalPeriod = 0;
+    double totalEvap = 0;
+
+    for (const auto& box : oakList) {
+        totalPeriod += box.getRipeningPeriod();
+        totalEvap += box.getEvaporationRate();
+    }
+
+    lines.push_back("등록된 오크통 수: " + std::to_string(count));
+    if (count > 0) {
+        lines.push_back("평균 숙성 기간: " + std::to_string(totalPeriod / count) + "일");
+        lines.push_back("평균 증발률: " + std::to_string((int)(totalEvap / count)) + "%");
+    }
+    else {
+        lines.push_back("평균 숙성 기간: -");
+        lines.push_back("평균 증발률: -");
+    }
+
+    return lines;
+}
 
 void OakAgingManager::showOakList() {
     if (oakList.empty()) {
@@ -236,7 +280,6 @@ void OakAgingManager::updateOakBox() {
     cout << "해당 ID를 가진 오크통이 없습니다.\n";
 }
 
-
 void OakAgingManager::deleteOakBox() {
     string id;
     cout << "삭제할 오크통 ID 입력: ";
@@ -251,7 +294,3 @@ void OakAgingManager::deleteOakBox() {
     }
     cout << "해당 ID를 찾을 수 없습니다.\n";
 }
-
-
-
-

@@ -22,6 +22,8 @@ private:
 
 public:
     std::string getSummary(); // 요약 정보 반환
+    std::vector<std::string> getPageInfoLines();
+
     void showSpiritPage();
     void addSpirit();
     void deleteSpirit();

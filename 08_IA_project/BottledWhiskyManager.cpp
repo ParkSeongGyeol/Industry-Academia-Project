@@ -278,7 +278,10 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
     int choice;
 
     do {
-        system("cls");
+		system("cls"); // 화면 지우기
+		// 대시보드 출력
+		// 병입 및 완성품 관리 페이지
+		cout << "=== 병입 및 완성품 관리 메뉴 ===\n\n";
 
         // 좌측 정보 구성 (infoLines)
         vector<string> infoLines;
@@ -291,13 +294,13 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
             totalValue += w.getBottleCount() * w.getPricePerBottle();
         }
 
-        infoLines.push_back("▶ 전체 병 수량: " + to_string(totalCount) + "병");
-        infoLines.push_back("▶ 전체 용량: " + to_string((int)totalVolume) + "L");
+        infoLines.push_back("전체 병 수량: " + to_string(totalCount) + "병");
+        infoLines.push_back("전체 용량: " + to_string((int)totalVolume) + "L");
         if (totalCount > 0) {
-            infoLines.push_back("▶ 평균 병당 가격: " + to_string((int)(totalValue / totalCount)) + "원");
+            infoLines.push_back("평균 병당 가격: " + to_string((int)(totalValue / totalCount)) + "원");
         }
         else {
-            infoLines.push_back("▶ 평균 병당 가격: -");
+            infoLines.push_back("평균 병당 가격: -");
         }
 
         // 우측 메뉴 구성 (menuLines)

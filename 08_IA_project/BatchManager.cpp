@@ -215,10 +215,10 @@ void BatchManager::showBatchPage() {
         auto locations = getStorageLocations();
 
         std::vector<std::string> infoLines = {
-            "▶ 전체 배치 수: " + std::to_string(total) + "개",
-            "▶ 상태 분포: 발효 중 " + std::to_string(fermenting) + "개 / 완료 " + std::to_string(completed) + "개",
-            "▶ 평균 발효 시간: " + std::to_string(static_cast<int>(avg)) + "시간",
-            "▶ 저장 위치: " + UIUtils::joinStrings(locations, " ")
+            "전체 배치 수: " + std::to_string(total) + "개",
+            "상태 분포: 발효 중 " + std::to_string(fermenting) + "개 / 완료 " + std::to_string(completed) + "개",
+            "평균 발효 시간: " + std::to_string(static_cast<int>(avg)) + "시간",
+            "저장 위치: " + UIUtils::joinStrings(locations, " ")
         };
 
         std::vector<std::string> menu = {
