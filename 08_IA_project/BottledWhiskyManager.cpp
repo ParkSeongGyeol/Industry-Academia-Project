@@ -8,6 +8,7 @@ using namespace std;
 BottledWhisky::BottledWhisky(string name, string label, string batch, string target, int count, double volume, double price, bool labeled)
     : productName(name), labelName(label), batchNumber(batch), exportTarget(target), bottleCount(count), totalVolume(volume), pricePerBottle(price), labeled(labeled) {}
 
+//위스키 정보 출력
 void BottledWhisky::ShowInfo() const {
     cout << "제품명: " << productName << endl;
     cout << "수량: " << bottleCount << "병" << endl;
@@ -19,7 +20,7 @@ void BottledWhisky::ShowInfo() const {
     cout << "출고 대상: " << exportTarget << endl;
 }
 
-// getter
+// getter 함수 - 멤버 변수 값을 반환
 string BottledWhisky::getName() const { return productName; }
 string BottledWhisky::getLabelName() const { return labelName; }
 string BottledWhisky::getBatchNumber() const { return batchNumber; }
@@ -32,7 +33,7 @@ double BottledWhisky::getPricePerBottle() const { return pricePerBottle; }
 
 bool BottledWhisky::isLabeled() const { return labeled; }
 
-// setter
+// setter 함수 - 멤버 변수 값을 설정
 void BottledWhisky::setLabelName(string name) { labelName = name; }
 void BottledWhisky::setBatchNumber(string num) { batchNumber = num; }
 void BottledWhisky::setExportTarget(string target) { exportTarget = target; }
@@ -47,16 +48,17 @@ void BottledWhisky::setLabeled(bool value) { labeled = value; }
 
 
 
+// === ShipmentRecord 클래스 구현 ===
 // 출고 시 병 수와 총 용량을 감소시키는 함수
 void BottledWhisky::decreaseStock(int count) {
-    if (bottleCount == 0) return;
+    if (bottleCount == 0) return; // 재고가 없으면 종료
     double perBottleVolume = totalVolume / bottleCount; // 병당 용량
-    bottleCount -= count;
+    bottleCount -= count; 
     totalVolume -= perBottleVolume * count;
 }
 
 
-// === ShipmentRecord 클래스 구현 ===
+// 출고 기록을 관리하는 클래스
 ShipmentRecord::ShipmentRecord(string name, string date, int qty, double price)
     : productName(name), date(date), quantity(qty), totalPrice(price) {
 }
@@ -70,10 +72,12 @@ void ShipmentRecord::ShowInfo() const {
 
 
 // === BottledWhiskyManager 클래스 구현 ===
+// 병입 위스키를 관리하는 클래스
 std::string BottledWhiskyManager::getSummary() {
     int totalCount = 0;
     double totalPrice = 0;
 
+    // 전체 병 수와 평균 가격 계산
     for (const auto& w : inventory) {
         totalCount += w.getBottleCount();
         totalPrice += w.getPricePerBottle();
@@ -116,12 +120,14 @@ void BottledWhiskyManager::addWhisky() {
     cout << "병당 가격: "; cin >> price;
     cout << "라벨 부착 여부 (1: O, 0: X): "; cin >> labeledInt;
 
+	// 새로운 위스키 객체 생성 및 재고에 추가
     BottledWhisky newWhisky(name, label, batch, target, count, volume, price, labeledInt == 1);
     inventory.push_back(newWhisky);
 
     cout << "제품이 추가되었습니다.\n";
 }
 
+// 제품 정보 수정
 void BottledWhiskyManager::updateWhisky() {
     string name;
     cout << "수정할 제품명 입력: ";
@@ -214,7 +220,7 @@ void BottledWhiskyManager::updateWhisky() {
     cout << "해당 제품을 찾을 수 없습니다.\n";
 }
 
-
+// 제품 삭제
 void BottledWhiskyManager::deleteWhisky() {
     string name;
     cout << "삭제할 제품명 입력: ";
@@ -248,9 +254,11 @@ void BottledWhiskyManager::shipWhisky() {
             cout << "출고 날짜 (YYYY-MM-DD): "; cin >> date;
             double totalPrice = qty * whisky.getPricePerBottle();
 
+            //출고 기록 생성
             ShipmentRecord record(name, date, qty, totalPrice);
             shipmentLog.push_back(record);
 
+            // 재고 감소
             whisky.decreaseStock(qty);
 
             cout << "출고 기록이 등록되었습니다.\n";
@@ -303,7 +311,7 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
             infoLines.push_back("평균 병당 가격: -");
         }
 
-        // 우측 메뉴 구성 (menuLines)
+        // 우측 메뉴 구성
         vector<string> menu = {
             "[1] 재고 목록 보기",
             "[2] 제품 추가",

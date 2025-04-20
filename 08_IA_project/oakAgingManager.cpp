@@ -4,6 +4,8 @@
 
 using namespace std;
 
+// === OakBox 클래스 구현 ===
+// 오크통 정보를 관리하는 클래스
 OakBox::OakBox(string id, string t, string o, string wood,
     int period, int count, int waterTime,
     double evarate, double temp, double hum,
@@ -13,6 +15,7 @@ OakBox::OakBox(string id, string t, string o, string wood,
     evaporationRate(evarate), temperature(temp), humidity(hum),
     roasted(roast) {}
 
+// 오크통 정보 출력
 void OakBox::ShowInfo() const {
     cout << "오크통 ID : " << boxId << endl;
     cout << "종류 : " << type << endl;
@@ -27,7 +30,7 @@ void OakBox::ShowInfo() const {
     cout << "로스팅 여부: " << (roasted ? "로스팅됨" : "로스팅 안됨") << endl;
 }
 
-// Getter 
+// Getter 함수 - 멤버 변수 값을 반환
 string OakBox::getId() const { return boxId; }
 std::string OakBox::getType() const { return type; }
 std::string OakBox::getOrigin() const { return origin; }
@@ -44,7 +47,7 @@ double OakBox::getHumidity() const { return humidity; }
 bool OakBox::isRoasted() const { return roasted; }
 
 
-// Setter 정의
+// Setter 함수 - 멤버 변수 값을 설정
 void OakBox::setOrigin(string o) { origin = o; }
 void OakBox::setWoodType(string wood) { woodType = wood; }
 void OakBox::setType(string t) { type = t; }
@@ -60,8 +63,8 @@ void OakBox::setHumidity(double h) { humidity = h; }
 
 void OakBox::setRoasted(bool r) { roasted = r; }
 
-// OakAgingManager 기능 정의
 
+// 오크통 관리 페이지를 표시
 void OakAgingManager::showOakAgingPage() {
     int choice;
 
@@ -98,18 +101,20 @@ void OakAgingManager::showOakAgingPage() {
 
     } while (choice != 0);
 }
-
+// 오크통 요약 정보 반환
 std::string OakAgingManager::getSummary() {
     // 현재는 더미 2개 고정
     return "숙성통 수: 2개";
 }
 
+// 대시보드에 표시할 정보 구성
 std::vector<std::string> OakAgingManager::getPageInfoLines() {
     std::vector<std::string> lines;
     size_t count = oakList.size();
     int totalPeriod = 0;
     double totalEvap = 0;
 
+    // 오크통의 평균 숙성 기간과 증발률 계산
     for (const auto& box : oakList) {
         totalPeriod += box.getRipeningPeriod();
         totalEvap += box.getEvaporationRate();
@@ -128,6 +133,7 @@ std::vector<std::string> OakAgingManager::getPageInfoLines() {
     return lines;
 }
 
+// 등록된 오크통 목록 출력
 void OakAgingManager::showOakList() {
     if (oakList.empty()) {
         cout << "등록된 오크통이 없습니다.\n";
@@ -138,6 +144,7 @@ void OakAgingManager::showOakList() {
     }
 }
 
+// 새로운 오크통 추가
 void OakAgingManager::addOakBox() {
     string id, type, origin, wood;
     int period, count, water;
@@ -159,11 +166,13 @@ void OakAgingManager::addOakBox() {
     cout << "11. 로스팅 여부 (1: 있음, 0: 없음): "; cin >> roastInt;
     roasted = roastInt == 1;
 
+    // 새로운 오크통 객체 생성 및 목록에 추가
     OakBox newBox(id, type, origin, wood, period, count, water, evap, temp, hum, roasted);
     oakList.push_back(newBox);
     cout << "오크통이 추가되었습니다!\n";
 }
 
+// 오크통 정보 수정
 void OakAgingManager::updateOakBox() {
     string id;
     cout << "수정할 오크통 ID 입력: ";
@@ -280,6 +289,7 @@ void OakAgingManager::updateOakBox() {
     cout << "해당 ID를 가진 오크통이 없습니다.\n";
 }
 
+// 오크통 삭제
 void OakAgingManager::deleteOakBox() {
     string id;
     cout << "삭제할 오크통 ID 입력: ";
