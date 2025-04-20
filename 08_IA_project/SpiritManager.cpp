@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 
+// 스피릿 개수와 평균 도수를 요약해 반환
 std::string SpiritManager::getSummary() {
     size_t count = spirits.size();
     double totalYield = 0, totalAbv = 0;
@@ -19,6 +20,7 @@ std::string SpiritManager::getSummary() {
     return result;
 }
 
+// 페이지 상단 정보: 스피릿 수, 총 생산량, 평균 도수 등
 std::vector<std::string> SpiritManager::getPageInfoLines() {
     std::vector<std::string> lines;
 
@@ -43,6 +45,7 @@ std::vector<std::string> SpiritManager::getPageInfoLines() {
     return lines;
 }
 
+// 콘솔 UI 루프: 사용자 선택에 따라 기능 실행
 void SpiritManager::showSpiritPage() {
     int choice;
     do {
@@ -79,6 +82,7 @@ void SpiritManager::showSpiritPage() {
     } while (choice != 0);
 }
 
+// 스피릿 정보 추가 입력 처리
 void SpiritManager::addSpirit() {
     Spirit spirit;
     std::cout << "\n=== 스피릿 추가 ===\n";
@@ -98,9 +102,10 @@ void SpiritManager::addSpirit() {
     std::cout << "증류 횟수: "; std::cin >> spirit.distillation_count;
 
     spirits.push_back(spirit);
-    std::cout << "? 스피릿 추가 완료!\n";
+    std::cout << "스피릿 추가 완료!\n";
 }
 
+// 특정 ID를 기준으로 스피릿 삭제
 void SpiritManager::deleteSpirit() {
     std::string id;
     std::cout << "삭제할 스피릿 ID 입력: ";
@@ -112,13 +117,14 @@ void SpiritManager::deleteSpirit() {
 
     if (it != spirits.end()) {
         spirits.erase(it, spirits.end());
-        std::cout << "? 삭제 완료!\n";
+        std::cout << "삭제 완료!\n";
     }
     else {
         std::cout << "해당 ID의 스피릿을 찾을 수 없습니다.\n";
     }
 }
 
+// 전체 스피릿 목록 출력
 void SpiritManager::displaySpirits() {
     std::cout << "\n=== 스피릿 목록 ===\n";
     for (const auto& s : spirits) {
@@ -137,6 +143,7 @@ void SpiritManager::displaySpirits() {
     }
 }
 
+// 스피릿 정보 수정
 void SpiritManager::updateSpirit() {
     std::string id;
     std::cout << "\n수정할 스피릿 ID 입력: ";
@@ -179,11 +186,10 @@ void SpiritManager::updateSpirit() {
             std::cout << "증류 횟수 (" << s.distillation_count << "): ";
             std::cin >> s.distillation_count;
 
-            std::cout << "? 스피릿 수정 완료!\n";
+            std::cout << "스피릿 수정 완료!\n";
             return;
         }
     }
 
     std::cout << "해당 ID의 스피릿을 찾을 수 없습니다.\n";
 }
-

@@ -1,3 +1,4 @@
+// 원재료 관리 기능 정의 파일
 #include "RawMaterialManager.h"
 #include "UIUtils.h"
 #include "StorageEnvironment.h"
@@ -9,20 +10,22 @@
 
 using namespace std;
 
-std::string RawMaterialManager::getSummary() {
+// 현재 재고 요약 문자열 생성
+string RawMaterialManager::getSummary() {
     double totalKg = 0;
     for (const auto& item : materials)
-        if (item.exit_date.empty())
+        if (item.exit_date.empty())  // 출고되지 않은 경우
             totalKg += item.weight_kg;
 
     return "원재료: " + to_string(materials.size()) + "종 / " + to_string((int)totalKg) + "kg";
 }
 
-std::vector<std::string> RawMaterialManager::getPageInfoLines() {
+// 원재료 페이지 상단 정보 요약 (종류, 무게, 종류별 수량, 보관 위치 등)
+vector<string> RawMaterialManager::getPageInfoLines() {
     int totalKinds = 0;
     double totalWeight = 0;
-    std::set<std::string> storagePlaces;
-    std::map<std::string, int> typeCount;
+    set<string> storagePlaces;
+    map<string, int> typeCount;
 
     for (const auto& m : materials) {
         if (m.exit_date.empty()) {
@@ -33,24 +36,23 @@ std::vector<std::string> RawMaterialManager::getPageInfoLines() {
         }
     }
 
-    std::vector<std::string> lines;
-    lines.push_back("현재 보유 원재료: " + std::to_string(totalKinds) + "종 / " + std::to_string((int)totalWeight) + "kg");
+    vector<string> lines;
+    lines.push_back("현재 보유 원재료: " + to_string(totalKinds) + "종 / " + to_string((int)totalWeight) + "kg");
 
-    std::string typeSummary = "종류별 수량: ";
-    for (const auto& pair : typeCount) {
-        typeSummary += pair.first + ": " + std::to_string(pair.second) + "개  ";
-    }
+    string typeSummary = "종류별 수량: ";
+    for (const auto& pair : typeCount)
+        typeSummary += pair.first + ": " + to_string(pair.second) + "개  ";
     lines.push_back(typeSummary);
 
-    std::string storageSummary = "보관 위치: ";
-    for (const auto& place : storagePlaces) {
+    string storageSummary = "보관 위치: ";
+    for (const auto& place : storagePlaces)
         storageSummary += place + "  ";
-    }
     lines.push_back(storageSummary);
 
     return lines;
 }
 
+// 더미 데이터 초기화 (샘플 원재료 입력)
 void RawMaterialManager::initializeDummyData() {
     materials = {
         {"보리", "곡물", "스코틀랜드", 1200, "창고 A", "저온 건조", "2025-12-01", "2025-03-01", ""},
@@ -60,6 +62,7 @@ void RawMaterialManager::initializeDummyData() {
     };
 }
 
+// 출고되지 않은 원재료만 출력
 void RawMaterialManager::showInventory() {
     cout << "\n=== 현재 보유 원재료 목록 ===\n";
     for (const auto& m : materials) {
@@ -77,6 +80,7 @@ void RawMaterialManager::showInventory() {
     }
 }
 
+// 전체 이력 출력 (출고된 항목 포함)
 void RawMaterialManager::showAllMaterials() {
     cout << "\n=== 전체 원재료 입출고 이력 ===\n";
     for (const auto& m : materials) {
@@ -93,8 +97,9 @@ void RawMaterialManager::showAllMaterials() {
     }
 }
 
+// 원재료 관리 메뉴 루프
 void RawMaterialManager::showRawMaterialPage() {
-    initializeDummyData();
+    initializeDummyData();  // 더미 데이터 로드
 
     int choice;
     do {
@@ -109,7 +114,7 @@ void RawMaterialManager::showRawMaterialPage() {
             "[4] 원재료 정보 수정",
             "[5] 원재료 삭제 (출고 처리)",
             "[6] 원재료 검색",
-            "[7] 보관 장소 환경정보 보기",  
+            "[7] 보관 장소 환경정보 보기",
             "[0] 메인으로 돌아가기"
         };
 
@@ -124,7 +129,7 @@ void RawMaterialManager::showRawMaterialPage() {
         case 4: updateMaterial(); break;
         case 5: deleteMaterial(); break;
         case 6: searchMaterial(); break;
-        case 7: showStorageEnvironment(); break;  
+        case 7: showStorageEnvironment(); break;
         case 0: cout << "메인으로 돌아갑니다...\n"; break;
         default: cout << "잘못된 입력입니다.\n"; break;
         }
@@ -136,9 +141,10 @@ void RawMaterialManager::showRawMaterialPage() {
     } while (choice != 0);
 }
 
+// 원재료 추가
 void RawMaterialManager::addMaterial() {
     RawMaterial newItem;
-    cin.ignore(); // 버퍼 초기화
+    cin.ignore();  // 입력 버퍼 초기화
     cout << "\n=== 원재료 추가 ===\n";
     cout << "이름: "; getline(cin, newItem.name);
     cout << "종류: "; getline(cin, newItem.type);
@@ -154,6 +160,7 @@ void RawMaterialManager::addMaterial() {
     cout << "원재료가 추가되었습니다.\n";
 }
 
+// 원재료 수정
 void RawMaterialManager::updateMaterial() {
     string name;
     cin.ignore();
@@ -183,6 +190,7 @@ void RawMaterialManager::updateMaterial() {
     cout << "해당 이름의 원재료(재고)를 찾을 수 없습니다.\n";
 }
 
+// 출고 처리 (exit_date 설정)
 void RawMaterialManager::deleteMaterial() {
     string name;
     cin.ignore();
@@ -201,6 +209,7 @@ void RawMaterialManager::deleteMaterial() {
     cout << "해당 이름의 원재료(재고)를 찾을 수 없습니다.\n";
 }
 
+// 이름으로 검색
 void RawMaterialManager::searchMaterial() {
     string name;
     cin.ignore();
@@ -224,24 +233,24 @@ void RawMaterialManager::searchMaterial() {
         }
     }
 
-    if (!found) {
+    if (!found)
         cout << "해당 이름의 원재료를 찾을 수 없습니다.\n";
-    }
 }
 
+// 보관 장소의 환경 정보 출력
 void RawMaterialManager::showStorageEnvironment() {
-    std::vector<StorageEnvironment> storageList = {
+    vector<StorageEnvironment> storageList = {
         {"창고 A", 18.5f, 55.2f},
         {"지하 저장고", 12.0f, 70.0f},
         {"실험실 보관소", 22.3f, 40.0f}
     };
 
-    std::cout << "\n=== 보관 장소 환경 정보 조회 ===\n";
+    cout << "\n=== 보관 장소 환경 정보 조회 ===\n";
     for (const auto& storage : storageList) {
-        std::cout << "-----------------------------\n";
-        storage.displayInfo();
+        cout << "-----------------------------\n";
+        storage.displayInfo();  // StorageEnvironment 객체의 정보 출력
     }
 
-    std::cout << "\n계속하려면 Enter를 누르세요...";
-    std::cin.ignore(); std::cin.get();
+    cout << "\n계속하려면 Enter를 누르세요...";
+    cin.ignore(); cin.get();
 }
