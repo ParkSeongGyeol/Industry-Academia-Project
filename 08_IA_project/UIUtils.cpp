@@ -1,10 +1,11 @@
 #include "UIUtils.h"
 #include <iostream>
 #include <iomanip>
+#include <sstream>  // joinStrings 개선을 위해 추가
 
 namespace UIUtils {
 
-    // 텍스트 가운데 정렬
+    //  텍스트 가운데 정렬
     std::string centerText(const std::string& text, int width) {
         int pad = width - static_cast<int>(text.length());
         if (pad <= 0) return text.substr(0, width); // 길면 자르기
@@ -13,7 +14,7 @@ namespace UIUtils {
         return std::string(padLeft, ' ') + text + std::string(padRight, ' ');
     }
 
-    // 단일 박스 출력
+    //  단일 박스 출력
     void drawBox(const std::string& content, int width) {
         std::string centered = centerText(content, width - 2);
         std::cout << "+" << std::string(width - 2, '-') << "+\n";
@@ -21,7 +22,7 @@ namespace UIUtils {
         std::cout << "+" << std::string(width - 2, '-') << "+\n";
     }
 
-    // 한 줄의 여러 박스 출력
+    //  한 줄의 여러 박스 출력
     void drawRow(const std::vector<std::string>& contents, int width) {
         for (const auto& content : contents)
             std::cout << "+" << std::string(width - 2, '-');
@@ -36,13 +37,13 @@ namespace UIUtils {
         std::cout << "+\n";
     }
 
-    // 여러 줄의 박스 그리드 출력
+    //  여러 줄의 박스 그리드 출력
     void drawGrid(const std::vector<std::vector<std::string>>& grid, int width) {
         for (const auto& row : grid)
             drawRow(row, width);
     }
 
-    // 대시보드 형태로 양쪽 출력 (정보 / 메뉴)
+    //  대시보드 형태로 정보 + 메뉴 출력
     void drawDashboard(
         const std::vector<std::string>& infoLines,
         const std::vector<std::string>& menuLines,
@@ -70,14 +71,16 @@ namespace UIUtils {
         std::cout << leftBorder << rightBorder << "\n";
     }
 
-    // 문자열 집합을 한 줄로 연결
-    std::string joinStrings(const std::set<std::string>& items, const std::string& delimiter) {
-        std::string result;
-        for (const auto& item : items) {
-            if (!result.empty()) result += delimiter;
-            result += item;
+    //  문자열 집합을 하나의 문자열로 연결 (delimiter로 구분)
+    std::string UIUtils::joinStrings(const std::set<std::string>& items, const std::string& delimiter) {
+        std::ostringstream oss;
+        for (auto it = items.begin(); it != items.end(); ++it) {
+            oss << *it;
+            if (std::next(it) != items.end()) {
+                oss << delimiter;
+            }
         }
-        return result;
+        return oss.str();
     }
 
 } // namespace UIUtils

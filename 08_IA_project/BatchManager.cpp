@@ -8,11 +8,13 @@
 
 using namespace std;
 
+//  전체 배치 수 요약을 반환
 std::string BatchManager::getSummary() {
     auto batches = getDummyBatches();
     return "배치 수: " + std::to_string(batches.size()) + "개";
 }
 
+//  배치 정보를 CSV 형식 문자열로 변환
 std::string FermentationBatch::toCSV() const {
     return batch_id + "," + start_date + "," + particle_size + "," +
         yeast_type + "," + ingredients + "," +
@@ -22,6 +24,7 @@ std::string FermentationBatch::toCSV() const {
         std::to_string(duration_hours);
 }
 
+//  예시용 더미 배치 목록 반환
 std::vector<FermentationBatch> BatchManager::getDummyBatches() {
     return {
         {"B001", "2025-03-01", "medium", "saccharomyces", "rice, barley", 100.0, 22.5, 65, 72},
@@ -29,6 +32,7 @@ std::vector<FermentationBatch> BatchManager::getDummyBatches() {
     };
 }
 
+//  배치 목록 출력
 void BatchManager::displayBatches(const std::vector<FermentationBatch>& batches) {
     std::cout << "\n=== 발효 배치 목록 ===\n";
     for (const auto& batch : batches) {
@@ -46,6 +50,7 @@ void BatchManager::displayBatches(const std::vector<FermentationBatch>& batches)
     UIUtils::pauseConsole();
 }
 
+//  새 배치 추가
 void BatchManager::addBatch() {
     FermentationBatch newBatch;
     std::cout << "=== 새 배치 추가 ===\n";
@@ -53,7 +58,7 @@ void BatchManager::addBatch() {
     std::cout << "Start Date (YYYY-MM-DD): "; std::cin >> newBatch.start_date;
     std::cout << "Particle Size: "; std::cin >> newBatch.particle_size;
     std::cout << "Yeast Type: "; std::cin >> newBatch.yeast_type;
-    std::cin.ignore();
+    std::cin.ignore(); // 개행 문자 제거
     std::cout << "Ingredients: "; std::getline(std::cin, newBatch.ingredients);
     std::cout << "Amount (liters): "; std::cin >> newBatch.amount_liters;
     std::cout << "Temperature (°C): "; std::cin >> newBatch.temperature;
@@ -65,6 +70,7 @@ void BatchManager::addBatch() {
     UIUtils::pauseConsole();
 }
 
+//  배치 수정
 void BatchManager::updateBatch() {
     std::string id;
     std::cout << "수정할 배치 ID 입력: ";
@@ -101,6 +107,7 @@ void BatchManager::updateBatch() {
     UIUtils::pauseConsole();
 }
 
+//  배치 삭제
 void BatchManager::deleteBatch() {
     std::string id;
     std::cout << "삭제할 배치 ID 입력: ";
@@ -120,6 +127,7 @@ void BatchManager::deleteBatch() {
     UIUtils::pauseConsole();
 }
 
+//  배치 검색
 void BatchManager::searchBatch() {
     std::string id;
     std::cout << "조회할 배치 ID 입력: ";
@@ -137,6 +145,7 @@ void BatchManager::searchBatch() {
     UIUtils::pauseConsole();
 }
 
+//  발효 예측
 void BatchManager::predictBatchFermentation() {
     std::string id;
     std::cout << "예측할 배치 ID 입력: ";
@@ -155,6 +164,7 @@ void BatchManager::predictBatchFermentation() {
     UIUtils::pauseConsole();
 }
 
+//  발효 예측 알고리즘 (간단한 가중치 기반 계산)
 double BatchManager::predictFermentation(const FermentationBatch& batch) {
     double size_factor = 1.0;
     if (batch.particle_size == "fine") size_factor = 1.2;
@@ -167,6 +177,7 @@ double BatchManager::predictFermentation(const FermentationBatch& batch) {
     return std::clamp(score, 0.0, 100.0);
 }
 
+//  CSV로 발효 상태 저장
 void BatchManager::exportFermentationStatusToCSV() {
     std::string filename = "fermentation_status.csv";
     if (FileExporter::exportToCSV(batches, filename)) {
@@ -179,12 +190,14 @@ void BatchManager::exportFermentationStatusToCSV() {
     UIUtils::pauseConsole();
 }
 
+//  발효 중인 배치 수 계산 (72시간 미만인 경우)
 int BatchManager::countFermentingBatches() {
     return static_cast<int>(std::count_if(batches.begin(), batches.end(), [](const FermentationBatch& b) {
         return b.duration_hours < 72;
         }));
 }
 
+//  평균 발효 시간 계산
 double BatchManager::calculateAvgFermentationHours() {
     if (batches.empty()) return 0.0;
     int total = 0;
@@ -192,6 +205,7 @@ double BatchManager::calculateAvgFermentationHours() {
     return static_cast<double>(total) / static_cast<double>(batches.size());
 }
 
+//  저장 위치 가져오기 (현재는 "탱크"로 고정됨)
 std::set<std::string> BatchManager::getStorageLocations() {
     std::set<std::string> locations;
     for (const auto& b : batches) {
@@ -200,8 +214,9 @@ std::set<std::string> BatchManager::getStorageLocations() {
     return locations;
 }
 
+//  배치 관리 페이지 메인 루프
 void BatchManager::showBatchPage() {
-    batches = getDummyBatches();
+    batches = getDummyBatches(); // 시작 시 더미 데이터 초기화
 
     int choice;
     do {
