@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <iostream>
 
+using namespace std;
+
 using namespace UIUtils;
 
 // 메인 루프 실행 함수
@@ -17,9 +19,9 @@ void MainPage::run() {
 
     do {
         displayDashboard();  // 시스템 요약 및 메뉴 출력
-        std::cout << "\n메뉴 번호를 입력하세요 >> ";
-        std::cin >> choice;
-        std::cin.ignore();  // 입력 버퍼 정리
+        cout << "\n메뉴 번호를 입력하세요 >> ";
+        cin >> choice;
+        cin.ignore();  // 입력 버퍼 정리
 
         handleSelection(choice);  // 선택 처리
     } while (choice != 0); // 0 입력 시 종료
@@ -35,7 +37,7 @@ void MainPage::displayDashboard() {
     BottledWhiskyManager bottle;
 
     // 정보 요약 라인 구성
-    std::vector<std::string> infoLines = {
+    vector<string> infoLines = {
         batch.getSummary(),           // 예: "배치 수: 2개"
         raw.getSummary(),             // 예: "원재료: 3종 / 300kg"
         spirit.getSummary(),          // 예: "스피릿: 2종 / 평균 도수: 64%"
@@ -44,7 +46,7 @@ void MainPage::displayDashboard() {
     };
 
     // 메뉴 항목 구성
-    std::vector<std::string> menu = {
+    vector<string> menu = {
         "[1] 원재료 관리",
         "[2] 배치 관리",
         "[3] 스피릿 관리",
@@ -60,7 +62,7 @@ void MainPage::displayDashboard() {
     system("clear");
 #endif
 
-    std::cout << "=== 위스키 생산 관리 시스템 ===\n\n";
+    cout << "=== 위스키 생산 관리 시스템 ===\n\n";
 
     // UIUtils 유틸 함수로 대시보드 출력 (정보창, 메뉴창, 너비 72, 높이 30)
     UIUtils::drawDashboard(infoLines, menu, 72, 30);
@@ -95,10 +97,10 @@ void MainPage::handleSelection(int choice) {
         break;
     }
     case 0:
-        std::cout << "프로그램을 종료합니다.\n";
+        cout << "프로그램을 종료합니다.\n";
         break;
     default:
-        std::cout << "잘못된 선택입니다. 0~5 사이의 번호를 입력하세요.\n";
+        cout << "잘못된 선택입니다. 0~5 사이의 번호를 입력하세요.\n";
         pauseConsole(); // UIUtils의 사용자 입력 대기 함수 호출
         break;
     }

@@ -72,8 +72,8 @@ void OakAgingManager::showOakAgingPage() {
         system("cls");
         cout << "=== 오크통 숙성 관리 메뉴 ===\n\n";
 
-        vector<std::string> infoLines = getPageInfoLines();
-        vector<std::string> menu = {
+        vector<string> infoLines = getPageInfoLines();
+        vector<string> menu = {
             "[1] 오크통 목록 보기",
             "[2] 오크통 추가",
             "[3] 오크통 수정",
@@ -96,7 +96,7 @@ void OakAgingManager::showOakAgingPage() {
 
         if (choice != 0) {
             cout << "\n계속하려면 Enter를 누르세요...";
-            cin.ignore(); std::cin.get();
+            cin.ignore(); cin.get();
         }
 
     } while (choice != 0);
