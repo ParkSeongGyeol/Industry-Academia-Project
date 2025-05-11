@@ -73,7 +73,7 @@ void ShipmentRecord::ShowInfo() const {
 
 // === BottledWhiskyManager 클래스 구현 ===
 // 병입 위스키를 관리하는 클래스
-std::string BottledWhiskyManager::getSummary() {
+string BottledWhiskyManager::getSummary() {
     int totalCount = 0;
     double totalPrice = 0;
 
@@ -83,9 +83,9 @@ std::string BottledWhiskyManager::getSummary() {
         totalPrice += w.getPricePerBottle();
     }
 
-    std::string result = "병입: " + std::to_string(totalCount) + "병";
+    string result = "병입: " + to_string(totalCount) + "병";
     if (!inventory.empty()) {
-        result += " / 평균가: " + std::to_string(static_cast<int>(totalPrice / inventory.size())) + "원";
+        result += " / 평균가: " + to_string(static_cast<int>(totalPrice / inventory.size())) + "원";
     }
     return result;
 }

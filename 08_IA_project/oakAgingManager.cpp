@@ -32,9 +32,9 @@ void OakBox::ShowInfo() const {
 
 // Getter 함수 - 멤버 변수 값을 반환
 string OakBox::getId() const { return boxId; }
-std::string OakBox::getType() const { return type; }
-std::string OakBox::getOrigin() const { return origin; }
-std::string OakBox::getWoodType() const { return woodType; }
+string OakBox::getType() const { return type; }
+string OakBox::getOrigin() const { return origin; }
+string OakBox::getWoodType() const { return woodType; }
 
 int OakBox::getRipeningPeriod() const { return ripeningPeriod; }
 int OakBox::getAgingCount() const { return agingCount; }
@@ -70,10 +70,10 @@ void OakAgingManager::showOakAgingPage() {
 
     do {
         system("cls");
-        std::cout << "=== 오크통 숙성 관리 메뉴 ===\n\n";
+        cout << "=== 오크통 숙성 관리 메뉴 ===\n\n";
 
-        std::vector<std::string> infoLines = getPageInfoLines();
-        std::vector<std::string> menu = {
+        vector<std::string> infoLines = getPageInfoLines();
+        vector<std::string> menu = {
             "[1] 오크통 목록 보기",
             "[2] 오크통 추가",
             "[3] 오크통 수정",
@@ -82,34 +82,34 @@ void OakAgingManager::showOakAgingPage() {
         };
 
         UIUtils::drawDashboard(infoLines, menu, 72, 30);
-        std::cout << "\n입력 >> ";
-        std::cin >> choice;
+        cout << "\n입력 >> ";
+        cin >> choice;
 
         switch (choice) {
         case 1: showOakList(); break;
         case 2: addOakBox(); break;
         case 3: updateOakBox(); break;
         case 4: deleteOakBox(); break;
-        case 0: std::cout << "메인으로 돌아갑니다.\n"; break;
-        default: std::cout << "잘못된 입력입니다.\n"; break;
+        case 0: cout << "메인으로 돌아갑니다.\n"; break;
+        default: cout << "잘못된 입력입니다.\n"; break;
         }
 
         if (choice != 0) {
-            std::cout << "\n계속하려면 Enter를 누르세요...";
-            std::cin.ignore(); std::cin.get();
+            cout << "\n계속하려면 Enter를 누르세요...";
+            cin.ignore(); std::cin.get();
         }
 
     } while (choice != 0);
 }
 // 오크통 요약 정보 반환
-std::string OakAgingManager::getSummary() {
+string OakAgingManager::getSummary() {
     // 현재는 더미 2개 고정
     return "숙성통 수: 2개";
 }
 
 // 대시보드에 표시할 정보 구성
-std::vector<std::string> OakAgingManager::getPageInfoLines() {
-    std::vector<std::string> lines;
+vector<string> OakAgingManager::getPageInfoLines() {
+    vector<string> lines;
     size_t count = oakList.size();
     int totalPeriod = 0;
     double totalEvap = 0;
@@ -120,10 +120,10 @@ std::vector<std::string> OakAgingManager::getPageInfoLines() {
         totalEvap += box.getEvaporationRate();
     }
 
-    lines.push_back("등록된 오크통 수: " + std::to_string(count));
+    lines.push_back("등록된 오크통 수: " + to_string(count));
     if (count > 0) {
-        lines.push_back("평균 숙성 기간: " + std::to_string(totalPeriod / count) + "일");
-        lines.push_back("평균 증발률: " + std::to_string((int)(totalEvap / count)) + "%");
+        lines.push_back("평균 숙성 기간: " + to_string(totalPeriod / count) + "일");
+        lines.push_back("평균 증발률: " + to_string((int)(totalEvap / count)) + "%");
     }
     else {
         lines.push_back("평균 숙성 기간: -");
