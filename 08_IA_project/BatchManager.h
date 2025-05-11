@@ -55,5 +55,3 @@ public:
     void showBatchPage();
 };
 
-// 유틸: set<string> → 한 줄로 변환
-std::string joinStrings(const std::set<std::string>& items, const std::string& delimiter = " ");
