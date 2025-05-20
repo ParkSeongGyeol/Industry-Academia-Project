@@ -30,6 +30,11 @@ public:
     void searchMaterial();      // 이름으로 원재료 검색
     void showStorageEnvironment(); // 보관 장소 환경 정보 출력
 
+    double getStock(const std::string& name); // 현재 재고 조회
+    void consumeMaterial(const std::string& name, double amount); // 재고 차감
+    bool processFermentationBatch(double totalBatchKg); // 발효 배치용 원재료 처리
+    bool exportUsedMaterialsToCSV(const std::string& filename, const std::vector<RawMaterial>& usedList); // 사용 재료 저장
+
 private:
     std::vector<RawMaterial> materials; // 원재료 리스트 (메모리 상 저장)
     void initializeDummyData();        // 초기 더미 데이터 삽입

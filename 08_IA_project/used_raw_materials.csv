@@ -1,0 +1,4 @@
+Name,Type,Origin,Weight(kg),Storage,StorageMethod,ExpiryDate,EntryDate,UsedDate
+보리,곡물,스코틀랜드,1.8,창고 A,저온 건조,,,2025-05-21
+호밀,곡물,미국,0.3,창고 A,상온 보관,,,2025-05-21
+물,기타,제조 현장,0.9,탱크 B,청결 밀봉,-,,2025-05-21

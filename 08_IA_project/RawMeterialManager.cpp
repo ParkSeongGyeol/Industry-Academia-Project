@@ -1,26 +1,117 @@
-// ¿øÀç·á °ü¸® ±â´É Á¤ÀÇ ÆÄÀÏ
+ï»¿// ì›ì¬ë£Œ ê´€ë¦¬ ê¸°ëŠ¥ ì •ì˜ íŒŒì¼
 #include "RawMaterialManager.h"
 #include "UIUtils.h"
 #include "StorageEnvironment.h"
 #include <iostream>
 #include <set>
 #include <map>
+#include <fstream>
+#include <ctime>
 #include <string>
 #include <vector>
 
 using namespace std;
 
-// ÇöÀç Àç°í ¿ä¾à ¹®ÀÚ¿­ »ı¼º
+string getCurrentDate() {
+    time_t now = time(nullptr);
+    tm t;
+    localtime_s(&t, &now);
+    char buf[11];
+    strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
+    return string(buf);
+}
+
+double RawMaterialManager::getStock(const string& name) {
+    double total = 0;
+    for (const auto& m : materials) {
+        if (m.name == name && m.exit_date.empty())
+            total += m.weight_kg;
+    }
+    return total;
+}
+
+void RawMaterialManager::consumeMaterial(const string& name, double amount) {
+    for (auto& m : materials) {
+        if (m.name == name && m.exit_date.empty()) {
+            if (m.weight_kg >= amount) {
+                m.weight_kg -= amount;
+                if (m.weight_kg == 0)
+                    m.exit_date = getCurrentDate();
+                break;
+            }
+            else {
+                amount -= m.weight_kg;
+                m.exit_date = getCurrentDate();
+                m.weight_kg = 0;
+            }
+        }
+    }
+}
+
+bool RawMaterialManager::exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList) {
+    ofstream file(filename);
+    if (!file.is_open()) return false;
+
+    file << "Name,Type,Origin,Weight(kg),Storage,StorageMethod,ExpiryDate,EntryDate,UsedDate\n";
+    for (const auto& m : usedList) {
+        file << m.name << "," << m.type << "," << m.origin << "," << m.weight_kg << ","
+            << m.storage_location << "," << m.storage_method << "," << m.expiry_date << ","
+            << m.entry_date << "," << getCurrentDate() << "\n";
+    }
+
+    file.close();
+    return true;
+}
+
+bool RawMaterialManager::processFermentationBatch(double totalBatchKg) {
+    double requiredBarley = totalBatchKg * 0.6;
+    double requiredRye = totalBatchKg * 0.1;
+    double requiredWater = totalBatchKg * 0.3;
+
+    double stockBarley = getStock("ë³´ë¦¬");
+    double stockRye = getStock("í˜¸ë°€");
+    double stockWater = getStock("ë¬¼");
+
+    if (stockBarley < requiredBarley) {
+        cout << "ë³´ë¦¬ ì¬ê³  ë¶€ì¡± (" << stockBarley << "kg ë³´ìœ  / " << requiredBarley << "kg í•„ìš”)\n";
+        return false;
+    }
+    if (stockRye < requiredRye) {
+        cout << "í˜¸ë°€ ì¬ê³  ë¶€ì¡± (" << stockRye << "kg ë³´ìœ  / " << requiredRye << "kg í•„ìš”)\n";
+        return false;
+    }
+    if (stockWater < requiredWater) {
+        cout << "ë¬¼ ì¬ê³  ë¶€ì¡± (" << stockWater << "kg ë³´ìœ  / " << requiredWater << "kg í•„ìš”)\n";
+        return false;
+    }
+
+    consumeMaterial("ë³´ë¦¬", requiredBarley);
+    consumeMaterial("í˜¸ë°€", requiredRye);
+    consumeMaterial("ë¬¼", requiredWater);
+
+    vector<RawMaterial> used = {
+        {"ë³´ë¦¬", "ê³¡ë¬¼", "ìŠ¤ì½”í‹€ëœë“œ", requiredBarley, "ì°½ê³  A", "ì €ì˜¨ ê±´ì¡°", "", "", ""},
+        {"í˜¸ë°€", "ê³¡ë¬¼", "ë¯¸êµ­", requiredRye, "ì°½ê³  A", "ìƒì˜¨ ë³´ê´€", "", "", ""},
+        {"ë¬¼", "ê¸°íƒ€", "ì œì¡° í˜„ì¥", requiredWater, "íƒ±í¬ B", "ì²­ê²° ë°€ë´‰", "-", "", ""}
+    };
+
+    exportUsedMaterialsToCSV("used_raw_materials.csv", used);
+
+    cout << "ë°œíš¨ ë°°ì¹˜ìš© ì›ì¬ë£Œê°€ CSVì— ì €ì¥ë˜ì—ˆìŠµë‹ˆë‹¤.\n";
+    return true;
+}
+
+// í˜„ì¬ ì¬ê³  ìš”ì•½ ë¬¸ìì—´ ìƒì„±
 string RawMaterialManager::getSummary() {
     double totalKg = 0;
     for (const auto& item : materials)
-        if (item.exit_date.empty())  // Ãâ°íµÇÁö ¾ÊÀº °æ¿ì
+        if (item.exit_date.empty())  // ì¶œê³ ë˜ì§€ ì•Šì€ ê²½ìš°
             totalKg += item.weight_kg;
 
-    return "¿øÀç·á: " + to_string(materials.size()) + "Á¾ / " + to_string((int)totalKg) + "kg";
+    return "ì›ì¬ë£Œ: " + to_string(materials.size()) + "ì¢… / " + to_string((int)totalKg) + "kg";
 }
 
-// ¿øÀç·á ÆäÀÌÁö »ó´Ü Á¤º¸ ¿ä¾à (Á¾·ù, ¹«°Ô, Á¾·ùº° ¼ö·®, º¸°ü À§Ä¡ µî)
+// ì›ì¬ë£Œ í˜ì´ì§€ ìƒë‹¨ ì •ë³´ ìš”ì•½ (ì¢…ë¥˜, ë¬´ê²Œ, ì¢…ë¥˜ë³„ ìˆ˜ëŸ‰, ë³´ê´€ ìœ„ì¹˜ ë“±)
 vector<string> RawMaterialManager::getPageInfoLines() {
     int totalKinds = 0;
     double totalWeight = 0;
@@ -37,14 +128,14 @@ vector<string> RawMaterialManager::getPageInfoLines() {
     }
 
     vector<string> lines;
-    lines.push_back("ÇöÀç º¸À¯ ¿øÀç·á: " + to_string(totalKinds) + "Á¾ / " + to_string((int)totalWeight) + "kg");
+    lines.push_back("í˜„ì¬ ë³´ìœ  ì›ì¬ë£Œ: " + to_string(totalKinds) + "ì¢… / " + to_string((int)totalWeight) + "kg");
 
-    string typeSummary = "Á¾·ùº° ¼ö·®: ";
+    string typeSummary = "ì¢…ë¥˜ë³„ ìˆ˜ëŸ‰: ";
     for (const auto& pair : typeCount)
-        typeSummary += pair.first + ": " + to_string(pair.second) + "°³  ";
+        typeSummary += pair.first + ": " + to_string(pair.second) + "ê°œ  ";
     lines.push_back(typeSummary);
 
-    string storageSummary = "º¸°ü À§Ä¡: ";
+    string storageSummary = "ë³´ê´€ ìœ„ì¹˜: ";
     for (const auto& place : storagePlaces)
         storageSummary += place + "  ";
     lines.push_back(storageSummary);
@@ -52,74 +143,75 @@ vector<string> RawMaterialManager::getPageInfoLines() {
     return lines;
 }
 
-// ´õ¹Ì µ¥ÀÌÅÍ ÃÊ±âÈ­ (»ùÇÃ ¿øÀç·á ÀÔ·Â)
+// ë”ë¯¸ ë°ì´í„° ì´ˆê¸°í™” (ìƒ˜í”Œ ì›ì¬ë£Œ ì…ë ¥)
 void RawMaterialManager::initializeDummyData() {
     materials = {
-        {"º¸¸®", "°î¹°", "½ºÄÚÆ²·£µå", 1200, "Ã¢°í A", "Àú¿Â °ÇÁ¶", "2025-12-01", "2025-03-01", ""},
-        {"È£¹Ğ", "°î¹°", "¹Ì±¹", 800, "Ã¢°í A", "»ó¿Â º¸°ü", "2025-11-15", "2025-03-03", ""},
-        {"¹°", "±âÅ¸", "Á¦Á¶ ÇöÀå", 5000, "ÅÊÅ© B", "Ã»°á ¹ĞºÀ", "-", "2025-03-02", ""},
-        {"º¸¸®", "°î¹°", "½ºÄÚÆ²·£µå", 900, "Ã¢°í A", "Àú¿Â °ÇÁ¶", "2025-10-10", "2025-01-10", "2025-03-01"}
+        {"ë³´ë¦¬", "ê³¡ë¬¼", "ìŠ¤ì½”í‹€ëœë“œ", 1200, "ì°½ê³  A", "ì €ì˜¨ ê±´ì¡°", "2025-12-01", "2025-03-01", ""},
+        {"í˜¸ë°€", "ê³¡ë¬¼", "ë¯¸êµ­", 800, "ì°½ê³  A", "ìƒì˜¨ ë³´ê´€", "2025-11-15", "2025-03-03", ""},
+        {"ë¬¼", "ê¸°íƒ€", "ì œì¡° í˜„ì¥", 5000, "íƒ±í¬ B", "ì²­ê²° ë°€ë´‰", "-", "2025-03-02", ""},
+        {"ë³´ë¦¬", "ê³¡ë¬¼", "ìŠ¤ì½”í‹€ëœë“œ", 900, "ì°½ê³  A", "ì €ì˜¨ ê±´ì¡°", "2025-10-10", "2025-01-10", "2025-03-01"}
     };
 }
 
-// Ãâ°íµÇÁö ¾ÊÀº ¿øÀç·á¸¸ Ãâ·Â
+// ì¶œê³ ë˜ì§€ ì•Šì€ ì›ì¬ë£Œë§Œ ì¶œë ¥
 void RawMaterialManager::showInventory() {
-    cout << "\n=== ÇöÀç º¸À¯ ¿øÀç·á ¸ñ·Ï ===\n";
+    cout << "\n=== í˜„ì¬ ë³´ìœ  ì›ì¬ë£Œ ëª©ë¡ ===\n";
     for (const auto& m : materials) {
         if (m.exit_date.empty()) {
-            cout << "ÀÌ¸§: " << m.name << "\n"
-                << "Á¾·ù: " << m.type << "\n"
-                << "Ãâ½Å: " << m.origin << "\n"
-                << "Àç°í: " << m.weight_kg << "kg\n"
-                << "º¸°ü À§Ä¡: " << m.storage_location << "\n"
-                << "º¸°ü ¹æ¹ı: " << m.storage_method << "\n"
-                << "À¯Åë±âÇÑ: " << m.expiry_date << "\n"
-                << "ÀÔ°íÀÏ: " << m.entry_date << "\n"
+            cout << "ì´ë¦„: " << m.name << "\n"
+                << "ì¢…ë¥˜: " << m.type << "\n"
+                << "ì¶œì‹ : " << m.origin << "\n"
+                << "ì¬ê³ : " << m.weight_kg << "kg\n"
+                << "ë³´ê´€ ìœ„ì¹˜: " << m.storage_location << "\n"
+                << "ë³´ê´€ ë°©ë²•: " << m.storage_method << "\n"
+                << "ìœ í†µê¸°í•œ: " << m.expiry_date << "\n"
+                << "ì…ê³ ì¼: " << m.entry_date << "\n"
                 << "-----------------------------\n";
         }
     }
 }
 
-// ÀüÃ¼ ÀÌ·Â Ãâ·Â (Ãâ°íµÈ Ç×¸ñ Æ÷ÇÔ)
+// ì „ì²´ ì´ë ¥ ì¶œë ¥ (ì¶œê³ ëœ í•­ëª© í¬í•¨)
 void RawMaterialManager::showAllMaterials() {
-    cout << "\n=== ÀüÃ¼ ¿øÀç·á ÀÔÃâ°í ÀÌ·Â ===\n";
+    cout << "\n=== ì „ì²´ ì›ì¬ë£Œ ì…ì¶œê³  ì´ë ¥ ===\n";
     for (const auto& m : materials) {
-        cout << "ÀÌ¸§: " << m.name << "\n"
-            << "Á¾·ù: " << m.type << "\n"
-            << "Ãâ½Å: " << m.origin << "\n"
-            << "¹«°Ô: " << m.weight_kg << "kg\n"
-            << "º¸°ü À§Ä¡: " << m.storage_location << "\n"
-            << "º¸°ü ¹æ¹ı: " << m.storage_method << "\n"
-            << "À¯Åë±âÇÑ: " << m.expiry_date << "\n"
-            << "ÀÔ°íÀÏ: " << m.entry_date << "\n"
-            << "Ãâ°íÀÏ: " << (m.exit_date.empty() ? "-" : m.exit_date) << "\n"
+        cout << "ì´ë¦„: " << m.name << "\n"
+            << "ì¢…ë¥˜: " << m.type << "\n"
+            << "ì¶œì‹ : " << m.origin << "\n"
+            << "ë¬´ê²Œ: " << m.weight_kg << "kg\n"
+            << "ë³´ê´€ ìœ„ì¹˜: " << m.storage_location << "\n"
+            << "ë³´ê´€ ë°©ë²•: " << m.storage_method << "\n"
+            << "ìœ í†µê¸°í•œ: " << m.expiry_date << "\n"
+            << "ì…ê³ ì¼: " << m.entry_date << "\n"
+            << "ì¶œê³ ì¼: " << (m.exit_date.empty() ? "-" : m.exit_date) << "\n"
             << "-----------------------------\n";
     }
 }
 
-// ¿øÀç·á °ü¸® ¸Ş´º ·çÇÁ
+// ì›ì¬ë£Œ ê´€ë¦¬ ë©”ë‰´ ë£¨í”„
 void RawMaterialManager::showRawMaterialPage() {
-    initializeDummyData();  // ´õ¹Ì µ¥ÀÌÅÍ ·Îµå
+    initializeDummyData();  // ë”ë¯¸ ë°ì´í„° ë¡œë“œ
 
     int choice;
     do {
         system("cls");
-        cout << "=== ¿øÀç·á °ü¸® ¸Ş´º ===\n\n";
+        cout << "=== ì›ì¬ë£Œ ê´€ë¦¬ ë©”ë‰´ ===\n\n";
 
         vector<string> infoLines = getPageInfoLines();
         vector<string> menu = {
-            "[1] ÇöÀç º¸À¯ Àç°í º¸±â",
-            "[2] ÀüÃ¼ ÀÌ·Â º¸±â",
-            "[3] ¿øÀç·á Ãß°¡",
-            "[4] ¿øÀç·á Á¤º¸ ¼öÁ¤",
-            "[5] ¿øÀç·á »èÁ¦ (Ãâ°í Ã³¸®)",
-            "[6] ¿øÀç·á °Ë»ö",
-            "[7] º¸°ü Àå¼Ò È¯°æÁ¤º¸ º¸±â",
-            "[0] ¸ŞÀÎÀ¸·Î µ¹¾Æ°¡±â"
+            "[1] í˜„ì¬ ë³´ìœ  ì¬ê³  ë³´ê¸°",
+            "[2] ì „ì²´ ì´ë ¥ ë³´ê¸°",
+            "[3] ì›ì¬ë£Œ ì¶”ê°€",
+            "[4] ì›ì¬ë£Œ ì •ë³´ ìˆ˜ì •",
+            "[5] ì›ì¬ë£Œ ì‚­ì œ (ì¶œê³  ì²˜ë¦¬)",
+            "[6] ì›ì¬ë£Œ ê²€ìƒ‰",
+            "[7] ë³´ê´€ ì¥ì†Œ í™˜ê²½ì •ë³´ ë³´ê¸°",
+            "[8] ë°œíš¨ ë°°ì¹˜ìš© ì›ì¬ë£Œ ì‚¬ìš©",
+            "[0] ë©”ì¸ìœ¼ë¡œ ëŒì•„ê°€ê¸°"
         };
 
         UIUtils::drawDashboard(infoLines, menu, 72, 30);
-        cout << "\nÀÔ·Â >> ";
+        cout << "\nì…ë ¥ >> ";
         cin >> choice;
 
         switch (choice) {
@@ -130,127 +222,134 @@ void RawMaterialManager::showRawMaterialPage() {
         case 5: deleteMaterial(); break;
         case 6: searchMaterial(); break;
         case 7: showStorageEnvironment(); break;
-        case 0: cout << "¸ŞÀÎÀ¸·Î µ¹¾Æ°©´Ï´Ù...\n"; break;
-        default: cout << "Àß¸øµÈ ÀÔ·ÂÀÔ´Ï´Ù.\n"; break;
+        case 8: {
+            double totalKg;
+            cout << "\nìƒì‚°í•  ì´ ë°œíš¨ ë°°ì¹˜ëŸ‰ ì…ë ¥ (kg): ";
+            cin >> totalKg;
+            processFermentationBatch(totalKg);
+            break;
+        }
+        case 0: cout << "ë©”ì¸ìœ¼ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤...\n"; break;
+        default: cout << "ì˜ëª»ëœ ì…ë ¥ì…ë‹ˆë‹¤.\n"; break;
         }
 
         if (choice != 0) {
-            cout << "\n°è¼ÓÇÏ·Á¸é Enter¸¦ ´©¸£¼¼¿ä...";
+            cout << "\nê³„ì†í•˜ë ¤ë©´ Enterë¥¼ ëˆ„ë¥´ì„¸ìš”...";
             cin.ignore(); cin.get();
         }
     } while (choice != 0);
 }
 
-// ¿øÀç·á Ãß°¡
+// ì›ì¬ë£Œ ì¶”ê°€
 void RawMaterialManager::addMaterial() {
     RawMaterial newItem;
-    cin.ignore();  // ÀÔ·Â ¹öÆÛ ÃÊ±âÈ­
-    cout << "\n=== ¿øÀç·á Ãß°¡ ===\n";
-    cout << "ÀÌ¸§: "; getline(cin, newItem.name);
-    cout << "Á¾·ù: "; getline(cin, newItem.type);
-    cout << "Ãâ½Å Áö¿ª: "; getline(cin, newItem.origin);
-    cout << "¹«°Ô(kg): "; cin >> newItem.weight_kg; cin.ignore();
-    cout << "º¸°ü À§Ä¡: "; getline(cin, newItem.storage_location);
-    cout << "º¸°ü ¹æ¹ı: "; getline(cin, newItem.storage_method);
-    cout << "À¯Åë±âÇÑ: "; getline(cin, newItem.expiry_date);
-    cout << "ÀÔ°íÀÏ(YYYY-MM-DD): "; getline(cin, newItem.entry_date);
+    cin.ignore();  // ì…ë ¥ ë²„í¼ ì´ˆê¸°í™”
+    cout << "\n=== ì›ì¬ë£Œ ì¶”ê°€ ===\n";
+    cout << "ì´ë¦„: "; getline(cin, newItem.name);
+    cout << "ì¢…ë¥˜: "; getline(cin, newItem.type);
+    cout << "ì¶œì‹  ì§€ì—­: "; getline(cin, newItem.origin);
+    cout << "ë¬´ê²Œ(kg): "; cin >> newItem.weight_kg; cin.ignore();
+    cout << "ë³´ê´€ ìœ„ì¹˜: "; getline(cin, newItem.storage_location);
+    cout << "ë³´ê´€ ë°©ë²•: "; getline(cin, newItem.storage_method);
+    cout << "ìœ í†µê¸°í•œ: "; getline(cin, newItem.expiry_date);
+    cout << "ì…ê³ ì¼(YYYY-MM-DD): "; getline(cin, newItem.entry_date);
     newItem.exit_date = "";
 
     materials.push_back(newItem);
-    cout << "¿øÀç·á°¡ Ãß°¡µÇ¾ú½À´Ï´Ù.\n";
+    cout << "ì›ì¬ë£Œê°€ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤.\n";
 }
 
-// ¿øÀç·á ¼öÁ¤
+// ì›ì¬ë£Œ ìˆ˜ì •
 void RawMaterialManager::updateMaterial() {
     string name;
     cin.ignore();
-    cout << "\n¼öÁ¤ÇÒ ¿øÀç·á ÀÌ¸§ ÀÔ·Â: ";
+    cout << "\nìˆ˜ì •í•  ì›ì¬ë£Œ ì´ë¦„ ì…ë ¥: ";
     getline(cin, name);
 
     for (auto& m : materials) {
         if (m.name == name && m.exit_date.empty()) {
-            cout << "=== ¿øÀç·á ¼öÁ¤ ===\n";
+            cout << "=== ì›ì¬ë£Œ ìˆ˜ì • ===\n";
 
-            cout << "º¸°ü À§Ä¡ (" << m.storage_location << "): ";
+            cout << "ë³´ê´€ ìœ„ì¹˜ (" << m.storage_location << "): ";
             getline(cin, m.storage_location);
 
-            cout << "º¸°ü ¹æ¹ı (" << m.storage_method << "): ";
+            cout << "ë³´ê´€ ë°©ë²• (" << m.storage_method << "): ";
             getline(cin, m.storage_method);
 
-            cout << "À¯Åë±âÇÑ (" << m.expiry_date << "): ";
+            cout << "ìœ í†µê¸°í•œ (" << m.expiry_date << "): ";
             getline(cin, m.expiry_date);
 
-            cout << "¹«°Ô(kg) (" << m.weight_kg << "): ";
+            cout << "ë¬´ê²Œ(kg) (" << m.weight_kg << "): ";
             cin >> m.weight_kg; cin.ignore();
 
-            cout << "¼öÁ¤ ¿Ï·á.\n";
+            cout << "ìˆ˜ì • ì™„ë£Œ.\n";
             return;
         }
     }
-    cout << "ÇØ´ç ÀÌ¸§ÀÇ ¿øÀç·á(Àç°í)¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+    cout << "í•´ë‹¹ ì´ë¦„ì˜ ì›ì¬ë£Œ(ì¬ê³ )ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
 }
 
-// Ãâ°í Ã³¸® (exit_date ¼³Á¤)
+// ì¶œê³  ì²˜ë¦¬ (exit_date ì„¤ì •)
 void RawMaterialManager::deleteMaterial() {
     string name;
     cin.ignore();
-    cout << "\nÃâ°í Ã³¸®ÇÒ ¿øÀç·á ÀÌ¸§ ÀÔ·Â: ";
+    cout << "\nì¶œê³  ì²˜ë¦¬í•  ì›ì¬ë£Œ ì´ë¦„ ì…ë ¥: ";
     getline(cin, name);
 
     for (auto& m : materials) {
         if (m.name == name && m.exit_date.empty()) {
-            cout << "Ãâ°íÀÏ ÀÔ·Â (YYYY-MM-DD): ";
+            cout << "ì¶œê³ ì¼ ì…ë ¥ (YYYY-MM-DD): ";
             getline(cin, m.exit_date);
-            cout << "Ãâ°í Ã³¸® ¿Ï·á.\n";
+            cout << "ì¶œê³  ì²˜ë¦¬ ì™„ë£Œ.\n";
             return;
         }
     }
 
-    cout << "ÇØ´ç ÀÌ¸§ÀÇ ¿øÀç·á(Àç°í)¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+    cout << "í•´ë‹¹ ì´ë¦„ì˜ ì›ì¬ë£Œ(ì¬ê³ )ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
 }
 
-// ÀÌ¸§À¸·Î °Ë»ö
+// ì´ë¦„ìœ¼ë¡œ ê²€ìƒ‰
 void RawMaterialManager::searchMaterial() {
     string name;
     cin.ignore();
-    cout << "\n°Ë»öÇÒ ¿øÀç·á ÀÌ¸§ ÀÔ·Â: ";
+    cout << "\nê²€ìƒ‰í•  ì›ì¬ë£Œ ì´ë¦„ ì…ë ¥: ";
     getline(cin, name);
 
     bool found = false;
     for (const auto& m : materials) {
         if (m.name == name) {
-            cout << "ÀÌ¸§: " << m.name << "\n"
-                << "Á¾·ù: " << m.type << "\n"
-                << "Ãâ½Å: " << m.origin << "\n"
-                << "¹«°Ô: " << m.weight_kg << "kg\n"
-                << "º¸°ü À§Ä¡: " << m.storage_location << "\n"
-                << "º¸°ü ¹æ¹ı: " << m.storage_method << "\n"
-                << "À¯Åë±âÇÑ: " << m.expiry_date << "\n"
-                << "ÀÔ°íÀÏ: " << m.entry_date << "\n"
-                << "Ãâ°íÀÏ: " << (m.exit_date.empty() ? "-" : m.exit_date) << "\n"
+            cout << "ì´ë¦„: " << m.name << "\n"
+                << "ì¢…ë¥˜: " << m.type << "\n"
+                << "ì¶œì‹ : " << m.origin << "\n"
+                << "ë¬´ê²Œ: " << m.weight_kg << "kg\n"
+                << "ë³´ê´€ ìœ„ì¹˜: " << m.storage_location << "\n"
+                << "ë³´ê´€ ë°©ë²•: " << m.storage_method << "\n"
+                << "ìœ í†µê¸°í•œ: " << m.expiry_date << "\n"
+                << "ì…ê³ ì¼: " << m.entry_date << "\n"
+                << "ì¶œê³ ì¼: " << (m.exit_date.empty() ? "-" : m.exit_date) << "\n"
                 << "-----------------------------\n";
             found = true;
         }
     }
 
     if (!found)
-        cout << "ÇØ´ç ÀÌ¸§ÀÇ ¿øÀç·á¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+        cout << "í•´ë‹¹ ì´ë¦„ì˜ ì›ì¬ë£Œë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
 }
 
-// º¸°ü Àå¼ÒÀÇ È¯°æ Á¤º¸ Ãâ·Â
+// ë³´ê´€ ì¥ì†Œì˜ í™˜ê²½ ì •ë³´ ì¶œë ¥
 void RawMaterialManager::showStorageEnvironment() {
     vector<StorageEnvironment> storageList = {
-        {"Ã¢°í A", 18.5f, 55.2f},
-        {"ÁöÇÏ ÀúÀå°í", 12.0f, 70.0f},
-        {"½ÇÇè½Ç º¸°ü¼Ò", 22.3f, 40.0f}
+        {"ì°½ê³  A", 18.5f, 55.2f},
+        {"ì§€í•˜ ì €ì¥ê³ ", 12.0f, 70.0f},
+        {"ì‹¤í—˜ì‹¤ ë³´ê´€ì†Œ", 22.3f, 40.0f}
     };
 
-    cout << "\n=== º¸°ü Àå¼Ò È¯°æ Á¤º¸ Á¶È¸ ===\n";
+    cout << "\n=== ë³´ê´€ ì¥ì†Œ í™˜ê²½ ì •ë³´ ì¡°íšŒ ===\n";
     for (const auto& storage : storageList) {
         cout << "-----------------------------\n";
-        storage.displayInfo();  // StorageEnvironment °´Ã¼ÀÇ Á¤º¸ Ãâ·Â
+        storage.displayInfo();  // StorageEnvironment ê°ì²´ì˜ ì •ë³´ ì¶œë ¥
     }
 
-    cout << "\n°è¼ÓÇÏ·Á¸é Enter¸¦ ´©¸£¼¼¿ä...";
+    cout << "\nê³„ì†í•˜ë ¤ë©´ Enterë¥¼ ëˆ„ë¥´ì„¸ìš”...";
     cin.ignore(); cin.get();
 }
