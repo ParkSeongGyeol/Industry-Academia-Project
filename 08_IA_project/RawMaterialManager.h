@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 // 원재료 정보를 담는 구조체
 struct RawMaterial {
     string material_id;           // 고유 식별자
