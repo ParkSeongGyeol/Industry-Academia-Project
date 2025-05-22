@@ -88,7 +88,7 @@ private:
     vector<ShipmentRecord> shipmentLog; // 출고 내역
 
 public:
-    std::string getSummary(); // 요약 정보 반환
+    string getSummary(); // 요약 정보 반환
     void showBottledWhiskyPage();     // 시작
     void showInventory();      // 현재 재고 출력
     void addWhisky();          // 병입 위스키 추가

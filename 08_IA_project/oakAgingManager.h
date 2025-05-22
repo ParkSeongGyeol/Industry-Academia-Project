@@ -31,9 +31,9 @@ public:
 
 	// Getter
 	string getId() const;
-	std::string getType() const;
-	std::string getOrigin() const;
-	std::string getWoodType() const;
+	string getType() const;
+	string getOrigin() const;
+	string getWoodType() const;
 
 	int getRipeningPeriod() const;
 	int getAgingCount() const;
@@ -67,8 +67,8 @@ private:
 	vector<OakBox> oakList;
 
 public:
-	std::string getSummary(); // 요약 정보 반환
-	std::vector<std::string> getPageInfoLines();
+	string getSummary(); // 요약 정보 반환
+	vector<string> getPageInfoLines();
 
 	void showOakAgingPage();
 	void showOakList();
