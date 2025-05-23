@@ -1,5 +1,6 @@
 #include "SpiritManager.h"
 #include "UIUtils.h"
+#include <fstream>
 #include <iostream>
 #include <algorithm>
 
@@ -63,6 +64,7 @@ void SpiritManager::showSpiritPage() {
             "[2] 스피릿 추가",
             "[3] 스피릿 삭제",
             "[4] 스피릿 수정",
+            "[5] CSV로 저장",
             "[0] 메인으로 돌아가기"
         };
 
@@ -75,6 +77,7 @@ void SpiritManager::showSpiritPage() {
         case 2: addSpirit(); break;
         case 3: deleteSpirit(); break;
         case 4: updateSpirit(); break;
+        case 5: exportSpiritsToCSV("spirits.csv"); break;
         case 0: cout << "메인으로 돌아갑니다...\n"; break;
         default: cout << "잘못된 입력입니다.\n"; break;
         }
@@ -132,6 +135,16 @@ void SpiritManager::addSpirit() {
 
     cout << "증류 횟수: ";
     cin >> intInput; spirit.setDistillationCount(intInput);
+    cin.ignore();
+
+    cout << "입자 크기 (예: 미분말, 2mm 입자 등): ";
+    getline(cin, input); spirit.setParticleSize(input);
+
+    cout << "재료 배치 ID: ";
+    getline(cin, input); spirit.setBatchId(input);
+
+    cout << "초류/후류/본류 수득량 요약: ";
+    getline(cin, input); spirit.setCutYield(input);
 
     spirits.push_back(spirit);
     cout << "스피릿 추가 완료!\n";
@@ -173,9 +186,13 @@ void SpiritManager::displaySpirits() {
             << "초류 끊은 시점: " << s.getFirstCutTime() << "\n"
             << "후류 종료 시점: " << s.getLastCutTime() << "\n"
             << "증류 횟수: " << s.getDistillationCount() << "\n"
+            << "입자 크기: " << s.getParticleSize() << "\n"
+            << "재료 배치 ID: " << s.getBatchId() << "\n"
+            << "초류/후류/본류 수득량: " << s.getCutYield() << "\n"
             << "--------------------------\n";
     }
 }
+
 
 
 // 스피릿 정보 수정
@@ -233,10 +250,55 @@ void SpiritManager::updateSpirit() {
             getline(cin, input);
             if (!input.empty()) s.setDistillationCount(stoi(input));
 
+            cout << "입자 크기 (" << s.getParticleSize() << "): ";
+            getline(cin, input);
+            if (!input.empty()) s.setParticleSize(input);
+
+            cout << "재료 배치 ID (" << s.getBatchId() << "): ";
+            getline(cin, input);
+            if (!input.empty()) s.setBatchId(input);
+
+            cout << "초류/후류/본류 수득량 (" << s.getCutYield() << "): ";
+            getline(cin, input);
+            if (!input.empty()) s.setCutYield(input);
+
             cout << "스피릿 수정 완료!\n";
             return;
         }
     }
 
     cout << "해당 ID의 스피릿을 찾을 수 없습니다.\n";
+}
+
+void SpiritManager::exportSpiritsToCSV(const string& filename) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "CSV 파일을 열 수 없습니다.\n";
+        return;
+    }
+
+    // 헤더
+    file << "ID,StorageLocation,TransferHistory,ProductionDate,AlcoholPercentage,YieldLiters,"
+        << "RawMaterialRatio,FermentationDays,FirstCutTime,LastCutTime,DistillationCount,"
+        << "ParticleSize,BatchId,CutYield\n";
+
+    for (const auto& s : spirits) {
+        file << s.getId() << ","
+            << s.getStorageLocation() << ","
+            << s.getTransferHistory() << ","
+            << s.getProductionDate() << ","
+            << s.getAlcoholPercentage() << ","
+            << s.getYieldLiters() << ","
+            << s.getRawMaterialRatio() << ","
+            << s.getFermentationDays() << ","
+            << s.getFirstCutTime() << ","
+            << s.getLastCutTime() << ","
+            << s.getDistillationCount() << ","
+            << s.getParticleSize() << ","
+            << s.getBatchId() << ","
+            << s.getCutYield() << "\n";
+    }
+
+    file.close();
+    cout << "[ " << filename << " ] 파일로 저장 완료!\n";
 }
