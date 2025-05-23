@@ -1,54 +1,98 @@
-#pragma once
+ï»¿#pragma once
 #include <string>
 #include <vector>
 
 using namespace std;
 
-// ¿øÀç·á Á¤º¸¸¦ ´ã´Â ±¸Á¶Ã¼
-struct RawMaterial {
-    string material_id;           // °íÀ¯ ½Äº°ÀÚ
-    string name;                  // ¿¹: º¸¸®, È£¹Ğ, ¹° µî
-    string type;                  // °î¹°, ±âÅ¸ µî
-    string origin;                // ¿ø»êÁö, ¿¹: ½ºÄÚÆ²·£µå, ¹Ì±¹
-    double weight_kg = 0.0;       // ÇöÀç º¸À¯ ÁßÀÎ ¼ö·® (kg)
-    string storage_location;      // Ã¢°í A, ÅÊÅ© B µî
-    string storage_method;        // Àú¿Â °ÇÁ¶, Ã»°á ¹ĞºÀ µî
-    string expiry_date;           // À¯È¿ »ç¿ë ±âÇÑ
-    string entry_date;            // °øÀå ÀÔ°íÀÏ
-    string exit_date;             // ¹èÄ¡·Î ÅõÀÔµÈ ³¯Â¥
-    string status;                // Á¤»ó, ÀÔ¹Ú, Æó±â, ÆÄ¼Õ µî
-    string unit;                  // kg ´ÜÀ§
-    double unit_price = 0.0;      // kg ´ç ´Ü°¡
-    string entry_manager;         // ÀÔ°í µî·ÏÇÑ »ç¶÷
-    string exit_manager;          // Ãâ°í Ã³¸® ´ã´çÀÚ
-    string quality_check;         // ÀÔ°í ½Ã Ç°Áú È®ÀÎ ¿©ºÎ
-    string quality_check_date;    // Ç°Áú °Ë»ç ÀÏÀÚ
+//  RawMaterial í´ë˜ìŠ¤ ì •ì˜ (ê¸°ì¡´ êµ¬ì¡°ì²´ â†’ ìº¡ìŠí™”ëœ í´ë˜ìŠ¤)
+class RawMaterial {
+private:
+    string material_id;
+    string name;
+    string type;
+    string origin;
+    double weight_kg = 0.0;
+    string storage_location;
+    string storage_method;
+    string expiry_date;
+    string entry_date;
+    string exit_date;
+    string status;
+    string unit;
+    double unit_price = 0.0;
+    string entry_manager;
+    string exit_manager;
+    string quality_check;
+    string quality_check_date;
+
+public:
+    // ìƒì„±ì (í•„ìš” ì‹œ í™•ì¥ ê°€ëŠ¥)
+    RawMaterial() = default;
+
+    // Getter
+    string getMaterialId() const { return material_id; }
+    string getName() const { return name; }
+    string getType() const { return type; }
+    string getOrigin() const { return origin; }
+    double getWeightKg() const { return weight_kg; }
+    string getStorageLocation() const { return storage_location; }
+    string getStorageMethod() const { return storage_method; }
+    string getExpiryDate() const { return expiry_date; }
+    string getEntryDate() const { return entry_date; }
+    string getExitDate() const { return exit_date; }
+    string getStatus() const { return status; }
+    string getUnit() const { return unit; }
+    double getUnitPrice() const { return unit_price; }
+    string getEntryManager() const { return entry_manager; }
+    string getExitManager() const { return exit_manager; }
+    string getQualityCheck() const { return quality_check; }
+    string getQualityCheckDate() const { return quality_check_date; }
+
+    // Setter
+    void setMaterialId(const string& val) { material_id = val; }
+    void setName(const string& val) { name = val; }
+    void setType(const string& val) { type = val; }
+    void setOrigin(const string& val) { origin = val; }
+    void setWeightKg(double val) { weight_kg = val; }
+    void setStorageLocation(const string& val) { storage_location = val; }
+    void setStorageMethod(const string& val) { storage_method = val; }
+    void setExpiryDate(const string& val) { expiry_date = val; }
+    void setEntryDate(const string& val) { entry_date = val; }
+    void setExitDate(const string& val) { exit_date = val; }
+    void setStatus(const string& val) { status = val; }
+    void setUnit(const string& val) { unit = val; }
+    void setUnitPrice(double val) { unit_price = val; }
+    void setEntryManager(const string& val) { entry_manager = val; }
+    void setExitManager(const string& val) { exit_manager = val; }
+    void setQualityCheck(const string& val) { quality_check = val; }
+    void setQualityCheckDate(const string& val) { quality_check_date = val; }
 };
 
-// ¿øÀç·á °ü¸® ±â´ÉÀ» ´ã´çÇÏ´Â Å¬·¡½º
+//  ì›ì¬ë£Œ ì „ì²´ ëª©ë¡ ë° ê¸°ëŠ¥ì„ ê´€ë¦¬í•˜ëŠ” í´ë˜ìŠ¤
 class RawMaterialManager {
 public:
-    string getSummary();   // ´ë½Ãº¸µå¿ë ¿ä¾à ¹®ÀÚ¿­ ¹İÈ¯
-    vector<string> getPageInfoLines(); // Á¤º¸ ¿ä¾à ¶óÀÎ ±¸¼º
+    string getSummary();   // ëŒ€ì‹œë³´ë“œìš© ìš”ì•½ ë¬¸ìì—´ ë°˜í™˜
+    vector<string> getPageInfoLines(); // ì •ë³´ ìš”ì•½ ë¼ì¸ êµ¬ì„±
 
-    void showInventory();       // ÇöÀç º¸À¯ ¿øÀç·á¸¸ Ãâ·Â
-    void showAllMaterials();    // ÀüÃ¼ ÀÔÃâ°í ÀÌ·Â Ãâ·Â
-    void showRawMaterialPage(); // ÄÜ¼Ö ¸Ş´º ·çÇÁ ½ÇÇà
-    void addMaterial();         // ¿øÀç·á Ãß°¡
-    void updateMaterial();      // ¿øÀç·á Á¤º¸ ¼öÁ¤
-    void deleteMaterial();      // Ãâ°í Ã³¸®
-    void searchMaterial();      // ÀÌ¸§À¸·Î ¿øÀç·á °Ë»ö
-    void showStorageEnvironment(); // º¸°ü Àå¼Ò È¯°æ Á¤º¸ Ãâ·Â
-	void exportUsedInventoryToCSV(); // »ç¿ëµÈ ¿øÀç·á CSV·Î ÀúÀå
-	void exportRemainingStockToCSV(); // Ãâ°íµÇÁö ¾ÊÀº Àç°í CSV·Î ÀúÀå
-	void showUninspectedMaterials(); // Ç°Áú °Ë»ç ¹Ì¿Ï·á Àç·á ¸ñ·Ï º¸±â
-	void showMaterialsByManager(); // ´ã´çÀÚº° ÀÔÃâ°í ÀÌ·Â º¸±â
-    double getStock(const string& name); // ÇöÀç Àç°í Á¶È¸
-    void consumeMaterial(const string& name, double amount); // Àç°í Â÷°¨
-    bool processFermentationBatch(double totalBatchKg); // ¹ßÈ¿ ¹èÄ¡¿ë ¿øÀç·á Ã³¸®
-    bool exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList); // »ç¿ë Àç·á ÀúÀå
+    void showInventory();       // í˜„ì¬ ë³´ìœ  ì›ì¬ë£Œë§Œ ì¶œë ¥
+    void showAllMaterials();    // ì „ì²´ ì…ì¶œê³  ì´ë ¥ ì¶œë ¥
+    void showRawMaterialPage(); // ì½˜ì†” ë©”ë‰´ ë£¨í”„ ì‹¤í–‰
+    void addMaterial();         // ì›ì¬ë£Œ ì¶”ê°€
+    void updateMaterial();      // ì›ì¬ë£Œ ì •ë³´ ìˆ˜ì •
+    void deleteMaterial();      // ì¶œê³  ì²˜ë¦¬
+    void searchMaterial();      // ì´ë¦„ìœ¼ë¡œ ì›ì¬ë£Œ ê²€ìƒ‰
+    void showStorageEnvironment(); // ë³´ê´€ ì¥ì†Œ í™˜ê²½ ì •ë³´ ì¶œë ¥
+    void exportUsedInventoryToCSV(); // ì‚¬ìš©ëœ ì›ì¬ë£Œ CSVë¡œ ì €ì¥
+    void exportRemainingStockToCSV(); // ì¶œê³ ë˜ì§€ ì•Šì€ ì¬ê³  CSVë¡œ ì €ì¥
+    void showUninspectedMaterials(); // í’ˆì§ˆ ê²€ì‚¬ ë¯¸ì™„ë£Œ ì¬ë£Œ ëª©ë¡ ë³´ê¸°
+    void showMaterialsByManager(); // ë‹´ë‹¹ìë³„ ì…ì¶œê³  ì´ë ¥ ë³´ê¸°
+
+    double getStock(const string& name); // í˜„ì¬ ì¬ê³  ì¡°íšŒ
+    void consumeMaterial(const string& name, double amount); // ì¬ê³  ì°¨ê°
+    bool processFermentationBatch(double totalBatchKg); // ë°œíš¨ ë°°ì¹˜ìš© ì›ì¬ë£Œ ì²˜ë¦¬
+    bool exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList); // ì‚¬ìš© ì¬ë£Œ ì €ì¥
 
 private:
-    vector<RawMaterial> materials; // ¿øÀç·á ¸®½ºÆ® (¸Ş¸ğ¸® »ó ÀúÀå)
-    void initializeDummyData();        // ÃÊ±â ´õ¹Ì µ¥ÀÌÅÍ »ğÀÔ
+    vector<RawMaterial> materials; // ì›ì¬ë£Œ ë¦¬ìŠ¤íŠ¸ (ë©”ëª¨ë¦¬ ìƒ ì €ì¥)
+    void initializeDummyData();    // ì´ˆê¸° ë”ë¯¸ ë°ì´í„° ì‚½ì…
 };
