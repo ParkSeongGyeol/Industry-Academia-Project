@@ -75,5 +75,4 @@ public:
     void displaySpirits();
     void updateSpirit();
     void exportSpiritsToCSV(const string& filename);
-
 };
