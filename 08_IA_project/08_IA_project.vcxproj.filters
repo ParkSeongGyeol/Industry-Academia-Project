@@ -33,7 +33,7 @@
     <ClCompile Include="UIUtils.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="RawMeterialManager.cpp">
+    <ClCompile Include="RawMaterialManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="SpiritManager.cpp">
