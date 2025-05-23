@@ -2,33 +2,65 @@
 #include <string>
 #include <vector>
 
-// 스피릿 정보를 저장하는 구조체
-struct Spirit {
-    std::string id{};                   // 고유 ID
-    std::string storage_location{};     // 보관 장소
-    std::string transfer_history{};     // 이동 기록
-    std::string production_date{};      // 생산일
-    double alcohol_percentage = 0.0;    // 알코올 도수 (%)
-    double yield_liters = 0.0;          // 생산량 (리터)
-    std::string raw_material_ratio{};   // 원재료 구성 비율
-    int fermentation_days = 0;          // 발효 일수
-    std::string first_cut_time{};       // 초류 끊은 시점
-    std::string last_cut_time{};        // 후류 종료 시점
-    int distillation_count = 0;         // 증류 횟수
-};
+using namespace std;
 
-// 스피릿 관리 기능을 제공하는 클래스
-class SpiritManager {
+// 캡슐화된 Spirit 클래스
+class Spirit {
 private:
-    std::vector<Spirit> spirits; // 전체 스피릿 목록 저장
+    string id;
+    string storage_location;
+    string transfer_history;
+    string production_date;
+    double alcohol_percentage = 0.0;
+    double yield_liters = 0.0;
+    string raw_material_ratio;
+    int fermentation_days = 0;
+    string first_cut_time;
+    string last_cut_time;
+    int distillation_count = 0;
 
 public:
-    std::string getSummary();                  // 대시보드에 표시할 요약 정보
-    std::vector<std::string> getPageInfoLines(); // 메뉴 상단 요약 라인
+    Spirit() = default;
 
-    void showSpiritPage(); // 콘솔 메뉴 루프 실행
-    void addSpirit();      // 스피릿 추가
-    void deleteSpirit();   // 스피릿 삭제
-    void displaySpirits(); // 전체 스피릿 목록 출력
-    void updateSpirit();   // 스피릿 정보 수정
+    // Getter
+    string getId() const { return id; }
+    string getStorageLocation() const { return storage_location; }
+    string getTransferHistory() const { return transfer_history; }
+    string getProductionDate() const { return production_date; }
+    double getAlcoholPercentage() const { return alcohol_percentage; }
+    double getYieldLiters() const { return yield_liters; }
+    string getRawMaterialRatio() const { return raw_material_ratio; }
+    int getFermentationDays() const { return fermentation_days; }
+    string getFirstCutTime() const { return first_cut_time; }
+    string getLastCutTime() const { return last_cut_time; }
+    int getDistillationCount() const { return distillation_count; }
+
+    // Setter
+    void setId(const string& val) { id = val; }
+    void setStorageLocation(const string& val) { storage_location = val; }
+    void setTransferHistory(const string& val) { transfer_history = val; }
+    void setProductionDate(const string& val) { production_date = val; }
+    void setAlcoholPercentage(double val) { alcohol_percentage = val; }
+    void setYieldLiters(double val) { yield_liters = val; }
+    void setRawMaterialRatio(const string& val) { raw_material_ratio = val; }
+    void setFermentationDays(int val) { fermentation_days = val; }
+    void setFirstCutTime(const string& val) { first_cut_time = val; }
+    void setLastCutTime(const string& val) { last_cut_time = val; }
+    void setDistillationCount(int val) { distillation_count = val; }
+};
+
+// SpiritManager 클래스
+class SpiritManager {
+private:
+    vector<Spirit> spirits;
+
+public:
+    string getSummary();
+    vector<string> getPageInfoLines();
+
+    void showSpiritPage();
+    void addSpirit();
+    void deleteSpirit();
+    void displaySpirits();
+    void updateSpirit();
 };
