@@ -186,7 +186,7 @@ void BatchManager::updateBatch() {
         }
     }
 
-    cout << "\n❌ 해당 ID의 배치를 찾을 수 없습니다.\n";
+    cout << "\n해당 ID의 배치를 찾을 수 없습니다.\n";
     UIUtils::pauseConsole();
 }
 
