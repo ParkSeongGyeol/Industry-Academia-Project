@@ -1,15 +1,27 @@
 #include "BottledWhiskyManager.h"
 #include "UIUtils.h"
+#include <fstream>
 #include <iostream>
 
 using namespace std;
 
 // === BottledWhisky 클래스 구현 ===
-BottledWhisky::BottledWhisky(string name, string label, string batch, string target, int count, double volume, double price, bool labeled)
-    : productName(name), labelName(label), batchNumber(batch), exportTarget(target), bottleCount(count), totalVolume(volume), pricePerBottle(price), labeled(labeled) {}
+BottledWhisky::BottledWhisky(
+    string productId, string name, string label, string batch, string target,
+    string oakId, string shipmentDate, string serialNumber, string bottlingManager,
+    int count,
+    double volume, double price,
+    bool labeled)
+    : productId(productId), productName(name), labelName(label), batchNumber(batch),
+    exportTarget(target), oakId(oakId), shipmentDate(shipmentDate),
+    serialNumber(serialNumber), bottlingManager(bottlingManager),
+    bottleCount(count), totalVolume(volume), pricePerBottle(price), labeled(labeled) {
+}
+
 
 //위스키 정보 출력
 void BottledWhisky::ShowInfo() const {
+    cout << "제품 ID: " << productId << endl;
     cout << "제품명: " << productName << endl;
     cout << "수량: " << bottleCount << "병" << endl;
     cout << "총 용량: " << totalVolume << "L" << endl;
@@ -18,13 +30,23 @@ void BottledWhisky::ShowInfo() const {
     cout << "라벨명: " << labelName << endl;
     cout << "배치 번호: " << batchNumber << endl;
     cout << "출고 대상: " << exportTarget << endl;
+    cout << "오크통 ID: " << oakId << endl;
+    cout << "출고 일자: " << shipmentDate << endl;
+    cout << "제조 번호: " << serialNumber << endl;
+    cout << "병입 담당자: " << bottlingManager << endl;
 }
+
 
 // getter 함수 - 멤버 변수 값을 반환
 string BottledWhisky::getName() const { return productName; }
 string BottledWhisky::getLabelName() const { return labelName; }
 string BottledWhisky::getBatchNumber() const { return batchNumber; }
 string BottledWhisky::getExportTarget() const { return exportTarget; }
+string BottledWhisky::getProductId() const { return productId; }
+string BottledWhisky::getOakId() const { return oakId; }
+string BottledWhisky::getShipmentDate() const { return shipmentDate; }
+string BottledWhisky::getSerialNumber() const { return serialNumber; }
+string BottledWhisky::getBottlingManager() const { return bottlingManager; }
 
 int BottledWhisky::getBottleCount() const { return bottleCount; }
 
@@ -38,6 +60,11 @@ void BottledWhisky::setLabelName(string name) { labelName = name; }
 void BottledWhisky::setBatchNumber(string num) { batchNumber = num; }
 void BottledWhisky::setExportTarget(string target) { exportTarget = target; }
 void BottledWhisky::setName(string name) { productName = name; }
+void BottledWhisky::setProductId(string id) { productId = id; }
+void BottledWhisky::setOakId(string id) { oakId = id; }
+void BottledWhisky::setShipmentDate(string date) { shipmentDate = date; }
+void BottledWhisky::setSerialNumber(string serial) { serialNumber = serial; }
+void BottledWhisky::setBottlingManager(string manager) { bottlingManager = manager; }
 
 void BottledWhisky::setBottleCount(int count) { bottleCount = count;}
 
@@ -105,23 +132,31 @@ void BottledWhiskyManager::showInventory() {
 
 // 새 제품 추가
 void BottledWhiskyManager::addWhisky() {
-    string name, label, batch, target;
+    string id, name, label, batch, target;
+    string oakId, date, serial, manager;
     int count;
     double volume, price;
     int labeledInt;
 
     cout << "\n[위스키 추가]\n";
+    cout << "제품 ID: "; cin >> id;
     cout << "제품명: "; cin >> name;
     cout << "라벨명: "; cin >> label;
     cout << "배치 번호: "; cin >> batch;
     cout << "출고 대상: "; cin >> target;
+    cout << "오크통 ID: "; cin >> oakId;
+    cout << "출고 일자 (YYYY-MM-DD): "; cin >> date;
+    cout << "제조 번호: "; cin >> serial;
+    cout << "병입 담당자: "; cin >> manager;
     cout << "수량(병): "; cin >> count;
     cout << "총 용량(L): "; cin >> volume;
     cout << "병당 가격: "; cin >> price;
     cout << "라벨 부착 여부 (1: O, 0: X): "; cin >> labeledInt;
 
+
 	// 새로운 위스키 객체 생성 및 재고에 추가
-    BottledWhisky newWhisky(name, label, batch, target, count, volume, price, labeledInt == 1);
+    BottledWhisky newWhisky(id, name, label, batch, target, oakId, date, serial, manager, count, volume, price, labeledInt == 1);
+
     inventory.push_back(newWhisky);
 
     cout << "제품이 추가되었습니다.\n";
@@ -146,6 +181,11 @@ void BottledWhiskyManager::updateWhisky() {
                 cout << "[6] 총 용량(L)\n";
                 cout << "[7] 병당 가격\n";
                 cout << "[8] 라벨 여부\n";
+                cout << "[9] 오크통 ID\n";
+                cout << "[10] 출고 일자\n";
+                cout << "[11] 제조 번호\n";
+                cout << "[12] 병입 담당자\n";
+                cout << "[13] 제품 ID\n";
                 cout << "[0] 수정을 완료하고 나가기\n";
                 cout << "선택: ";
                 cin >> choice;
@@ -205,6 +245,41 @@ void BottledWhiskyManager::updateWhisky() {
                     cout << "라벨 여부 (1: O, 0: X): ";
                     cin >> l;
                     w.setLabeled(l == 1);
+                    break;
+                }
+                case 9: {
+                    string oak;
+                    cout << "새 오크통 ID: ";
+                    cin >> oak;
+                    w.setOakId(oak);
+                    break;
+                }
+                case 10: {
+                    string date;
+                    cout << "새 출고 일자 (YYYY-MM-DD): ";
+                    cin >> date;
+                    w.setShipmentDate(date);
+                    break;
+                }
+                case 11: {
+                    string serial;
+                    cout << "새 제조 번호: ";
+                    cin >> serial;
+                    w.setSerialNumber(serial);
+                    break;
+                }
+                case 12: {
+                    string manager;
+                    cout << "새 병입 담당자: ";
+                    cin >> manager;
+                    w.setBottlingManager(manager);
+                    break;
+                }
+                case 13: {
+                    string pid;
+                    cout << "새 제품 ID: ";
+                    cin >> pid;
+                    w.setProductId(pid);
                     break;
                 }
                 case 0:
@@ -319,6 +394,7 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
             "[4] 출고 기록 보기",
             "[5] 완제품 수정",
             "[6] 완제품 삭제",
+            "[7] CSV로 저장",
             "[0] 메인 메뉴로 돌아가기"
         };
 
@@ -335,6 +411,7 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
         case 4: showShipmentLog(); break;
         case 5: updateWhisky(); break;
         case 6: deleteWhisky(); break;
+        case 7: exportInventoryToCSV("bottled_inventory.csv"); break;
         case 0: cout << "메인 메뉴로 돌아갑니다...\n"; break;
         default: cout << "잘못된 입력입니다.\n"; break;
         }
@@ -347,4 +424,35 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
     } while (choice != 0);
 }
 
+// 병입 위스키 재고를 CSV 파일로 내보내기
+void BottledWhiskyManager::exportInventoryToCSV(const string& filename) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "CSV 파일을 열 수 없습니다.\n";
+        return;
+    }
 
+    // CSV 헤더
+    file << "ProductID,ProductName,LabelName,BatchNumber,ExportTarget,"
+        << "OakID,ShipmentDate,SerialNumber,BottlingManager,"
+        << "BottleCount,TotalVolume,PricePerBottle,Labeled\n";
+
+    for (const auto& w : inventory) {
+        file << w.getProductId() << ","
+            << w.getName() << ","
+            << w.getLabelName() << ","
+            << w.getBatchNumber() << ","
+            << w.getExportTarget() << ","
+            << w.getOakId() << ","
+            << w.getShipmentDate() << ","
+            << w.getSerialNumber() << ","
+            << w.getBottlingManager() << ","
+            << w.getBottleCount() << ","
+            << w.getTotalVolume() << ","
+            << w.getPricePerBottle() << ","
+            << (w.isLabeled() ? "Yes" : "No") << "\n";
+    }
+
+    file.close();
+    cout << "[ " << filename << " ] 파일로 저장 완료!\n";
+}
