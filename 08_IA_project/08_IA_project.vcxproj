@@ -161,6 +161,11 @@
     <None Include="..\README.md" />
     <None Include=".editorconfig" />
     <None Include="batches.json" />
+    <None Include="batch_dummy.csv" />
+    <None Include="bottledwhisky_dummy.csv" />
+    <None Include="oakaging_dummy.csv" />
+    <None Include="rawmaterial_dummy.csv" />
+    <None Include="spirit_dummy.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

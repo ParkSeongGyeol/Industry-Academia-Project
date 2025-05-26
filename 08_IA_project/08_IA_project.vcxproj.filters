@@ -85,5 +85,20 @@
     <None Include=".editorconfig">
       <Filter>리소스 파일</Filter>
     </None>
+    <None Include="rawmaterial_dummy.csv">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="batch_dummy.csv">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="spirit_dummy.csv">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="oakaging_dummy.csv">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="bottledwhisky_dummy.csv">
+      <Filter>리소스 파일</Filter>
+    </None>
   </ItemGroup>
 </Project>
