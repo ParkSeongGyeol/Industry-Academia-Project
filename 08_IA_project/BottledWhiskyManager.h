@@ -7,29 +7,15 @@ using namespace std;
 // 병입된 위스키 정보를 저장하는 클래스
 class BottledWhisky {
 private:
-    string productId;           // 제품 ID
-    string productName;         // 제품명
-    string labelName;           // 라벨명
-    string batchNumber;         // 배치 번호
-    string exportTarget;        // 출고 대상
-    string oakId;               // 오크통 ID
-    string shipmentDate;        // 출고 일자
-    string serialNumber;        // 제조 번호
-    string bottlingManager;     // 병입 담당자
-
-    int bottleCount;            // 수량
-    double totalVolume;         // 총 용량
-    double pricePerBottle;      // 병당 가격
-    bool labeled;               // 라벨 부착 여부
+    string productId, productName, labelName, batchNumber, exportTarget;
+    string oakId, shipmentDate, serialNumber, bottlingManager;
+    int bottleCount = 0;
+    double totalVolume = 0.0, pricePerBottle = 0.0;
+    bool labeled = false;
 
 public:
-    BottledWhisky(
-        string productId, string name, string label, string batch, string target,
-        string oakId, string shipmentDate, string serialNumber, string bottlingManager,
-        int count,
-        double volume, double price,
-        bool labeled
-    );
+    // 생성자
+    BottledWhisky() = default;
 
     void ShowInfo() const;
 
@@ -59,7 +45,6 @@ public:
     void setShipmentDate(string date);
     void setSerialNumber(string serial);
     void setBottlingManager(string manager);
-
     void setBottleCount(int count);
     void setTotalVolume(double volume);
     void setPricePerBottle(double price);
@@ -73,18 +58,25 @@ class ShipmentRecord {
 private:
     string productName; // 제품명
     string date; // 출고 날짜
-
-    int quantity; // 출고 수량
-    
-    double totalPrice; // 총 가격
+    int quantity = 0; // 출고 수량
+    double totalPrice = 0.0; // 총 가격
 
 public:
-    ShipmentRecord
-    (string name, string date,
-        int qty,
-        double price);
+    ShipmentRecord() = default;
 
     void ShowInfo() const;
+
+    // Getter
+    string getProductName() const;
+    string getDate() const;
+    int getQuantity() const;
+    double getTotalPrice() const;
+
+    // Setter
+    void setProductName(string name);
+    void setDate(string d);
+    void setQuantity(int q);
+    void setTotalPrice(double price);
 };
 
 // 전체 병입 위스키 재고 및 출고 기록을 관리하는 클래스
