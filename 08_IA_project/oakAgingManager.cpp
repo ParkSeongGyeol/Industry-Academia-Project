@@ -5,20 +5,6 @@
 
 using namespace std;
 
-// === OakBox 클래스 구현 ===
-// 오크통 정보를 관리하는 클래스
-OakBox::OakBox(string id, string name, string t, string o, string wood,
-    string spiritId, string startDate, string endDate,
-    int period, int count, int waterTime,
-    double evarate, double temp, double hum,
-    bool roast)
-    : boxId(id), name(name), type(t), origin(o), woodType(wood),
-    spiritId(spiritId), agingStartDate(startDate), agingEndDate(endDate),
-    ripeningPeriod(period), agingCount(count), waterAbsorptionTime(waterTime),
-    evaporationRate(evarate), temperature(temp), humidity(hum),
-    roasted(roast) {
-}
-
 
 // 오크통 정보 출력
 void OakBox::ShowInfo() const {
@@ -189,10 +175,25 @@ void OakAgingManager::addOakBox() {
     cout << "15. 로스팅 여부 (1: 있음, 0: 없음): "; cin >> roastInt;
     roasted = roastInt == 1;
 
-    // 새로운 오크통 객체 생성 및 목록에 추가
-    OakBox newBox(id, name, type, origin, wood, spiritId, startDate, endDate, period, count, water, evap, temp, hum, roasted);
+    OakBox newBox;
+    newBox.setId(id);
+    newBox.setName(name);
+    newBox.setType(type);
+    newBox.setOrigin(origin);
+    newBox.setRipeningPeriod(period);
+    newBox.setAgingCount(count);
+    newBox.setEvaporationRate(evap);
+    newBox.setTemperature(temp);
+    newBox.setHumidity(hum);
+    newBox.setWaterAbsorptionTime(water);
+    newBox.setWoodType(wood);
+    newBox.setSpiritId(spiritId);
+    newBox.setAgingStartDate(startDate);
+    newBox.setAgingEndDate(endDate);
+    newBox.setRoasted(roasted);
 
     oakList.push_back(newBox);
+
     cout << "오크통이 추가되었습니다!\n";
 }
 
