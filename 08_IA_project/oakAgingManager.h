@@ -6,31 +6,27 @@ using namespace std;
 
 class OakBox {
 private:
-	string boxId;       // 오크통 고유 아이디
-	string name;        // 오크통 별칭
-	string type;        // 종류 (버번통, 셰리통 등)
-	string origin;      // 출신지역
-	string woodType;    // 나무 종류 (화이트 오크 등)
-	string spiritId;    // 숙성된 스피릿 ID 
-	string agingStartDate; // 숙성 시작일 
-	string agingEndDate;   // 숙성 종료일
+	string boxId;                 // 오크통 고유 아이디
+	string name;                  // 오크통 별칭
+	string type;                  // 종류 (버번통, 셰리통 등)
+	string origin;                // 출신지역
+	string woodType;              // 나무 종류 (화이트 오크 등)
+	string spiritId;              // 숙성된 스피릿 ID 
+	string agingStartDate;        // 숙성 시작일 
+	string agingEndDate;          // 숙성 종료일
 
-	int ripeningPeriod;  // 숙성 기간 (일수)
-	int agingCount;      // 숙성 횟수
-	int waterAbsorptionTime; // 물을 머금은 시간
+	int ripeningPeriod = 0;       // 숙성 기간 (일수)
+	int agingCount = 0;           // 숙성 횟수
+	int waterAbsorptionTime = 0;  // 물을 머금은 시간
 
-	double evaporationRate; // 증발률
-	double temperature;  // 온도
-	double humidity;     // 습도
+	double evaporationRate = 0.0; // 증발률
+	double temperature = 0.0;     // 온도
+	double humidity = 0.0;        // 습도
 
-	bool roasted;        // 로스팅 여부
+	bool roasted = false;         // 로스팅 여부
 
 public:
-	OakBox(string id, string name, string t, string o, string wood,
-		string spiritId, string startDate, string endDate,
-		int period, int count, int waterTime,
-		double evarate, double temp, double hum,
-		bool roast);
+	OakBox() = default;
 
 	void ShowInfo() const;
 
