@@ -4,13 +4,6 @@
 #include <set>
 using namespace std;
 
-// FermentationBatch 클래스 (기존 struct → 클래스 캡슐화)
-#pragma once
-#include <string>
-#include <vector>
-#include <set>
-using namespace std;
-
 // FermentationBatch 클래스 정의
 class FermentationBatch {
 private:
