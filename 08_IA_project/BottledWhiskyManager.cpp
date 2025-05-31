@@ -5,20 +5,6 @@
 
 using namespace std;
 
-// === BottledWhisky 클래스 구현 ===
-BottledWhisky::BottledWhisky(
-    string productId, string name, string label, string batch, string target,
-    string oakId, string shipmentDate, string serialNumber, string bottlingManager,
-    int count,
-    double volume, double price,
-    bool labeled)
-    : productId(productId), productName(name), labelName(label), batchNumber(batch),
-    exportTarget(target), oakId(oakId), shipmentDate(shipmentDate),
-    serialNumber(serialNumber), bottlingManager(bottlingManager),
-    bottleCount(count), totalVolume(volume), pricePerBottle(price), labeled(labeled) {
-}
-
-
 //위스키 정보 출력
 void BottledWhisky::ShowInfo() const {
     cout << "제품 ID: " << productId << endl;
@@ -48,10 +34,17 @@ string BottledWhisky::getShipmentDate() const { return shipmentDate; }
 string BottledWhisky::getSerialNumber() const { return serialNumber; }
 string BottledWhisky::getBottlingManager() const { return bottlingManager; }
 
+string ShipmentRecord::getProductName() const { return productName; }
+string ShipmentRecord::getDate() const { return date; }
+
 int BottledWhisky::getBottleCount() const { return bottleCount; }
+
+int ShipmentRecord::getQuantity() const { return quantity; }
 
 double BottledWhisky::getTotalVolume() const { return totalVolume; }
 double BottledWhisky::getPricePerBottle() const { return pricePerBottle; }
+
+double ShipmentRecord::getTotalPrice() const { return totalPrice; }
 
 bool BottledWhisky::isLabeled() const { return labeled; }
 
@@ -66,10 +59,17 @@ void BottledWhisky::setShipmentDate(string date) { shipmentDate = date; }
 void BottledWhisky::setSerialNumber(string serial) { serialNumber = serial; }
 void BottledWhisky::setBottlingManager(string manager) { bottlingManager = manager; }
 
+void ShipmentRecord::setProductName(string name) { productName = name; }
+void ShipmentRecord::setDate(string d) { date = d; }
+
 void BottledWhisky::setBottleCount(int count) { bottleCount = count;}
+
+void ShipmentRecord::setQuantity(int q) { quantity = q; }
 
 void BottledWhisky::setTotalVolume(double volume) { totalVolume = volume; }
 void BottledWhisky::setPricePerBottle(double price) { pricePerBottle = price; }
+
+void ShipmentRecord::setTotalPrice(double price) { totalPrice = price; }
 
 void BottledWhisky::setLabeled(bool value) { labeled = value; }
 
@@ -85,10 +85,6 @@ void BottledWhisky::decreaseStock(int count) {
 }
 
 
-// 출고 기록을 관리하는 클래스
-ShipmentRecord::ShipmentRecord(string name, string date, int qty, double price)
-    : productName(name), date(date), quantity(qty), totalPrice(price) {
-}
 // 출고 기록 출력
 void ShipmentRecord::ShowInfo() const {
     cout << "[출고기록] 날짜: " << date << endl;
@@ -153,11 +149,23 @@ void BottledWhiskyManager::addWhisky() {
     cout << "병당 가격: "; cin >> price;
     cout << "라벨 부착 여부 (1: O, 0: X): "; cin >> labeledInt;
 
+    BottledWhisky whisky;
 
-	// 새로운 위스키 객체 생성 및 재고에 추가
-    BottledWhisky newWhisky(id, name, label, batch, target, oakId, date, serial, manager, count, volume, price, labeledInt == 1);
+    whisky.setProductId(id);
+    whisky.setName(name);
+    whisky.setLabelName(label);
+    whisky.setBatchNumber(batch);
+    whisky.setExportTarget(target);
+    whisky.setOakId(oakId);
+    whisky.setShipmentDate(date);
+    whisky.setSerialNumber(serial);
+    whisky.setBottlingManager(manager);
+    whisky.setBottleCount(count);
+    whisky.setTotalVolume(volume);
+    whisky.setPricePerBottle(price);
+    whisky.setLabeled(labeledInt == 1);
 
-    inventory.push_back(newWhisky);
+    inventory.push_back(whisky);
 
     cout << "제품이 추가되었습니다.\n";
 }
@@ -330,7 +338,11 @@ void BottledWhiskyManager::shipWhisky() {
             double totalPrice = qty * whisky.getPricePerBottle();
 
             //출고 기록 생성
-            ShipmentRecord record(name, date, qty, totalPrice);
+            ShipmentRecord record;
+            record.setProductName(name);
+            record.setDate(date);
+            record.setQuantity(qty);
+            record.setTotalPrice(totalPrice);
             shipmentLog.push_back(record);
 
             // 재고 감소
