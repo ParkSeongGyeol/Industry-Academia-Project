@@ -52,4 +52,21 @@ public:
     bool validateRawMaterialStock(const class RawMaterialManager& mgr, double batchSize) const;
 
     // 배치 생산 (원재료 차감, 배치ID/생산량 기록)
-    std::string produceBatch(class RawMaterial
+    std::string produceBatch(class RawMaterialManager& mgr, double batchSize);
+
+    // 증류 (분획별 양 계산, 증류ID/총량 기록)
+    std::string distillBatch(double yieldRate, double headPct, double tailPct);
+
+    // 숙성 (증발량/최종양 계산, 숙성ID 기록)
+    std::string ageSpirit(double evaporationRate);
+
+    // 병입 (병입ID/최종병입량 계산)
+    std::string bottleProduct();
+
+    // CSV 직렬화/역직렬화
+    std::string toCSV() const;
+    static Recipe fromCSV(const std::string& line);
+
+    // 공정별 상세 로그/요약 반환
+    std::vector<std::string> getProcessLog() const;
+};

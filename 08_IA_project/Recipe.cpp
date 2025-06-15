@@ -2,104 +2,102 @@
 #include "RawMaterialManager.h"
 #include <sstream>
 #include <iomanip>
+#include <iostream>
+#include <cmath>
 
-// 생성자: 기본값 초기화
+// 생성자
 Recipe::Recipe() = default;
 
-// 배치 생산량에 따라 필요한 원재료별 수량(kg) 계산
-std::map<std::string, double> Recipe::getRequiredRawMaterials(double batchSize) const {
-    std::map<std::string, double> result;
+// 원재료 투입량 계산 및 기록
+void Recipe::calculateRawMaterialUsage(double batchSize) {
+    rawMaterialUsed.clear();
     for (const auto& [name, ratio] : rawMaterialRatio) {
-        result[name] = batchSize * (ratio / 100.0);
+        rawMaterialUsed[name] = batchSize * (ratio / 100.0);
     }
-    return result;
 }
 
-// 원재료 재고가 충분한지 검증
+// 원재료 재고 검증
 bool Recipe::validateRawMaterialStock(const RawMaterialManager& mgr, double batchSize) const {
-    auto required = getRequiredRawMaterials(batchSize);
-    for (const auto& [name, amount] : required) {
-        if (mgr.getStock(name) < amount)
+    for (const auto& [name, ratio] : rawMaterialRatio) {
+        double need = batchSize * (ratio / 100.0);
+        if (mgr.getStock(name) < need)
             return false;
     }
     return true;
 }
 
-// 배치 생성에 필요한 정보 반환
-std::map<std::string, std::string> Recipe::getBatchParameters() const {
-    std::map<std::string, std::string> params;
-    params["yeastType"] = yeastType;
-    params["fermentationTemp"] = std::to_string(fermentationTemp);
-    params["fermentationHours"] = std::to_string(fermentationHours);
-    return params;
-}
-
-// 스피릿 분할 결과(스피릿명, 분할량) 반환
-std::vector<std::pair<std::string, double>> Recipe::getSpiritSplits(double totalAmount) const {
-    std::vector<std::pair<std::string, double>> splits;
-    double sum = 0.0;
-    for (const auto& [name, ratio] : spiritSplits) {
-        double amount = totalAmount * (ratio / 100.0);
-        splits.emplace_back(name, amount);
-        sum += ratio;
+// 배치 생산 (원재료 차감, 배치ID/생산량 기록)
+std::string Recipe::produceBatch(RawMaterialManager& mgr, double batchSize) {
+    calculateRawMaterialUsage(batchSize);
+    for (const auto& [name, amount] : rawMaterialUsed) {
+        mgr.consumeMaterial(name, amount);
     }
-    // 비율 합이 100%가 아니면 남은 양을 마지막에 할당
-    if (!splits.empty() && sum < 100.0) {
-        splits.back().second += totalAmount * ((100.0 - sum) / 100.0);
-    }
-    return splits;
+    batchId = "BATCH_" + std::to_string(rand() % 1000000);
+    batchOutput = batchSize * 0.95; // 발효 효율 95% 가정
+    return batchId;
 }
 
-// 숙성(오크) 생성에 필요한 정보 반환
-std::map<std::string, std::string> Recipe::getAgingParameters() const {
-    std::map<std::string, std::string> params;
-    params["oakType"] = oakType;
-    params["agingMonths"] = std::to_string(agingMonths);
-    return params;
+// 증류 (분획별 양 계산, 증류ID/총량 기록)
+std::string Recipe::distillBatch(double yieldRate, double headPct, double tailPct) {
+    spiritId = "SPIRIT_" + std::to_string(rand() % 1000000);
+    spiritOutput = batchOutput * yieldRate; // 예: 80% 수율
+    double head = spiritOutput * (headPct / 100.0);
+    double tail = spiritOutput * (tailPct / 100.0);
+    double heart = spiritOutput - head - tail;
+    spiritFractions.clear();
+    spiritFractions["Head"] = head;
+    spiritFractions["Heart"] = heart;
+    spiritFractions["Tail"] = tail;
+    return spiritId;
 }
 
-// 병입 생성에 필요한 정보 반환
-std::map<std::string, std::string> Recipe::getBottlingParameters() const {
-    std::map<std::string, std::string> params;
-    params["bottledName"] = bottledName;
-    params["bottleCount"] = std::to_string(bottleCount);
-    params["bottleVolume"] = std::to_string(bottleVolume);
-    params["bottlePrice"] = std::to_string(bottlePrice);
-    return params;
+// 숙성 (증발량/최종양 계산, 숙성ID 기록)
+std::string Recipe::ageSpirit(double evaporationRate) {
+    agingId = "AGING_" + std::to_string(rand() % 1000000);
+    evaporationLoss = spiritFractions["Heart"] * (evaporationRate / 100.0);
+    agedOutput = spiritFractions["Heart"] - evaporationLoss;
+    return agingId;
 }
 
-// 레시피 정의 자체의 유효성 검사 (예: 원재료/스피릿 비율 합 100%)
-bool Recipe::validateRecipe() const {
-    double sum = 0.0;
-    for (const auto& [_, ratio] : rawMaterialRatio) sum += ratio;
-    if (std::abs(sum - 100.0) > 1e-3) return false;
-    sum = 0.0;
-    for (const auto& [_, ratio] : spiritSplits) sum += ratio;
-    if (!spiritSplits.empty() && std::abs(sum - 100.0) > 1e-3) return false;
-    return true;
+// 병입 (병입ID/최종병입량 계산)
+std::string Recipe::bottleProduct() {
+    bottledId = "BOTTLED_" + std::to_string(rand() % 1000000);
+    totalBottledVolume = bottleCount * bottleVolume / 1000.0; // L 단위
+    return bottledId;
 }
 
-// 각 공정별 ID 기록
-void Recipe::addUsedRawMaterialId(const std::string& id) {
-    usedRawMaterialIds.push_back(id);
-}
-void Recipe::setBatchId(const std::string& id) {
-    batchId = id;
-}
-void Recipe::addSpiritId(const std::string& id) {
-    spiritIds.push_back(id);
-}
-void Recipe::addOakAgingId(const std::string& id) {
-    oakAgingIds.push_back(id);
-}
-void Recipe::addBottledId(const std::string& id) {
-    bottledIds.push_back(id);
+// 공정별 상세 로그/요약 반환
+std::vector<std::string> Recipe::getProcessLog() const {
+    std::vector<std::string> log;
+    std::ostringstream oss;
+    oss << "[원재료 투입] ";
+    for (const auto& [name, amount] : rawMaterialUsed)
+        oss << name << ": " << amount << " ";
+    log.push_back(oss.str());
+
+    oss.str(""); oss.clear();
+    oss << "[발효] 배치ID: " << batchId << ", 생산량: " << batchOutput << "L";
+    log.push_back(oss.str());
+
+    oss.str(""); oss.clear();
+    oss << "[증류] 증류ID: " << spiritId << ", 총량: " << spiritOutput << "L, Head: " << spiritFractions.at("Head")
+        << "L, Heart: " << spiritFractions.at("Heart") << "L, Tail: " << spiritFractions.at("Tail") << "L";
+    log.push_back(oss.str());
+
+    oss.str(""); oss.clear();
+    oss << "[숙성] 숙성ID: " << agingId << ", 증발손실: " << evaporationLoss << "L, 숙성 후: " << agedOutput << "L";
+    log.push_back(oss.str());
+
+    oss.str(""); oss.clear();
+    oss << "[병입] 병입ID: " << bottledId << ", 병 수: " << bottleCount << ", 병당: " << bottleVolume << "ml, 총 병입량: " << totalBottledVolume << "L";
+    log.push_back(oss.str());
+
+    return log;
 }
 
-// CSV 직렬화 (간단 예시)
+// CSV 직렬화/역직렬화 (간단 예시, 필요시 상세 구현)
 std::string Recipe::toCSV() const {
     std::ostringstream oss;
-    // 원재료 비율 직렬화
     std::string ratioStr;
     for (const auto& [k, v] : rawMaterialRatio) {
         if (!ratioStr.empty()) ratioStr += ";";
@@ -111,7 +109,6 @@ std::string Recipe::toCSV() const {
     return oss.str();
 }
 
-// CSV 역직렬화 (간단 예시)
 Recipe Recipe::fromCSV(const std::string& line) {
     Recipe r;
     std::istringstream iss(line);
@@ -139,24 +136,4 @@ Recipe Recipe::fromCSV(const std::string& line) {
     getline(iss, tmp, ','); r.bottleVolume = stod(tmp);
     getline(iss, tmp, ','); r.bottlePrice = stod(tmp);
     return r;
-}
-
-// 배치 생성
-std::string Recipe::produceBatch(RawMaterialManager& mgr, double batchSize) {
-    // 1. 필요 원재료 계산
-    auto required = getRequiredRawMaterials(batchSize);
-
-    // 2. 재고 차감
-    for (const auto& [name, amount] : required) {
-        mgr.consumeMaterial(name, amount);
-    }
-
-    // 3. 배치 ID 생성 및 저장
-    std::string newBatchId = "BATCH_" + std::to_string(rand()); // 실제로는 더 안전한 ID 생성 필요
-    setBatchId(newBatchId);
-
-    // 4. 사용된 원재료 ID 기록 (선택)
-    // mgr.materials에서 출고된 원재료의 ID를 usedRawMaterialIds에 추가하는 로직 구현 가능
-
-    return newBatchId;
 }

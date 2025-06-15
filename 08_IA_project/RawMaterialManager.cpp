@@ -1,6 +1,10 @@
-﻿// 원재료 관리 기능 정의 파일
+﻿// -----------------------------------------------------------------------------
+// RawMaterialManager.cpp
+// 원재료 관리 기능 정의 파일 (레시피 연동 포함)
+// -----------------------------------------------------------------------------
+
 #include "RawMaterialManager.h"
-#include "RecipeManager.h" // 새로 추가: 레시피 CRUD/조회용
+#include "RecipeManager.h"
 #include "Recipe.h"
 #include "UIUtils.h"
 #include "StorageEnvironment.h"
@@ -18,6 +22,7 @@
 using namespace std;
 
 // ----------------------------- 상수 정의 -----------------------------
+// CSV 파일 필드 개수 및 파일명 상수 정의
 namespace {
     constexpr int CSV_FIELD_COUNT = 17;
     constexpr char RAW_MATERIAL_CSV[] = "rawmaterial_dummy.csv";
@@ -31,13 +36,13 @@ namespace {
 string getCurrentDate() {
     time_t now = time(nullptr);
     tm t;
-    localtime_s(&t, &now); // (time_t)를 지역 시간 구조체 tm으로 변환
-    char buf[11]; // 날짜 형식: "YYYY-MM-DD" (10자 + 널 종료)
+    localtime_s(&t, &now);
+    char buf[11];
     strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
     return string(buf);
 }
 
-// 안전한 double 입력
+// 안전한 double 입력 함수
 double inputDouble(const string& prompt) {
     double val;
     while (true) {
@@ -52,7 +57,7 @@ double inputDouble(const string& prompt) {
     }
 }
 
-// 안전한 string 입력
+// 안전한 string 입력 함수
 string inputString(const string& prompt) {
     cout << prompt;
     string val;
@@ -60,7 +65,7 @@ string inputString(const string& prompt) {
     return val;
 }
 
-// CSV 헤더 출력
+// CSV 헤더를 파일에 출력
 void writeCSVHeader(ofstream& file, bool withUsedDate = false) {
     file << "ID,Name,Type,Origin,Weight(kg),Storage,StorageMethod,ExpiryDate,EntryDate,ExitDate,"
          << "Status,Unit,UnitPrice,EntryManager,ExitManager,QualityCheck,QualityCheckDate";
@@ -68,7 +73,7 @@ void writeCSVHeader(ofstream& file, bool withUsedDate = false) {
     file << "\n";
 }
 
-// CSV 한 줄 출력
+// RawMaterial 객체의 정보를 CSV 한 줄로 파일에 출력
 void writeCSVRow(ofstream& file, const RawMaterial& m, bool withUsedDate = false) {
     file << m.getMaterialId() << "," << m.getName() << "," << m.getType() << "," << m.getOrigin() << ","
          << m.getWeightKg() << "," << m.getStorageLocation() << "," << m.getStorageMethod() << ","
@@ -80,7 +85,7 @@ void writeCSVRow(ofstream& file, const RawMaterial& m, bool withUsedDate = false
     file << "\n";
 }
 
-// ID로 원재료 검색 (출고되지 않은 것만)
+// ID로 원재료 검색 (출고되지 않은 것만 반환)
 RawMaterial* findMaterialById(vector<RawMaterial>& materials, const string& id) {
     for (auto& m : materials) {
         if (m.getMaterialId() == id && m.getExitDate().empty())
@@ -190,7 +195,7 @@ void RawMaterialManager::consumeMaterial(const string& name, double amount) {
 
 // ----------------------------- [2-1] 레시피 기반 배치 생산 기능 -----------------------------
 /**
- * processFermentationBatch 대체 함수
+ * 레시피 기반 배치 생산
  * - 사용자가 레시피 ID를 입력하면, 해당 레시피를 RecipeManager에서 불러와서
  *   재고 검증 후, produceBatch를 호출하여 배치 생산을 처리한다.
  * - 재고 부족 시 안내 메시지 출력, 성공 시 배치ID 출력 및 재고 CSV 저장
@@ -223,6 +228,7 @@ void RawMaterialManager::produceBatchByRecipe(RecipeManager& recipeMgr) {
 
 // ----------------------------- [3] 정보 요약/조회/출력 -----------------------------
 
+// 전체 원재료 요약 정보(종류/총량) 반환
 string RawMaterialManager::getSummary() {
     double totalKg = 0;
     for (const auto& item : materials)
@@ -232,6 +238,7 @@ string RawMaterialManager::getSummary() {
     return "원재료: " + to_string(materials.size()) + "종 / " + to_string((int)totalKg) + "kg";
 }
 
+// 대시보드/메뉴용 정보 요약 라인 반환
 vector<string> RawMaterialManager::getPageInfoLines() {
     int totalKinds = 0;
     double totalWeight = 0;
@@ -263,6 +270,7 @@ vector<string> RawMaterialManager::getPageInfoLines() {
     return lines;
 }
 
+// 현재 보유 원재료(출고되지 않은 것만) 목록 출력
 void RawMaterialManager::showInventory() {
     cout << "\n=== 현재 보유 원재료 목록 ===\n";
     for (const auto& m : materials) {
@@ -284,6 +292,7 @@ void RawMaterialManager::showInventory() {
     }
 }
 
+// 전체 원재료 입출고 이력 출력
 void RawMaterialManager::showAllMaterials() {
     cout << "\n=== 전체 원재료 입출고 이력 ===\n";
     for (const auto& m : materials) {
@@ -306,6 +315,7 @@ void RawMaterialManager::showAllMaterials() {
     }
 }
 
+// 품질 검사 미완료 원재료 목록 출력
 void RawMaterialManager::showUninspectedMaterials() {
     cout << "\n=== 품질 검사 미완료 원재료 목록 ===\n";
     bool found = false;
@@ -327,6 +337,7 @@ void RawMaterialManager::showUninspectedMaterials() {
     }
 }
 
+// 담당자별 입출고 이력 출력
 void RawMaterialManager::showMaterialsByManager() {
     cin.ignore();
     string manager = inputString("\n조회할 담당자 이름 입력: ");
@@ -352,6 +363,7 @@ void RawMaterialManager::showMaterialsByManager() {
     }
 }
 
+// 보관 장소 환경 정보 출력
 void RawMaterialManager::showStorageEnvironment() {
     vector<StorageEnvironment> storageList = {
         {"창고 A", 18.5f, 55.2f},
@@ -371,6 +383,7 @@ void RawMaterialManager::showStorageEnvironment() {
 
 // ----------------------------- [4] CSV 내보내기 -----------------------------
 
+// 출고된(사용된) 원재료를 CSV로 내보내기
 void RawMaterialManager::exportUsedInventoryToCSV() {
     vector<RawMaterial> usedList;
     for (const auto& m : materials) {
@@ -392,6 +405,7 @@ void RawMaterialManager::exportUsedInventoryToCSV() {
     }
 }
 
+// 출고되지 않은(보유 중인) 원재료를 CSV로 내보내기
 void RawMaterialManager::exportRemainingStockToCSV() {
     vector<RawMaterial> stockList;
     for (const auto& m : materials) {
@@ -415,6 +429,7 @@ void RawMaterialManager::exportRemainingStockToCSV() {
 
 // ----------------------------- [5] 입력/수정/삭제/검색 -----------------------------
 
+// 원재료 신규 추가
 void RawMaterialManager::addMaterial() {
     cin.ignore();
     RawMaterial newItem;
@@ -444,6 +459,7 @@ void RawMaterialManager::addMaterial() {
     cout << "원재료가 추가되었습니다.\n";
 }
 
+// 원재료 정보 수정(이름으로 검색, 출고되지 않은 것만)
 void RawMaterialManager::updateMaterial() {
     cin.ignore();
     string name = inputString("\n수정할 원재료 이름 입력: ");
@@ -478,6 +494,7 @@ void RawMaterialManager::updateMaterial() {
     cout << "해당 이름의 원재료(재고)를 찾을 수 없습니다.\n";
 }
 
+// 원재료 출고 처리(이름으로 검색, 출고일 입력)
 void RawMaterialManager::deleteMaterial() {
     cin.ignore();
     string name = inputString("\n출고 처리할 원재료 이름 입력: ");
@@ -495,6 +512,7 @@ void RawMaterialManager::deleteMaterial() {
     cout << "해당 이름의 원재료(재고)를 찾을 수 없습니다.\n";
 }
 
+// 원재료 이름으로 검색 및 상세 정보 출력
 void RawMaterialManager::searchMaterial() {
     cin.ignore();
     string name = inputString("\n검색할 원재료 이름 입력: ");
@@ -522,6 +540,7 @@ void RawMaterialManager::searchMaterial() {
 
 // ----------------------------- [6] 메인 메뉴 루프 -----------------------------
 
+// 원재료 관리 메인 메뉴 (레시피 연동 포함)
 void RawMaterialManager::showRawMaterialPage() {
     loadMaterialsFromCSV(RAW_MATERIAL_CSV);
 
@@ -563,7 +582,7 @@ void RawMaterialManager::showRawMaterialPage() {
         case 5: deleteMaterial(); break;
         case 6: searchMaterial(); break;
         case 7: showStorageEnvironment(); break;
-        case 8: // 기존 processFermentationBatch → 레시피 기반 배치 생산으로 대체
+        case 8:
             produceBatchByRecipe(recipeMgr);
             break;
         case 9:

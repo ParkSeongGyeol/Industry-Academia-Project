@@ -20,4 +20,10 @@ public:
     void searchRecipe() const;
 
     // 실제 공정 실행 및 추적
-    void runRecipeProcess(const std::string& recipeId, class RawMaterial
+    void runRecipeProcess(const std::string& recipeId, class RawMaterialManager& rawMgr);
+
+    // 전체 공정 로그 출력
+    void showRecipeProcessLog(const std::string& recipeId) const;
+
+    void showRecipePage();
+};

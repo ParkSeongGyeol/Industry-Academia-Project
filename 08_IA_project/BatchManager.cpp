@@ -1,23 +1,79 @@
 ﻿// -----------------------------------------------------------------------------
-// [BatchManager] 발효 배치 관리 기능 정의 파일
+// BatchManager.cpp
+// 발효 배치 관리 기능 정의 파일 (레시피 연동 포함)
 // -----------------------------------------------------------------------------
+
 #include "BatchManager.h"
 #include "RecipeManager.h"
 #include "Recipe.h"
+#include "RawMaterialManager.h"
 #include "UIUtils.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <filesystem>
+#include <iomanip>
+#include <ctime>
 
 using namespace std;
 
-// ----------------------------- [유틸리티] -----------------------------
-
+// ----------------------------- 상수 정의 -----------------------------
 namespace {
     constexpr int CSV_FIELD_COUNT = 11;
     constexpr char BATCH_CSV[] = "batch_dummy.csv";
+    constexpr char RECIPE_CSV[] = "recipe_list.csv";
+    constexpr char RAW_MATERIAL_CSV[] = "rawmaterial_dummy.csv";
+}
+
+// ----------------------------- 유틸리티 함수 -----------------------------
+
+// 현재 시스템 날짜를 "YYYY-MM-DD" 형식으로 반환
+string getCurrentDate() {
+    time_t now = time(nullptr);
+    tm t;
+    localtime_s(&t, &now);
+    char buf[11];
+    strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
+    return string(buf);
+}
+
+// 안전한 double 입력 함수
+double inputDouble(const string& prompt) {
+    double val;
+    while (true) {
+        cout << prompt;
+        if (cin >> val) {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return val;
+        }
+        cout << "숫자를 입력하세요.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
+
+// 안전한 int 입력 함수
+int inputInt(const string& prompt) {
+    int val;
+    while (true) {
+        cout << prompt;
+        if (cin >> val) {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return val;
+        }
+        cout << "정수를 입력하세요.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
+
+// 안전한 string 입력 함수
+string inputString(const string& prompt) {
+    cout << prompt;
+    string val;
+    getline(cin, val);
+    return val;
 }
 
 // ----------------------------- [FermentationBatch 구현] -----------------------------
@@ -75,6 +131,7 @@ FermentationBatch FermentationBatch::fromCSV(const string& line) {
 
 // ----------------------------- [1] 데이터 입출력 -----------------------------
 
+// CSV 파일에서 배치 목록을 읽어와 batches 벡터에 저장
 void BatchManager::loadBatchesFromCSV(const string& filename) {
     batches.clear();
     ifstream file(filename);
@@ -91,6 +148,7 @@ void BatchManager::loadBatchesFromCSV(const string& filename) {
     file.close();
 }
 
+// batches 벡터의 모든 배치 정보를 지정한 CSV 파일로 저장
 void BatchManager::saveBatchesToCSV(const string& filename) {
     ofstream file(filename);
     if (!file.is_open()) {
@@ -105,45 +163,77 @@ void BatchManager::saveBatchesToCSV(const string& filename) {
 }
 
 // ----------------------------- [2] 레시피 기반 배치 생산 -----------------------------
-
+/**
+ * 레시피 기반 배치 생산
+ * - 레시피 목록을 보여주고, 사용자가 레시피 ID와 배치량을 입력
+ * - 원재료 재고 검증 및 차감은 RawMaterialManager에서 처리
+ * - 배치 정보는 FermentationBatch로 기록
+ */
 void BatchManager::produceBatchByRecipe(RecipeManager& recipeMgr) {
+    // RawMaterialManager 연동
+    RawMaterialManager rawMgr;
+    rawMgr.loadMaterialsFromCSV(RAW_MATERIAL_CSV);
+
+    // 1. 레시피 목록 출력 및 선택
     recipeMgr.listRecipes();
-    string recipeId;
-    cout << "\n사용할 레시피 ID 입력: ";
-    cin >> recipeId;
+    string recipeId = inputString("\n사용할 레시피 ID 입력: ");
     Recipe recipe;
     if (!recipeMgr.getRecipeById(recipeId, recipe)) {
         cout << "해당 ID의 레시피를 찾을 수 없습니다.\n";
+        UIUtils::pauseConsole();
         return;
     }
-    double batchSize;
-    cout << "생산할 배치량(리터): ";
-    cin >> batchSize;
-    // 원재료 재고 검증 등은 RawMaterialManager에서 처리
-    // 여기서는 레시피 정보로 배치 생성
+
+    // 2. 배치 생산량 입력
+    double batchSize = inputDouble("생산할 배치량(kg): ");
+
+    // 3. 원재료 재고 검증
+    if (!recipe.validateRawMaterialStock(rawMgr, batchSize)) {
+        cout << "재고가 부족하여 배치 생산이 불가합니다.\n";
+        UIUtils::pauseConsole();
+        return;
+    }
+
+    // 4. 배치 생산(원재료 차감 및 배치ID 생성)
+    string batchId = recipe.produceBatch(rawMgr, batchSize);
+    rawMgr.saveMaterialsToCSV(RAW_MATERIAL_CSV);
+
+    // 5. FermentationBatch 객체 생성 및 기록
     FermentationBatch b;
-    b.setBatchId("B" + to_string(batches.size() + 1));
+    b.setBatchId(batchId);
     b.setYeastType(recipe.yeastType);
-    b.setIngredientInfo("레시피 기반"); // 실제로는 recipe.rawMaterialRatio 등 활용
-    b.setStartDate("2025-01-01"); // 실제로는 현재 날짜 등
+    // 원재료 조성 문자열 생성 (예: "보리:60;호밀:10;물:30")
+    ostringstream oss;
+    for (auto it = recipe.rawMaterialUsed.begin(); it != recipe.rawMaterialUsed.end(); ++it) {
+        if (it != recipe.rawMaterialUsed.begin()) oss << ";";
+        oss << it->first << ":" << fixed << setprecision(2) << it->second << "kg";
+    }
+    b.setIngredientInfo(oss.str());
+    b.setStartDate(getCurrentDate());
     b.setDurationHours(recipe.fermentationHours);
     b.setTemperature(recipe.fermentationTemp);
-    b.setAmountLiters(batchSize);
-    b.setEndDate("2025-01-04");
-    b.setExpiryDate("2026-01-01");
+    b.setAmountLiters(recipe.batchOutput); // 발효 후 실제 생산량(L)
+    // 완료일, 유통기한, 입자크기, 배치종료일은 임의/기본값
+    b.setEndDate(getCurrentDate());
+    b.setExpiryDate("-");
     b.setParticleSize("중");
-    b.setBatchFinishDate("2025-01-04");
+    b.setBatchFinishDate(getCurrentDate());
+
     batches.push_back(b);
     saveBatchesToCSV(BATCH_CSV);
-    cout << "레시피 기반 배치가 생성되었습니다.\n";
+
+    cout << "레시피 기반 배치가 생성되었습니다. (배치ID: " << batchId << ")\n";
+    UIUtils::pauseConsole();
 }
 
 // ----------------------------- [3] 정보 요약/조회/출력 -----------------------------
 
+// 전체 배치 요약 정보(개수 등) 반환
 string BatchManager::getSummary() {
     return "배치: " + to_string(batches.size()) + "개";
 }
 
+// 대시보드/메뉴용 정보 요약 라인 반환
 vector<string> BatchManager::getPageInfoLines() {
     int total = static_cast<int>(batches.size());
     int fermenting = count_if(batches.begin(), batches.end(), [](const FermentationBatch& b) { return b.getDurationHours() < 72; });
@@ -165,6 +255,7 @@ vector<string> BatchManager::getPageInfoLines() {
     return lines;
 }
 
+// 전체 배치 목록 출력
 void BatchManager::showBatchList() {
     cout << "\n=== 발효 배치 목록 ===\n";
     for (const auto& b : batches) {
@@ -173,10 +264,10 @@ void BatchManager::showBatchList() {
     UIUtils::pauseConsole();
 }
 
+// 배치 상세 정보 출력
 void BatchManager::showBatchDetail() {
     cin.ignore();
-    string id;
-    cout << "상세 조회할 배치 ID 입력: "; getline(cin, id);
+    string id = inputString("상세 조회할 배치 ID 입력: ");
     for (const auto& b : batches) {
         if (b.getBatchId() == id) {
             cout << "배치 ID: " << b.getBatchId() << "\n"
@@ -198,8 +289,20 @@ void BatchManager::showBatchDetail() {
     UIUtils::pauseConsole();
 }
 
+// 발효 중인 배치 목록 출력 (예시)
+void BatchManager::showFermentingBatches() {
+    cout << "\n=== 발효 중인 배치 목록 ===\n";
+    for (const auto& b : batches) {
+        if (b.getDurationHours() < 72) {
+            cout << "ID: " << b.getBatchId() << " | 효모: " << b.getYeastType() << " | 시작일: " << b.getStartDate() << "\n";
+        }
+    }
+    UIUtils::pauseConsole();
+}
+
 // ----------------------------- [4] CSV 내보내기 -----------------------------
 
+// 배치 목록을 CSV로 내보내기
 void BatchManager::exportBatchesToCSV() {
     saveBatchesToCSV(BATCH_CSV);
     cout << "\n배치 목록이 CSV 파일로 저장되었습니다.\n";
@@ -209,6 +312,7 @@ void BatchManager::exportBatchesToCSV() {
 
 // ----------------------------- [5] 입력/수정/삭제/검색 -----------------------------
 
+// 배치 신규 추가 (수동 입력)
 void BatchManager::addBatch() {
     FermentationBatch b;
     string input;
@@ -216,18 +320,17 @@ void BatchManager::addBatch() {
     int iInput;
     cin.ignore();
     cout << "\n=== 새 발효 배치 추가 ===\n";
-    cout << "배치 ID: "; getline(cin, input); b.setBatchId(input);
-    cout << "효모 종류: "; getline(cin, input); b.setYeastType(input);
-    cout << "원재료 조성 (예: RM101:60%): "; getline(cin, input); b.setIngredientInfo(input);
-    cout << "시작일 (YYYY-MM-DD): "; getline(cin, input); b.setStartDate(input);
-    cout << "발효 시간(시간): "; cin >> iInput; b.setDurationHours(iInput);
-    cout << "온도(°C): "; cin >> dInput; b.setTemperature(dInput);
-    cout << "양(리터): "; cin >> dInput; b.setAmountLiters(dInput);
-    cin.ignore();
-    cout << "완료일 (YYYY-MM-DD): "; getline(cin, input); b.setEndDate(input);
-    cout << "유통기한 (YYYY-MM-DD): "; getline(cin, input); b.setExpiryDate(input);
-    cout << "입자 크기(소/중/대): "; getline(cin, input); b.setParticleSize(input);
-    cout << "배치 종료일 (YYYY-MM-DD): "; getline(cin, input); b.setBatchFinishDate(input);
+    b.setBatchId(inputString("배치 ID: "));
+    b.setYeastType(inputString("효모 종류: "));
+    b.setIngredientInfo(inputString("원재료 조성 (예: RM101:60%): "));
+    b.setStartDate(inputString("시작일 (YYYY-MM-DD): "));
+    b.setDurationHours(inputInt("발효 시간(시간): "));
+    b.setTemperature(inputDouble("온도(°C): "));
+    b.setAmountLiters(inputDouble("양(리터): "));
+    b.setEndDate(inputString("완료일 (YYYY-MM-DD): "));
+    b.setExpiryDate(inputString("유통기한 (YYYY-MM-DD): "));
+    b.setParticleSize(inputString("입자 크기(소/중/대): "));
+    b.setBatchFinishDate(inputString("배치 종료일 (YYYY-MM-DD): "));
 
     batches.push_back(b);
     saveBatchesToCSV(BATCH_CSV);
@@ -235,15 +338,13 @@ void BatchManager::addBatch() {
     UIUtils::pauseConsole();
 }
 
+// 배치 정보 수정
 void BatchManager::updateBatch() {
     cin.ignore();
-    string id;
-    cout << "수정할 배치 ID 입력: "; getline(cin, id);
+    string id = inputString("수정할 배치 ID 입력: ");
     for (auto& b : batches) {
         if (b.getBatchId() == id) {
             string input;
-            double dInput;
-            int iInput;
             cout << "효모 종류 (" << b.getYeastType() << "): "; getline(cin, input); if (!input.empty()) b.setYeastType(input);
             cout << "원재료 조성 (" << b.getIngredientInfo() << "): "; getline(cin, input); if (!input.empty()) b.setIngredientInfo(input);
             cout << "시작일 (" << b.getStartDate() << "): "; getline(cin, input); if (!input.empty()) b.setStartDate(input);
@@ -264,10 +365,10 @@ void BatchManager::updateBatch() {
     UIUtils::pauseConsole();
 }
 
+// 배치 삭제
 void BatchManager::deleteBatch() {
     cin.ignore();
-    string id;
-    cout << "삭제할 배치 ID 입력: "; getline(cin, id);
+    string id = inputString("삭제할 배치 ID 입력: ");
     auto it = remove_if(batches.begin(), batches.end(), [&](const FermentationBatch& b) { return b.getBatchId() == id; });
     if (it != batches.end()) {
         batches.erase(it, batches.end());
@@ -279,10 +380,10 @@ void BatchManager::deleteBatch() {
     UIUtils::pauseConsole();
 }
 
+// 배치 검색(상세 조회)
 void BatchManager::searchBatch() {
     cin.ignore();
-    string id;
-    cout << "조회할 배치 ID 입력: "; getline(cin, id);
+    string id = inputString("조회할 배치 ID 입력: ");
     for (const auto& b : batches) {
         if (b.getBatchId() == id) {
             showBatchDetail();
@@ -295,10 +396,10 @@ void BatchManager::searchBatch() {
 
 // ----------------------------- [6] 발효 예측 -----------------------------
 
+// 간단한 발효 정도 예측(예시)
 void BatchManager::predictBatchFermentation() {
     cin.ignore();
-    string id;
-    cout << "예측할 배치 ID 입력: "; getline(cin, id);
+    string id = inputString("예측할 배치 ID 입력: ");
     for (const auto& b : batches) {
         if (b.getBatchId() == id) {
             double score = (b.getTemperature() * 0.8) + (b.getDurationHours() * 1.5);
@@ -316,8 +417,14 @@ void BatchManager::predictBatchFermentation() {
 
 // ----------------------------- [7] 메인 메뉴 루프 -----------------------------
 
+// 발효 배치 관리 메인 메뉴 (레시피 연동 포함)
 void BatchManager::showBatchPage() {
     loadBatchesFromCSV(BATCH_CSV);
+
+    // 레시피 매니저 객체 생성 (실제 구현에서는 싱글턴/전역 등으로 관리 가능)
+    RecipeManager recipeMgr;
+    recipeMgr.loadRecipesFromCSV(RECIPE_CSV);
+
     int choice;
     do {
         UIUtils::clearConsole();
@@ -345,7 +452,7 @@ void BatchManager::showBatchPage() {
         case 5: deleteBatch(); break;
         case 6: searchBatch(); break;
         case 7: predictBatchFermentation(); break;
-        case 8: produceBatchByRecipe(/* RecipeManager 연동 */); break;
+        case 8: produceBatchByRecipe(recipeMgr); break;
         case 9: exportBatchesToCSV(); break;
         case 0: cout << "메인 메뉴로 돌아갑니다.\n"; break;
         default: UIUtils::printError("잘못된 입력입니다."); UIUtils::pauseConsole(); break;

@@ -10,150 +10,231 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <iomanip>
+#include <ctime>
+#include <algorithm>
 
 #include "OakAgingManager.h"
 #include "UIUtils.h"
-
+#include "RecipeManager.h"
+#include "Recipe.h"
 
 using namespace std;
 
-
-
-// 오크통 정보 출력
-void OakBox::ShowInfo() const {
-    cout << "오크통 ID : " << boxId << endl;
-    cout << "종류 : " << type << endl;
-    cout << "출신 지역 : " << origin << endl;
-    cout << "숙성 기간: " << ripeningPeriod << "일" << endl;
-    cout << "숙성 횟수: " << agingCount << "차 숙성" << endl;
-    cout << "증발률: " << evaporationRate << "%" << endl;
-    cout << "온도: " << temperature << "℃" << endl;
-    cout << "습도: " << humidity << "%" << endl;
-    cout << "물을 머금은 시간: " << waterAbsorptionTime << "시간" << endl;
-    cout << "나무 종류: " << woodType << endl;
-    cout << "로스팅 여부: " << (roasted ? "로스팅됨" : "로스팅 안됨") << endl;
-    cout << "이름: " << name << endl;
-    cout << "스피릿 ID: " << spiritId << endl;
-    cout << "숙성 시작일: " << agingStartDate << endl;
-    cout << "숙성 종료일: " << agingEndDate << endl;
+// ----------------------------- 상수 정의 -----------------------------
+namespace {
+    constexpr char OAKAGING_CSV[] = "oakaging_dummy.csv";
 }
 
-// Getter 함수 - 멤버 변수 값을 반환
-string OakBox::getId() const { return boxId; }
-string OakBox::getType() const { return type; }
-string OakBox::getOrigin() const { return origin; }
-string OakBox::getWoodType() const { return woodType; }
-string OakBox::getName() const { return name; }
-string OakBox::getSpiritId() const { return spiritId; }
-string OakBox::getAgingStartDate() const { return agingStartDate; }
-string OakBox::getAgingEndDate() const { return agingEndDate; }
+// ----------------------------- 유틸리티 함수 -----------------------------
 
-int OakBox::getRipeningPeriod() const { return ripeningPeriod; }
-int OakBox::getAgingCount() const { return agingCount; }
-int OakBox::getWaterAbsorptionTime() const { return waterAbsorptionTime; }
-
-double OakBox::getEvaporationRate() const { return evaporationRate; }
-double OakBox::getTemperature() const { return temperature; }
-double OakBox::getHumidity() const { return humidity; }
-
-bool OakBox::isRoasted() const { return roasted; }
-
-
-// Setter 함수 - 멤버 변수 값을 설정
-void OakBox::setOrigin(string o) { origin = o; }
-void OakBox::setWoodType(string wood) { woodType = wood; }
-void OakBox::setType(string t) { type = t; }
-void OakBox::setId(string id) { boxId = id; }
-void OakBox::setName(string n) { name = n; }
-void OakBox::setSpiritId(string s) { spiritId = s; }
-void OakBox::setAgingStartDate(string d) { agingStartDate = d; }
-void OakBox::setAgingEndDate(string d) { agingEndDate = d; }
-
-void OakBox::setAgingCount(int count) { agingCount = count; }
-void OakBox::setWaterAbsorptionTime(int t) { waterAbsorptionTime = t; }
-void OakBox::setRipeningPeriod(int p) { ripeningPeriod = p; }
-
-void OakBox::setEvaporationRate(double e) { evaporationRate = e; }
-void OakBox::setTemperature(double t) { temperature = t; }
-void OakBox::setHumidity(double h) { humidity = h; }
-
-void OakBox::setRoasted(bool r) { roasted = r; }
-
-
-// 오크통 관리 페이지를 표시
-void OakAgingManager::showOakAgingPage() {
-    int choice;
-
-    do {
-        system("cls");
-        cout << "=== 오크통 숙성 관리 메뉴 ===\n\n";
-
-        vector<string> infoLines = getPageInfoLines();
-        vector<string> menu = {
-            "[1] 오크통 목록 보기",
-            "[2] 오크통 추가",
-            "[3] 오크통 수정",
-            "[4] 오크통 삭제",
-            "[5] CSV로 저장",
-            "[6] ESP32에서 수신",
-            "[0] 메인으로 돌아가기"
-        };
-
-        UIUtils::drawDashboard(infoLines, menu, 72, 30);
-        cout << "\n입력 >> ";
-        cin >> choice;
-
-        switch (choice) {
-        case 1: showOakList(); break;
-        case 2: addOakBox(); break;
-        case 3: updateOakBox(); break;
-        case 4: deleteOakBox(); break;
-        case 5: exportOakBoxesToCSV("oak_boxes.csv"); break;
-        case 6: receiveOakBoxFromESP32(); break;
-        case 0: cout << "메인으로 돌아갑니다.\n"; break;
-        default: cout << "잘못된 입력입니다.\n"; break;
-        }
-
-        if (choice != 0) {
-            cout << "\n계속하려면 Enter를 누르세요...";
-            cin.ignore(); cin.get();
-        }
-
-    } while (choice != 0);
+// 현재 시스템 날짜를 "YYYY-MM-DD" 형식으로 반환
+string getCurrentDate() {
+    time_t now = time(nullptr);
+    tm t;
+    localtime_s(&t, &now);
+    char buf[11];
+    strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
+    return string(buf);
 }
-// 오크통 요약 정보 반환
+
+// 안전한 double 입력 함수
+double inputDouble(const string& prompt) {
+    double val;
+    while (true) {
+        cout << prompt;
+        if (cin >> val) {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return val;
+        }
+        cout << "숫자를 입력하세요.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
+
+// 안전한 int 입력 함수
+int inputInt(const string& prompt) {
+    int val;
+    while (true) {
+        cout << prompt;
+        if (cin >> val) {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return val;
+        }
+        cout << "정수를 입력하세요.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
+
+// 안전한 string 입력 함수
+string inputString(const string& prompt) {
+    cout << prompt;
+    string val;
+    getline(cin, val);
+    return val;
+}
+
+// ----------------------------- [1] 데이터 입출력 -----------------------------
+
+// CSV에서 오크통 목록 로드
+void OakAgingManager::loadOakBoxesFromCSV(const string& filename) {
+    oakList.clear();
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "[경고] 오크통 CSV 파일을 열 수 없습니다: " << filename << endl;
+        return;
+    }
+    string line;
+    getline(file, line); // 헤더 스킵
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+        istringstream iss(line);
+        string token;
+        vector<string> fields;
+        while (getline(iss, token, ',')) {
+            fields.push_back(token);
+        }
+        if (fields.size() < 14) continue;
+        OakBox box;
+        box.setId(fields[0]);
+        box.setName(fields[1]);
+        box.setType(fields[2]);
+        box.setOrigin(fields[3]);
+        box.setRipeningPeriod(stoi(fields[4]));
+        box.setAgingCount(stoi(fields[5]));
+        box.setEvaporationRate(stod(fields[6]));
+        box.setTemperature(stod(fields[7]));
+        box.setHumidity(stod(fields[8]));
+        box.setWaterAbsorptionTime(stoi(fields[9]));
+        box.setWoodType(fields[10]);
+        box.setSpiritId(fields[11]);
+        box.setAgingStartDate(fields[12]);
+        box.setAgingEndDate(fields[13]);
+        // roasted 필드는 CSV에 없으면 false로 둠
+        box.setRoasted(false);
+        oakList.push_back(box);
+    }
+    file.close();
+}
+
+// 오크통 목록을 CSV로 저장
+void OakAgingManager::saveOakBoxesToCSV(const string& filename) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "[오류] 오크통 CSV 저장 실패: " << filename << endl;
+        return;
+    }
+    file << "OakID,Name,Type,Origin,AgingPeriod,RefillCount,EvaporationRate,Temperature,Humidity,WaterAbsorptionTime,WoodType,SpiritID,AgingStartDate,AgingEndDate\n";
+    for (const auto& b : oakList) {
+        file << b.getId() << ","
+            << b.getName() << ","
+            << b.getType() << ","
+            << b.getOrigin() << ","
+            << b.getRipeningPeriod() << ","
+            << b.getAgingCount() << ","
+            << b.getEvaporationRate() << ","
+            << b.getTemperature() << ","
+            << b.getHumidity() << ","
+            << b.getWaterAbsorptionTime() << ","
+            << b.getWoodType() << ","
+            << b.getSpiritId() << ","
+            << b.getAgingStartDate() << ","
+            << b.getAgingEndDate() << "\n";
+    }
+    file.close();
+}
+
+// ----------------------------- [2] 레시피 기반 오크 숙성 -----------------------------
+/**
+ * 레시피 기반 오크 숙성
+ * - 레시피 목록을 보여주고, 사용자가 레시피 ID와 숙성 조건을 입력
+ * - 숙성 공정(증발률, 기간 등) 입력 후, OakBox 객체로 기록
+ */
+void OakAgingManager::produceOakAgingByRecipe(RecipeManager& recipeMgr) {
+    recipeMgr.listRecipes();
+    string recipeId = inputString("\n오크 숙성에 사용할 레시피 ID 입력: ");
+    Recipe recipe;
+    if (!recipeMgr.getRecipeById(recipeId, recipe)) {
+        cout << "해당 ID의 레시피를 찾을 수 없습니다.\n";
+        UIUtils::pauseConsole();
+        return;
+    }
+
+    // 숙성 증발률/기간/횟수 등 입력
+    double evaporationRate = inputDouble("숙성 증발률(%): ");
+    int agingMonths = inputInt("숙성 기간(월): ");
+    int refillCount = inputInt("숙성 횟수(리필 포함): ");
+    string oakType = inputString("오크통 종류: ");
+    string woodType = inputString("나무 종류: ");
+    string origin = inputString("오크통 출신 지역: ");
+    double temp = inputDouble("숙성 온도(℃): ");
+    double hum = inputDouble("숙성 습도(%): ");
+    int waterAbsorption = inputInt("물을 머금은 시간(시간): ");
+    string spiritId = recipe.spiritId.empty() ? inputString("스피릿 ID: ") : recipe.spiritId;
+    string startDate = getCurrentDate();
+    string endDate = inputString("숙성 종료일 (YYYY-MM-DD): ");
+    string name = inputString("오크통 별칭: ");
+
+    // 레시피 숙성 정보 기록
+    recipe.oakType = oakType;
+    recipe.agingMonths = agingMonths;
+    recipe.ageSpirit(evaporationRate);
+
+    OakBox box;
+    box.setId("OAK_" + to_string(oakList.size() + 1));
+    box.setName(name);
+    box.setType(oakType);
+    box.setOrigin(origin);
+    box.setRipeningPeriod(agingMonths * 30); // 월 → 일 환산
+    box.setAgingCount(refillCount);
+    box.setEvaporationRate(evaporationRate);
+    box.setTemperature(temp);
+    box.setHumidity(hum);
+    box.setWaterAbsorptionTime(waterAbsorption);
+    box.setWoodType(woodType);
+    box.setSpiritId(spiritId);
+    box.setAgingStartDate(startDate);
+    box.setAgingEndDate(endDate);
+    box.setRoasted(false);
+
+    oakList.push_back(box);
+    saveOakBoxesToCSV(OAKAGING_CSV);
+
+    cout << "레시피 기반 오크 숙성 정보가 등록되었습니다. (오크통ID: " << box.getId() << ")\n";
+    UIUtils::pauseConsole();
+}
+
+// ----------------------------- [3] 정보 요약/조회/출력 -----------------------------
+
+// 전체 오크통 요약 정보(개수 등) 반환
 string OakAgingManager::getSummary() {
-    // 현재는 더미 2개 고정
-    return "숙성통 수: 2개";
+    return "숙성통 수: " + to_string(oakList.size()) + "개";
 }
 
-// 대시보드에 표시할 정보 구성
+// 대시보드/메뉴용 정보 요약 라인 반환
 vector<string> OakAgingManager::getPageInfoLines() {
     vector<string> lines;
     size_t count = oakList.size();
     int totalPeriod = 0;
     double totalEvap = 0;
-
-    // 오크통의 평균 숙성 기간과 증발률 계산
     for (const auto& box : oakList) {
         totalPeriod += box.getRipeningPeriod();
         totalEvap += box.getEvaporationRate();
     }
-
     lines.push_back("등록된 오크통 수: " + to_string(count));
     if (count > 0) {
-        lines.push_back("평균 숙성 기간: " + to_string(totalPeriod / count) + "일");
+        lines.push_back("평균 숙성 기간: " + to_string(totalPeriod / (int)count) + "일");
         lines.push_back("평균 증발률: " + to_string((int)(totalEvap / count)) + "%");
-    }
-    else {
+    } else {
         lines.push_back("평균 숙성 기간: -");
         lines.push_back("평균 증발률: -");
     }
-
     return lines;
 }
 
-// 등록된 오크통 목록 출력
+// 전체 오크통 목록 출력
 void OakAgingManager::showOakList() {
     if (oakList.empty()) {
         cout << "등록된 오크통이 없습니다.\n";
@@ -161,256 +242,142 @@ void OakAgingManager::showOakList() {
     }
     for (const auto& oak : oakList) {
         oak.ShowInfo();
+        cout << "-----------------------------\n";
     }
+    UIUtils::pauseConsole();
 }
 
-// 새로운 오크통 추가
+// ----------------------------- [4] CSV 내보내기 -----------------------------
+
+// 오크통 목록을 CSV로 내보내기
+void OakAgingManager::exportOakBoxesToCSV(const string& filename) {
+    saveOakBoxesToCSV(filename);
+    cout << "[ " << filename << " ] 파일로 저장 완료!\n";
+    UIUtils::pauseConsole();
+}
+
+// ----------------------------- [5] 입력/수정/삭제/검색 -----------------------------
+
+// 오크통 신규 추가
 void OakAgingManager::addOakBox() {
-    string id, type, origin, wood;
-    string name, spiritId, startDate, endDate;
-    int period, count, water;
-    int roastInt;
-    double evap, temp, hum;
-    bool roasted;
+    OakBox box;
+    box.setId(inputString("오크통 ID: "));
+    box.setName(inputString("오크통 별칭: "));
+    box.setType(inputString("종류: "));
+    box.setOrigin(inputString("출신 지역: "));
+    box.setRipeningPeriod(inputInt("숙성 기간(일): "));
+    box.setAgingCount(inputInt("숙성 횟수: "));
+    box.setEvaporationRate(inputDouble("증발률(%): "));
+    box.setTemperature(inputDouble("온도(℃): "));
+    box.setHumidity(inputDouble("습도(%): "));
+    box.setWaterAbsorptionTime(inputInt("물을 머금은 시간(시간): "));
+    box.setWoodType(inputString("나무 종류: "));
+    box.setSpiritId(inputString("스피릿 ID: "));
+    box.setAgingStartDate(inputString("숙성 시작일 (YYYY-MM-DD): "));
+    box.setAgingEndDate(inputString("숙성 종료일 (YYYY-MM-DD): "));
+    box.setRoasted(inputInt("로스팅 여부 (1: 있음, 0: 없음): ") == 1);
 
-    cout << "1. 오크통 ID: "; cin >> id;
-    cout << "2. 오크통 이름(별칭): "; cin >> name;
-    cout << "3. 종류: "; cin >> type;
-    cout << "4. 출신 지역: "; cin >> origin;
-    cout << "5. 숙성 기간(일): "; cin >> period;
-    cout << "6. 숙성 횟수: "; cin >> count;
-    cout << "7. 증발률(%): "; cin >> evap;
-    cout << "8. 온도(℃): "; cin >> temp;
-    cout << "9. 습도(%): "; cin >> hum;
-    cout << "10. 물을 머금은 시간(시간): "; cin >> water;
-    cout << "11. 나무 종류: "; cin >> wood;
-    cout << "12. 스피릿 ID: "; cin >> spiritId;
-    cout << "13. 숙성 시작일 (YYYY-MM-DD): "; cin >> startDate;
-    cout << "14. 숙성 종료일 (YYYY-MM-DD): "; cin >> endDate;
-    cout << "15. 로스팅 여부 (1: 있음, 0: 없음): "; cin >> roastInt;
-    roasted = roastInt == 1;
-
-    OakBox newBox;
-    newBox.setId(id);
-    newBox.setName(name);
-    newBox.setType(type);
-    newBox.setOrigin(origin);
-    newBox.setRipeningPeriod(period);
-    newBox.setAgingCount(count);
-    newBox.setEvaporationRate(evap);
-    newBox.setTemperature(temp);
-    newBox.setHumidity(hum);
-    newBox.setWaterAbsorptionTime(water);
-    newBox.setWoodType(wood);
-    newBox.setSpiritId(spiritId);
-    newBox.setAgingStartDate(startDate);
-    newBox.setAgingEndDate(endDate);
-    newBox.setRoasted(roasted);
-
-    oakList.push_back(newBox);
-
+    oakList.push_back(box);
+    saveOakBoxesToCSV(OAKAGING_CSV);
     cout << "오크통이 추가되었습니다!\n";
+    UIUtils::pauseConsole();
 }
 
 // 오크통 정보 수정
 void OakAgingManager::updateOakBox() {
-    string id;
-    cout << "수정할 오크통 ID 입력: ";
-    cin >> id;
-
+    string id = inputString("수정할 오크통 ID 입력: ");
     for (auto& box : oakList) {
         if (box.getId() == id) {
-            while (true) {
-                int choice;
-                cout << "\n[수정할 항목 선택]\n";
-                cout << "[1] 출신 지역\n";
-                cout << "[2] 숙성 횟수\n";
-                cout << "[3] 물 머금은 시간\n";
-                cout << "[4] 로스팅 여부\n";
-                cout << "[5] 나무 종류\n";
-                cout << "[6] 종류\n";
-                cout << "[7] 숙성 기간(일)\n";
-                cout << "[8] 증발률(%)\n";
-                cout << "[9] 온도(℃)\n";
-                cout << "[10] 습도(%)\n";
-                cout << "[11] 오크통 ID\n";
-                cout << "[12] 오크통 이름\n";
-                cout << "[13] 스피릿 ID\n";
-                cout << "[14] 숙성 시작일\n";
-                cout << "[15] 숙성 종료일\n";
-                cout << "[0] 수정을 완료하고 나가기\n";
-                cout << "선택: ";
-                cin >> choice;
-
-                switch (choice) {
-                case 1: {
-                    string o;
-                    cout << "새 출신 지역: ";
-                    cin >> o;
-                    box.setOrigin(o);
-                    break;
-                }
-                case 2: {
-                    int c;
-                    cout << "새 숙성 횟수: ";
-                    cin >> c;
-                    box.setAgingCount(c);
-                    break;
-                }
-                case 3: {
-                    int t;
-                    cout << "새 물 머금은 시간(시간): ";
-                    cin >> t;
-                    box.setWaterAbsorptionTime(t);
-                    break;
-                }
-                case 4: {
-                    int r;
-                    cout << "로스팅 여부 (1: 있음, 0: 없음): ";
-                    cin >> r;
-                    box.setRoasted(r == 1);
-                    break;
-                }
-                case 5: {
-                    string w;
-                    cout << "새 나무 종류: ";
-                    cin >> w;
-                    box.setWoodType(w);
-                    break;
-                }
-                case 6: {
-                    string t;
-                    cout << "새 오크통 종류: ";
-                    cin >> t;
-                    box.setType(t);
-                    break;
-                }
-                case 7: {
-                    int p;
-                    cout << "새 숙성 기간(일): ";
-                    cin >> p;
-                    box.setRipeningPeriod(p);
-                    break;
-                }
-                case 8: {
-                    double e;
-                    cout << "새 증발률(%): ";
-                    cin >> e;
-                    box.setEvaporationRate(e);
-                    break;
-                }
-                case 9: {
-                    double temp;
-                    cout << "새 온도(℃): ";
-                    cin >> temp;
-                    box.setTemperature(temp);
-                    break;
-                }
-                case 10: {
-                    double h;
-                    cout << "새 습도(%): ";
-                    cin >> h;
-                    box.setHumidity(h);
-                    break;
-                }
-                case 11: {
-                    string newId;
-                    cout << "새 오크통 ID: ";
-                    cin >> newId;
-                    box.setId(newId);
-                    break;
-                }
-                case 12: {
-                    string n;
-                    cout << "새 오크통 이름: ";
-                    cin >> n;
-                    box.setName(n);
-                    break;
-                }
-                case 13: {
-                    string sid;
-                    cout << "새 스피릿 ID: ";
-                    cin >> sid;
-                    box.setSpiritId(sid);
-                    break;
-                }
-                case 14: {
-                    string date;
-                    cout << "새 숙성 시작일 (YYYY-MM-DD): ";
-                    cin >> date;
-                    box.setAgingStartDate(date);
-                    break;
-                }
-                case 15: {
-                    string date;
-                    cout << "새 숙성 종료일 (YYYY-MM-DD): ";
-                    cin >> date;
-                    box.setAgingEndDate(date);
-                    break;
-                }
-                case 0:
-                    cout << "수정을 완료했습니다.\n";
-                    return;
-                default:
-                    cout << "잘못된 선택입니다.\n";
-                }
-            }
+            cout << "=== 오크통 정보 수정 ===\n";
+            box.setOrigin(inputString("출신 지역 (" + box.getOrigin() + "): "));
+            box.setAgingCount(inputInt("숙성 횟수 (" + to_string(box.getAgingCount()) + "): "));
+            box.setWaterAbsorptionTime(inputInt("물을 머금은 시간 (" + to_string(box.getWaterAbsorptionTime()) + "): "));
+            box.setRoasted(inputInt("로스팅 여부 (" + string(box.isRoasted() ? "1" : "0") + "): ") == 1);
+            box.setWoodType(inputString("나무 종류 (" + box.getWoodType() + "): "));
+            box.setType(inputString("종류 (" + box.getType() + "): "));
+            box.setRipeningPeriod(inputInt("숙성 기간(일) (" + to_string(box.getRipeningPeriod()) + "): "));
+            box.setEvaporationRate(inputDouble("증발률(%) (" + to_string(box.getEvaporationRate()) + "): "));
+            box.setTemperature(inputDouble("온도(℃) (" + to_string(box.getTemperature()) + "): "));
+            box.setHumidity(inputDouble("습도(%) (" + to_string(box.getHumidity()) + "): "));
+            box.setId(inputString("오크통 ID (" + box.getId() + "): "));
+            box.setName(inputString("오크통 별칭 (" + box.getName() + "): "));
+            box.setSpiritId(inputString("스피릿 ID (" + box.getSpiritId() + "): "));
+            box.setAgingStartDate(inputString("숙성 시작일 (" + box.getAgingStartDate() + "): "));
+            box.setAgingEndDate(inputString("숙성 종료일 (" + box.getAgingEndDate() + "): "));
+            saveOakBoxesToCSV(OAKAGING_CSV);
+            cout << "수정 완료.\n";
+            UIUtils::pauseConsole();
+            return;
         }
     }
-
     cout << "해당 ID를 가진 오크통이 없습니다.\n";
+    UIUtils::pauseConsole();
 }
 
 // 오크통 삭제
 void OakAgingManager::deleteOakBox() {
-    string id;
-    cout << "삭제할 오크통 ID 입력: ";
-    cin >> id;
+    string id = inputString("삭제할 오크통 ID 입력: ");
+    auto it = remove_if(oakList.begin(), oakList.end(), [&](const OakBox& b) { return b.getId() == id; });
+    if (it != oakList.end()) {
+        oakList.erase(it, oakList.end());
+        saveOakBoxesToCSV(OAKAGING_CSV);
+        cout << "오크통이 삭제되었습니다.\n";
+    } else {
+        cout << "해당 ID를 찾을 수 없습니다.\n";
+    }
+    UIUtils::pauseConsole();
+}
 
-    for (auto it = oakList.begin(); it != oakList.end(); ++it) {
-        if (it->getId() == id) {
-            oakList.erase(it);
-            cout << "오크통이 삭제되었습니다.\n";
-            return;
+// ----------------------------- [6] 메인 메뉴 루프 -----------------------------
+
+// 오크통 숙성 관리 메인 메뉴 (레시피 연동 포함)
+void OakAgingManager::showOakAgingPage() {
+    loadOakBoxesFromCSV(OAKAGING_CSV);
+
+    RecipeManager recipeMgr;
+    recipeMgr.loadRecipesFromCSV("recipe_list.csv");
+
+    int choice;
+    do {
+        system("cls");
+        vector<string> infoLines = getPageInfoLines();
+        vector<string> menu = {
+            "[1] 오크통 목록 보기",
+            "[2] 오크통 추가",
+            "[3] 오크통 수정",
+            "[4] 오크통 삭제",
+            "[5] CSV로 저장",
+            "[6] 레시피 기반 오크 숙성",
+            "[7] ESP32 환경 데이터 수신",
+            "[0] 메인으로 돌아가기"
+        };
+        UIUtils::drawDashboard(infoLines, menu, 72, 30);
+        cout << "\n입력 >> ";
+        cin >> choice;
+        cin.ignore();
+
+        switch (choice) {
+        case 1: showOakList(); break;
+        case 2: addOakBox(); break;
+        case 3: updateOakBox(); break;
+        case 4: deleteOakBox(); break;
+        case 5: exportOakBoxesToCSV(OAKAGING_CSV); break;
+        case 6: produceOakAgingByRecipe(recipeMgr); break;
+        case 7: receiveOakBoxFromESP32(); break;
+        case 0: cout << "메인으로 돌아갑니다.\n"; break;
+        default: cout << "잘못된 입력입니다.\n"; break;
         }
-    }
-    cout << "해당 ID를 찾을 수 없습니다.\n";
+
+        if (choice != 0) {
+            cout << "\n계속하려면 Enter를 누르세요...";
+            cin.get();
+        }
+    } while (choice != 0);
 }
 
-// 오크통 정보를 CSV 파일로 내보내기
-void OakAgingManager::exportOakBoxesToCSV(const string& filename) {
-    ofstream file(filename);
-    if (!file.is_open()) {
-        cout << "CSV 파일을 열 수 없습니다.\n";
-        return;
-    }
+// ----------------------------- [7] ESP32 연동 및 환경 센서 수신 -----------------------------
 
-    file << "ID,Name,Type,Origin,WoodType,SpiritID,AgingStart,AgingEnd,"
-        << "RipeningPeriod,AgingCount,WaterAbsorptionTime,"
-        << "EvaporationRate,Temperature,Humidity,Roasted\n";
-
-    for (const auto& b : oakList) {
-        file << b.getId() << ","
-            << b.getName() << ","
-            << b.getType() << ","
-            << b.getOrigin() << ","
-            << b.getWoodType() << ","
-            << b.getSpiritId() << ","
-            << b.getAgingStartDate() << ","
-            << b.getAgingEndDate() << ","
-            << b.getRipeningPeriod() << ","
-            << b.getAgingCount() << ","
-            << b.getWaterAbsorptionTime() << ","
-            << b.getEvaporationRate() << ","
-            << b.getTemperature() << ","
-            << b.getHumidity() << ","
-            << (b.isRoasted() ? "Yes" : "No") << "\n";
-    }
-
-    file.close();
-    cout << "[ " << filename << " ] 파일로 저장 완료!\n";
-}
-
+// ESP32로부터 오크통 환경 데이터(TCP) 수신 및 등록
 void OakAgingManager::receiveOakBoxFromESP32() {
     WSADATA wsaData;
     SOCKET serverSocket, clientSocket;
@@ -430,7 +397,7 @@ void OakAgingManager::receiveOakBoxFromESP32() {
     }
 
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(5000);
+    serverAddr.sin_port = htons(5000); // OakAging 전용 포트
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(serverSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
@@ -466,28 +433,27 @@ void OakAgingManager::receiveOakBoxFromESP32() {
             fields.push_back(token);
         }
 
-        if (fields.size() == 15) {
+        if (fields.size() == 14) {
             OakBox box;
             box.setId(fields[0]);
             box.setName(fields[1]);
             box.setType(fields[2]);
             box.setOrigin(fields[3]);
-            box.setWoodType(fields[4]);
-            box.setSpiritId(fields[5]);
-            box.setAgingStartDate(fields[6]);
-            box.setAgingEndDate(fields[7]);
-            box.setRipeningPeriod(stoi(fields[8]));
-            box.setAgingCount(stoi(fields[9]));
-            box.setWaterAbsorptionTime(stoi(fields[10]));
-            box.setEvaporationRate(stod(fields[11]));
-            box.setTemperature(stod(fields[12]));
-            box.setHumidity(stod(fields[13]));
-            box.setRoasted(fields[14] == "1" || fields[14] == "Yes");
+            box.setRipeningPeriod(stoi(fields[4]));
+            box.setAgingCount(stoi(fields[5]));
+            box.setEvaporationRate(stod(fields[6]));
+            box.setTemperature(stod(fields[7]));
+            box.setHumidity(stod(fields[8]));
+            box.setWaterAbsorptionTime(stoi(fields[9]));
+            box.setWoodType(fields[10]);
+            box.setSpiritId(fields[11]);
+            box.setAgingStartDate(fields[12]);
+            box.setAgingEndDate(fields[13]);
+            box.setRoasted(false);
 
             oakList.push_back(box);
-            cout << "OakBox 저장 완료!\n";
-
-            exportOakBoxesToCSV("oak_boxes.csv");
+            cout << "오크통 환경 데이터 저장 완료!\n";
+            saveOakBoxesToCSV(OAKAGING_CSV);
         }
         else {
             cout << "필드 수 오류: " << fields.size() << "개" << endl;
