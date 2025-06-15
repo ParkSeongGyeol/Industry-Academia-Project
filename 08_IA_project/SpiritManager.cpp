@@ -1,12 +1,13 @@
 // -----------------------------------------------------------------------------
 // SpiritManager.cpp
-// ½ºÇÇ¸´(Áõ·ùÁÖ) °ü¸® ±â´É Á¤ÀÇ ÆÄÀÏ (·¹½ÃÇÇ ¿¬µ¿ Æ÷ÇÔ)
+// ìŠ¤í”¼ë¦¿(ì¦ë¥˜ì£¼) ê´€ë¦¬ ê¸°ëŠ¥ ì •ì˜ íŒŒì¼ (ë ˆì‹œí”¼ ì—°ë™ í¬í•¨)
 // -----------------------------------------------------------------------------
 
 #include "SpiritManager.h"
 #include "RecipeManager.h"
 #include "Recipe.h"
 #include "UIUtils.h"
+#include "EncodingUtils.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -17,14 +18,14 @@
 
 using namespace std;
 
-// ----------------------------- »ó¼ö Á¤ÀÇ -----------------------------
+// ----------------------------- ìƒìˆ˜ ì •ì˜ -----------------------------
 namespace {
     constexpr char SPIRIT_CSV[] = "spirit_dummy.csv";
 }
 
-// ----------------------------- À¯Æ¿¸®Æ¼ ÇÔ¼ö -----------------------------
+// ----------------------------- ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ -----------------------------
 
-// ÇöÀç ½Ã½ºÅÛ ³¯Â¥¸¦ "YYYY-MM-DD" Çü½ÄÀ¸·Î ¹İÈ¯
+// í˜„ì¬ ì‹œìŠ¤í…œ ë‚ ì§œë¥¼ "YYYY-MM-DD" í˜•ì‹ìœ¼ë¡œ ë°˜í™˜
 string getCurrentDate() {
     time_t now = time(nullptr);
     tm t;
@@ -34,7 +35,7 @@ string getCurrentDate() {
     return string(buf);
 }
 
-// ¾ÈÀüÇÑ double ÀÔ·Â ÇÔ¼ö
+// ì•ˆì „í•œ double ì…ë ¥ í•¨ìˆ˜
 double inputDouble(const string& prompt) {
     double val;
     while (true) {
@@ -43,13 +44,13 @@ double inputDouble(const string& prompt) {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return val;
         }
-        cout << "¼ıÀÚ¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
+        cout << "ìˆ«ìë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-// ¾ÈÀüÇÑ int ÀÔ·Â ÇÔ¼ö
+// ì•ˆì „í•œ int ì…ë ¥ í•¨ìˆ˜
 int inputInt(const string& prompt) {
     int val;
     while (true) {
@@ -58,13 +59,13 @@ int inputInt(const string& prompt) {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return val;
         }
-        cout << "Á¤¼ö¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
+        cout << "ì •ìˆ˜ë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-// ¾ÈÀüÇÑ string ÀÔ·Â ÇÔ¼ö
+// ì•ˆì „í•œ string ì…ë ¥ í•¨ìˆ˜
 string inputString(const string& prompt) {
     cout << prompt;
     string val;
@@ -72,18 +73,19 @@ string inputString(const string& prompt) {
     return val;
 }
 
-// ----------------------------- [1] µ¥ÀÌÅÍ ÀÔÃâ·Â -----------------------------
+// ----------------------------- [1] ë°ì´í„° ì…ì¶œë ¥ -----------------------------
 
-// CSV¿¡¼­ ½ºÇÇ¸´ ¸ñ·Ï ·Îµå
+// CSVì—ì„œ ìŠ¤í”¼ë¦¿ ëª©ë¡ ë¡œë“œ
 void SpiritManager::loadSpiritsFromCSV(const string& filename) {
     spirits.clear();
     ifstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
-        cout << "[°æ°í] ½ºÇÇ¸´ CSV ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù: " << filename << endl;
+        cout << "[ê²½ê³ ] ìŠ¤í”¼ë¦¿ CSV íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << filename << endl;
         return;
     }
     string line;
-    getline(file, line); // Çì´õ ½ºÅµ
+    getline(file, line); // í—¤ë” ìŠ¤í‚µ
     while (getline(file, line)) {
         if (line.empty()) continue;
         istringstream iss(line);
@@ -94,25 +96,26 @@ void SpiritManager::loadSpiritsFromCSV(const string& filename) {
         getline(iss, token, ','); s.setBatchId(token);
         getline(iss, token, ','); s.setDistillationCount(stoi(token));
         getline(iss, token, ','); s.setYieldLiters(stod(token));
-        getline(iss, token, ','); // FirstDistillAmount (¹Ì»ç¿ë)
-        getline(iss, token, ','); // LastDistillAmount (¹Ì»ç¿ë)
-        getline(iss, token, ','); // MainDistillAmount (¹Ì»ç¿ë)
+        getline(iss, token, ','); // FirstDistillAmount (ë¯¸ì‚¬ìš©)
+        getline(iss, token, ','); // LastDistillAmount (ë¯¸ì‚¬ìš©)
+        getline(iss, token, ','); // MainDistillAmount (ë¯¸ì‚¬ìš©)
         getline(iss, token, ','); s.setProductionDate(token);
         getline(iss, token, ','); s.setAlcoholPercentage(stod(token));
-        // ³ª¸ÓÁö ÇÊµå´Â ºó °ªÀ¸·Î µÒ
+        // ë‚˜ë¨¸ì§€ í•„ë“œëŠ” ë¹ˆ ê°’ìœ¼ë¡œ ë‘ 
         spirits.push_back(s);
     }
     file.close();
 }
 
-// ½ºÇÇ¸´ ¸ñ·ÏÀ» CSV·Î ÀúÀå
+// ìŠ¤í”¼ë¦¿ ëª©ë¡ì„ CSVë¡œ ì €ì¥
 void SpiritManager::saveSpiritsToCSV(const string& filename) {
     ofstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
-        cout << "[¿À·ù] ½ºÇÇ¸´ CSV ÀúÀå ½ÇÆĞ: " << filename << endl;
+        cout << "[ì˜¤ë¥˜] ìŠ¤í”¼ë¦¿ CSV ì €ì¥ ì‹¤íŒ¨: " << filename << endl;
         return;
     }
-    // Çì´õ
+    // í—¤ë”
     file << "SpiritID,IngredientContent,BatchID,DistillationCount,TotalAmount,FirstDistillAmount,LastDistillAmount,MainDistillAmount,ProductionDate,ABV\n";
     for (const auto& s : spirits) {
         file << s.getId() << ","
@@ -129,35 +132,35 @@ void SpiritManager::saveSpiritsToCSV(const string& filename) {
     file.close();
 }
 
-// ----------------------------- [2] ·¹½ÃÇÇ ±â¹İ ½ºÇÇ¸´ »ı»ê -----------------------------
+// ----------------------------- [2] ë ˆì‹œí”¼ ê¸°ë°˜ ìŠ¤í”¼ë¦¿ ìƒì‚° -----------------------------
 /**
- * ·¹½ÃÇÇ ±â¹İ ½ºÇÇ¸´ »ı»ê
- * - ·¹½ÃÇÇ ¸ñ·ÏÀ» º¸¿©ÁÖ°í, »ç¿ëÀÚ°¡ ·¹½ÃÇÇ ID¿Í ¹èÄ¡·®, Áõ·ù Á¶°ÇÀ» ÀÔ·Â
- * - Áõ·ù °øÁ¤(¼öÀ², ºĞÈ¹ºñÀ² µî) ÀÔ·Â ÈÄ, Spirit °´Ã¼·Î ±â·Ï
+ * ë ˆì‹œí”¼ ê¸°ë°˜ ìŠ¤í”¼ë¦¿ ìƒì‚°
+ * - ë ˆì‹œí”¼ ëª©ë¡ì„ ë³´ì—¬ì£¼ê³ , ì‚¬ìš©ìê°€ ë ˆì‹œí”¼ IDì™€ ë°°ì¹˜ëŸ‰, ì¦ë¥˜ ì¡°ê±´ì„ ì…ë ¥
+ * - ì¦ë¥˜ ê³µì •(ìˆ˜ìœ¨, ë¶„íšë¹„ìœ¨ ë“±) ì…ë ¥ í›„, Spirit ê°ì²´ë¡œ ê¸°ë¡
  */
 void SpiritManager::produceSpiritByRecipe(RecipeManager& recipeMgr) {
-    // 1. ·¹½ÃÇÇ ¸ñ·Ï Ãâ·Â ¹× ¼±ÅÃ
+    // 1. ë ˆì‹œí”¼ ëª©ë¡ ì¶œë ¥ ë° ì„ íƒ
     recipeMgr.listRecipes();
-    string recipeId = inputString("\n½ºÇÇ¸´ »ı»ê¿¡ »ç¿ëÇÒ ·¹½ÃÇÇ ID ÀÔ·Â: ");
+    string recipeId = inputString("\nìŠ¤í”¼ë¦¿ ìƒì‚°ì— ì‚¬ìš©í•  ë ˆì‹œí”¼ ID ì…ë ¥: ");
     Recipe recipe;
     if (!recipeMgr.getRecipeById(recipeId, recipe)) {
-        cout << "ÇØ´ç IDÀÇ ·¹½ÃÇÇ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+        cout << "í•´ë‹¹ IDì˜ ë ˆì‹œí”¼ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
         UIUtils::pauseConsole();
         return;
     }
 
-    // 2. ¹èÄ¡ »ı»ê·® ÀÔ·Â
-    double batchSize = inputDouble("»ı»êÇÒ ¹èÄ¡·®(kg): ");
+    // 2. ë°°ì¹˜ ìƒì‚°ëŸ‰ ì…ë ¥
+    double batchSize = inputDouble("ìƒì‚°í•  ë°°ì¹˜ëŸ‰(kg): ");
 
-    // 3. Áõ·ù ¼öÀ²/ºĞÈ¹ºñÀ² ÀÔ·Â
-    double yieldRate = inputDouble("Áõ·ù ¼öÀ²(0~1, ¿¹: 0.8): ");
-    double headPct = inputDouble("Head ºñÀ²(%): ");
-    double tailPct = inputDouble("Tail ºñÀ²(%): ");
+    // 3. ì¦ë¥˜ ìˆ˜ìœ¨/ë¶„íšë¹„ìœ¨ ì…ë ¥
+    double yieldRate = inputDouble("ì¦ë¥˜ ìˆ˜ìœ¨(0~1, ì˜ˆ: 0.8): ");
+    double headPct = inputDouble("Head ë¹„ìœ¨(%): ");
+    double tailPct = inputDouble("Tail ë¹„ìœ¨(%): ");
 
-    // 4. Áõ·ù °øÁ¤ ½ÇÇà
+    // 4. ì¦ë¥˜ ê³µì • ì‹¤í–‰
     recipe.distillBatch(yieldRate, headPct, tailPct);
 
-    // 5. Spirit °´Ã¼ »ı¼º ¹× ±â·Ï
+    // 5. Spirit ê°ì²´ ìƒì„± ë° ê¸°ë¡
     Spirit s;
     s.setId(recipe.spiritId);
     s.setRawMaterialRatio([&] {
@@ -173,18 +176,18 @@ void SpiritManager::produceSpiritByRecipe(RecipeManager& recipeMgr) {
     s.setYieldLiters(recipe.spiritOutput);
     s.setProductionDate(getCurrentDate());
     s.setAlcoholPercentage(recipe.distillationABV);
-    // ±âÅ¸ ÇÊµå´Â ÇÊ¿ä½Ã Ãß°¡ ÀÔ·Â
+    // ê¸°íƒ€ í•„ë“œëŠ” í•„ìš”ì‹œ ì¶”ê°€ ì…ë ¥
 
     spirits.push_back(s);
     saveSpiritsToCSV(SPIRIT_CSV);
 
-    cout << "·¹½ÃÇÇ ±â¹İ ½ºÇÇ¸´ÀÌ »ı¼ºµÇ¾ú½À´Ï´Ù. (ID: " << s.getId() << ")\n";
+    cout << "ë ˆì‹œí”¼ ê¸°ë°˜ ìŠ¤í”¼ë¦¿ì´ ìƒì„±ë˜ì—ˆìŠµë‹ˆë‹¤. (ID: " << s.getId() << ")\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [3] Á¤º¸ ¿ä¾à/Á¶È¸/Ãâ·Â -----------------------------
+// ----------------------------- [3] ì •ë³´ ìš”ì•½/ì¡°íšŒ/ì¶œë ¥ -----------------------------
 
-// ÀüÃ¼ ½ºÇÇ¸´ ¿ä¾à Á¤º¸(°³¼ö/Æò±Õ µµ¼ö µî) ¹İÈ¯
+// ì „ì²´ ìŠ¤í”¼ë¦¿ ìš”ì•½ ì •ë³´(ê°œìˆ˜/í‰ê·  ë„ìˆ˜ ë“±) ë°˜í™˜
 string SpiritManager::getSummary() {
     size_t count = spirits.size();
     double totalYield = 0, totalAbv = 0;
@@ -192,14 +195,14 @@ string SpiritManager::getSummary() {
         totalYield += s.getYieldLiters();
         totalAbv += s.getAlcoholPercentage();
     }
-    string result = "½ºÇÇ¸´: " + to_string(count) + "Á¾";
+    string result = "ìŠ¤í”¼ë¦¿: " + to_string(count) + "ì¢…";
     if (count > 0) {
-        result += " / Æò±Õ µµ¼ö: " + to_string(static_cast<int>(totalAbv / count)) + "%";
+        result += " / í‰ê·  ë„ìˆ˜: " + to_string(static_cast<int>(totalAbv / count)) + "%";
     }
     return result;
 }
 
-// ´ë½Ãº¸µå/¸Ş´º¿ë Á¤º¸ ¿ä¾à ¶óÀÎ ¹İÈ¯
+// ëŒ€ì‹œë³´ë“œ/ë©”ë‰´ìš© ì •ë³´ ìš”ì•½ ë¼ì¸ ë°˜í™˜
 vector<string> SpiritManager::getPageInfoLines() {
     vector<string> lines;
     size_t count = spirits.size();
@@ -209,135 +212,135 @@ vector<string> SpiritManager::getPageInfoLines() {
         totalYield += s.getYieldLiters();
         totalAbv += s.getAlcoholPercentage();
     }
-    lines.push_back("µî·ÏµÈ ½ºÇÇ¸´ ¼ö: " + to_string(count) + "°³");
+    lines.push_back("ë“±ë¡ëœ ìŠ¤í”¼ë¦¿ ìˆ˜: " + to_string(count) + "ê°œ");
     if (count > 0) {
-        lines.push_back("ÃÑ »ı»ê·®: " + to_string((int)totalYield) + "L");
-        lines.push_back("Æò±Õ µµ¼ö: " + to_string((int)(totalAbv / count)) + "%");
+        lines.push_back("ì´ ìƒì‚°ëŸ‰: " + to_string((int)totalYield) + "L");
+        lines.push_back("í‰ê·  ë„ìˆ˜: " + to_string((int)(totalAbv / count)) + "%");
     } else {
-        lines.push_back("ÃÑ »ı»ê·®: 0L");
-        lines.push_back("Æò±Õ µµ¼ö: -");
+        lines.push_back("ì´ ìƒì‚°ëŸ‰: 0L");
+        lines.push_back("í‰ê·  ë„ìˆ˜: -");
     }
     return lines;
 }
 
-// ÀüÃ¼ ½ºÇÇ¸´ ¸ñ·Ï Ãâ·Â
+// ì „ì²´ ìŠ¤í”¼ë¦¿ ëª©ë¡ ì¶œë ¥
 void SpiritManager::displaySpirits() {
-    cout << "\n=== ½ºÇÇ¸´ ¸ñ·Ï ===\n";
+    cout << "\n=== ìŠ¤í”¼ë¦¿ ëª©ë¡ ===\n";
     for (const auto& s : spirits) {
         cout << "ID: " << s.getId() << "\n"
-            << "¿øÀç·á ÇÔ·®: " << s.getRawMaterialRatio() << "\n"
-            << "¹èÄ¡ ID: " << s.getBatchId() << "\n"
-            << "Áõ·ù È½¼ö: " << s.getDistillationCount() << "\n"
-            << "»ı»ê·®: " << s.getYieldLiters() << "L\n"
-            << "»ı»ê ³¯Â¥: " << s.getProductionDate() << "\n"
-            << "µµ¼ö: " << s.getAlcoholPercentage() << "%\n"
+            << "ì›ì¬ë£Œ í•¨ëŸ‰: " << s.getRawMaterialRatio() << "\n"
+            << "ë°°ì¹˜ ID: " << s.getBatchId() << "\n"
+            << "ì¦ë¥˜ íšŸìˆ˜: " << s.getDistillationCount() << "\n"
+            << "ìƒì‚°ëŸ‰: " << s.getYieldLiters() << "L\n"
+            << "ìƒì‚° ë‚ ì§œ: " << s.getProductionDate() << "\n"
+            << "ë„ìˆ˜: " << s.getAlcoholPercentage() << "%\n"
             << "--------------------------\n";
     }
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [4] CSV ³»º¸³»±â -----------------------------
+// ----------------------------- [4] CSV ë‚´ë³´ë‚´ê¸° -----------------------------
 
-// ½ºÇÇ¸´ ¸ñ·ÏÀ» CSV·Î ³»º¸³»±â
+// ìŠ¤í”¼ë¦¿ ëª©ë¡ì„ CSVë¡œ ë‚´ë³´ë‚´ê¸°
 void SpiritManager::exportSpiritsToCSV(const string& filename) {
     saveSpiritsToCSV(filename);
-    cout << "[ " << filename << " ] ÆÄÀÏ·Î ÀúÀå ¿Ï·á!\n";
+    cout << "[ " << filename << " ] íŒŒì¼ë¡œ ì €ì¥ ì™„ë£Œ!\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [5] ÀÔ·Â/¼öÁ¤/»èÁ¦/°Ë»ö -----------------------------
+// ----------------------------- [5] ì…ë ¥/ìˆ˜ì •/ì‚­ì œ/ê²€ìƒ‰ -----------------------------
 
-// ½ºÇÇ¸´ Á¤º¸ Ãß°¡ ÀÔ·Â Ã³¸®
+// ìŠ¤í”¼ë¦¿ ì •ë³´ ì¶”ê°€ ì…ë ¥ ì²˜ë¦¬
 void SpiritManager::addSpirit() {
     Spirit spirit;
     string input;
     double doubleInput;
     int intInput;
 
-    cout << "\n=== ½ºÇÇ¸´ Ãß°¡ ===\n";
+    cout << "\n=== ìŠ¤í”¼ë¦¿ ì¶”ê°€ ===\n";
     spirit.setId(inputString("ID: "));
-    spirit.setStorageLocation(inputString("º¸°ü Àå¼Ò: "));
-    spirit.setTransferHistory(inputString("ÀÌµ¿ ±â·Ï: "));
-    spirit.setProductionDate(inputString("»ı»ê ³¯Â¥ (YYYY-MM-DD): "));
-    spirit.setAlcoholPercentage(inputDouble("µµ¼ö(%): "));
-    spirit.setYieldLiters(inputDouble("»ı»ê·®(L): "));
-    spirit.setRawMaterialRatio(inputString("¿øÀç·á ÇÔ·®: "));
-    spirit.setFermentationDays(inputInt("¹ßÈ¿ ±â°£(ÀÏ): "));
-    spirit.setFirstCutTime(inputString("ÃÊ·ù ²÷Àº ½ÃÁ¡: "));
-    spirit.setLastCutTime(inputString("ÈÄ·ù ±×¸¸ ¹ŞÀº ½ÃÁ¡: "));
-    spirit.setDistillationCount(inputInt("Áõ·ù È½¼ö: "));
-    spirit.setParticleSize(inputString("ÀÔÀÚ Å©±â (¿¹: ¹ÌºĞ¸», 2mm ÀÔÀÚ µî): "));
-    spirit.setBatchId(inputString("Àç·á ¹èÄ¡ ID: "));
-    spirit.setCutYield(inputString("ÃÊ·ù/ÈÄ·ù/º»·ù ¼öµæ·® ¿ä¾à: "));
+    spirit.setStorageLocation(inputString("ë³´ê´€ ì¥ì†Œ: "));
+    spirit.setTransferHistory(inputString("ì´ë™ ê¸°ë¡: "));
+    spirit.setProductionDate(inputString("ìƒì‚° ë‚ ì§œ (YYYY-MM-DD): "));
+    spirit.setAlcoholPercentage(inputDouble("ë„ìˆ˜(%): "));
+    spirit.setYieldLiters(inputDouble("ìƒì‚°ëŸ‰(L): "));
+    spirit.setRawMaterialRatio(inputString("ì›ì¬ë£Œ í•¨ëŸ‰: "));
+    spirit.setFermentationDays(inputInt("ë°œíš¨ ê¸°ê°„(ì¼): "));
+    spirit.setFirstCutTime(inputString("ì´ˆë¥˜ ëŠì€ ì‹œì : "));
+    spirit.setLastCutTime(inputString("í›„ë¥˜ ê·¸ë§Œ ë°›ì€ ì‹œì : "));
+    spirit.setDistillationCount(inputInt("ì¦ë¥˜ íšŸìˆ˜: "));
+    spirit.setParticleSize(inputString("ì…ì í¬ê¸° (ì˜ˆ: ë¯¸ë¶„ë§, 2mm ì…ì ë“±): "));
+    spirit.setBatchId(inputString("ì¬ë£Œ ë°°ì¹˜ ID: "));
+    spirit.setCutYield(inputString("ì´ˆë¥˜/í›„ë¥˜/ë³¸ë¥˜ ìˆ˜ë“ëŸ‰ ìš”ì•½: "));
 
     spirits.push_back(spirit);
     saveSpiritsToCSV(SPIRIT_CSV);
-    cout << "½ºÇÇ¸´ Ãß°¡ ¿Ï·á!\n";
+    cout << "ìŠ¤í”¼ë¦¿ ì¶”ê°€ ì™„ë£Œ!\n";
     UIUtils::pauseConsole();
 }
 
-// Æ¯Á¤ ID¸¦ ±âÁØÀ¸·Î ½ºÇÇ¸´ »èÁ¦
+// íŠ¹ì • IDë¥¼ ê¸°ì¤€ìœ¼ë¡œ ìŠ¤í”¼ë¦¿ ì‚­ì œ
 void SpiritManager::deleteSpirit() {
-    string id = inputString("»èÁ¦ÇÒ ½ºÇÇ¸´ ID ÀÔ·Â: ");
+    string id = inputString("ì‚­ì œí•  ìŠ¤í”¼ë¦¿ ID ì…ë ¥: ");
     auto it = remove_if(spirits.begin(), spirits.end(), [&](const Spirit& s) {
         return s.getId() == id;
     });
     if (it != spirits.end()) {
         spirits.erase(it, spirits.end());
         saveSpiritsToCSV(SPIRIT_CSV);
-        cout << "»èÁ¦ ¿Ï·á!\n";
+        cout << "ì‚­ì œ ì™„ë£Œ!\n";
     } else {
-        cout << "ÇØ´ç IDÀÇ ½ºÇÇ¸´À» Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+        cout << "í•´ë‹¹ IDì˜ ìŠ¤í”¼ë¦¿ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
     }
     UIUtils::pauseConsole();
 }
 
-// ½ºÇÇ¸´ Á¤º¸ ¼öÁ¤
+// ìŠ¤í”¼ë¦¿ ì •ë³´ ìˆ˜ì •
 void SpiritManager::updateSpirit() {
-    string id = inputString("\n¼öÁ¤ÇÒ ½ºÇÇ¸´ ID ÀÔ·Â: ");
+    string id = inputString("\nìˆ˜ì •í•  ìŠ¤í”¼ë¦¿ ID ì…ë ¥: ");
     for (auto& s : spirits) {
         if (s.getId() == id) {
-            cout << "=== ½ºÇÇ¸´ Á¤º¸ ¼öÁ¤ ===\n";
+            cout << "=== ìŠ¤í”¼ë¦¿ ì •ë³´ ìˆ˜ì • ===\n";
             string input;
-            cout << "º¸°ü Àå¼Ò (" << s.getStorageLocation() << "): ";
+            cout << "ë³´ê´€ ì¥ì†Œ (" << s.getStorageLocation() << "): ";
             getline(cin, input); if (!input.empty()) s.setStorageLocation(input);
-            cout << "ÀÌµ¿ ±â·Ï (" << s.getTransferHistory() << "): ";
+            cout << "ì´ë™ ê¸°ë¡ (" << s.getTransferHistory() << "): ";
             getline(cin, input); if (!input.empty()) s.setTransferHistory(input);
-            cout << "»ı»ê ³¯Â¥ (" << s.getProductionDate() << "): ";
+            cout << "ìƒì‚° ë‚ ì§œ (" << s.getProductionDate() << "): ";
             getline(cin, input); if (!input.empty()) s.setProductionDate(input);
-            cout << "µµ¼ö (%) (" << s.getAlcoholPercentage() << "): ";
+            cout << "ë„ìˆ˜ (%) (" << s.getAlcoholPercentage() << "): ";
             getline(cin, input); if (!input.empty()) s.setAlcoholPercentage(stod(input));
-            cout << "»ı»ê·® (L) (" << s.getYieldLiters() << "): ";
+            cout << "ìƒì‚°ëŸ‰ (L) (" << s.getYieldLiters() << "): ";
             getline(cin, input); if (!input.empty()) s.setYieldLiters(stod(input));
-            cout << "¿øÀç·á ÇÔ·® (" << s.getRawMaterialRatio() << "): ";
+            cout << "ì›ì¬ë£Œ í•¨ëŸ‰ (" << s.getRawMaterialRatio() << "): ";
             getline(cin, input); if (!input.empty()) s.setRawMaterialRatio(input);
-            cout << "¹ßÈ¿ ±â°£ (ÀÏ) (" << s.getFermentationDays() << "): ";
+            cout << "ë°œíš¨ ê¸°ê°„ (ì¼) (" << s.getFermentationDays() << "): ";
             getline(cin, input); if (!input.empty()) s.setFermentationDays(stoi(input));
-            cout << "ÃÊ·ù ²÷Àº ½ÃÁ¡ (" << s.getFirstCutTime() << "): ";
+            cout << "ì´ˆë¥˜ ëŠì€ ì‹œì  (" << s.getFirstCutTime() << "): ";
             getline(cin, input); if (!input.empty()) s.setFirstCutTime(input);
-            cout << "ÈÄ·ù Á¾·á ½ÃÁ¡ (" << s.getLastCutTime() << "): ";
+            cout << "í›„ë¥˜ ì¢…ë£Œ ì‹œì  (" << s.getLastCutTime() << "): ";
             getline(cin, input); if (!input.empty()) s.setLastCutTime(input);
-            cout << "Áõ·ù È½¼ö (" << s.getDistillationCount() << "): ";
+            cout << "ì¦ë¥˜ íšŸìˆ˜ (" << s.getDistillationCount() << "): ";
             getline(cin, input); if (!input.empty()) s.setDistillationCount(stoi(input));
-            cout << "ÀÔÀÚ Å©±â (" << s.getParticleSize() << "): ";
+            cout << "ì…ì í¬ê¸° (" << s.getParticleSize() << "): ";
             getline(cin, input); if (!input.empty()) s.setParticleSize(input);
-            cout << "Àç·á ¹èÄ¡ ID (" << s.getBatchId() << "): ";
+            cout << "ì¬ë£Œ ë°°ì¹˜ ID (" << s.getBatchId() << "): ";
             getline(cin, input); if (!input.empty()) s.setBatchId(input);
-            cout << "ÃÊ·ù/ÈÄ·ù/º»·ù ¼öµæ·® (" << s.getCutYield() << "): ";
+            cout << "ì´ˆë¥˜/í›„ë¥˜/ë³¸ë¥˜ ìˆ˜ë“ëŸ‰ (" << s.getCutYield() << "): ";
             getline(cin, input); if (!input.empty()) s.setCutYield(input);
             saveSpiritsToCSV(SPIRIT_CSV);
-            cout << "½ºÇÇ¸´ ¼öÁ¤ ¿Ï·á!\n";
+            cout << "ìŠ¤í”¼ë¦¿ ìˆ˜ì • ì™„ë£Œ!\n";
             UIUtils::pauseConsole();
             return;
         }
     }
-    cout << "ÇØ´ç IDÀÇ ½ºÇÇ¸´À» Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+    cout << "í•´ë‹¹ IDì˜ ìŠ¤í”¼ë¦¿ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [6] ¸ŞÀÎ ¸Ş´º ·çÇÁ -----------------------------
+// ----------------------------- [6] ë©”ì¸ ë©”ë‰´ ë£¨í”„ -----------------------------
 
-// ½ºÇÇ¸´ °ü¸® ¸ŞÀÎ ¸Ş´º (·¹½ÃÇÇ ¿¬µ¿ Æ÷ÇÔ)
+// ìŠ¤í”¼ë¦¿ ê´€ë¦¬ ë©”ì¸ ë©”ë‰´ (ë ˆì‹œí”¼ ì—°ë™ í¬í•¨)
 void SpiritManager::showSpiritPage() {
     loadSpiritsFromCSV(SPIRIT_CSV);
 
@@ -347,19 +350,19 @@ void SpiritManager::showSpiritPage() {
     int choice;
     do {
         system("cls");
-        cout << "=== ½ºÇÇ¸´ °ü¸® ¸Ş´º ===\n\n";
+        cout << "=== ìŠ¤í”¼ë¦¿ ê´€ë¦¬ ë©”ë‰´ ===\n\n";
         vector<string> infoLines = getPageInfoLines();
         vector<string> menu = {
-            "[1] ½ºÇÇ¸´ ¸ñ·Ï º¸±â",
-            "[2] ½ºÇÇ¸´ Ãß°¡",
-            "[3] ½ºÇÇ¸´ »èÁ¦",
-            "[4] ½ºÇÇ¸´ ¼öÁ¤",
-            "[5] CSV·Î ÀúÀå",
-            "[6] ·¹½ÃÇÇ ±â¹İ ½ºÇÇ¸´ »ı»ê",
-            "[0] ¸ŞÀÎÀ¸·Î µ¹¾Æ°¡±â"
+            "[1] ìŠ¤í”¼ë¦¿ ëª©ë¡ ë³´ê¸°",
+            "[2] ìŠ¤í”¼ë¦¿ ì¶”ê°€",
+            "[3] ìŠ¤í”¼ë¦¿ ì‚­ì œ",
+            "[4] ìŠ¤í”¼ë¦¿ ìˆ˜ì •",
+            "[5] CSVë¡œ ì €ì¥",
+            "[6] ë ˆì‹œí”¼ ê¸°ë°˜ ìŠ¤í”¼ë¦¿ ìƒì‚°",
+            "[0] ë©”ì¸ìœ¼ë¡œ ëŒì•„ê°€ê¸°"
         };
         UIUtils::drawDashboard(infoLines, menu, 72, 30);
-        cout << "\nÀÔ·Â >> ";
+        cout << "\nì…ë ¥ >> ";
         cin >> choice;
         cin.ignore();
 
@@ -370,12 +373,12 @@ void SpiritManager::showSpiritPage() {
         case 4: updateSpirit(); break;
         case 5: exportSpiritsToCSV(SPIRIT_CSV); break;
         case 6: produceSpiritByRecipe(recipeMgr); break;
-        case 0: cout << "¸ŞÀÎÀ¸·Î µ¹¾Æ°©´Ï´Ù...\n"; break;
-        default: cout << "Àß¸øµÈ ÀÔ·ÂÀÔ´Ï´Ù.\n"; break;
+        case 0: cout << "ë©”ì¸ìœ¼ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤...\n"; break;
+        default: cout << "ì˜ëª»ëœ ì…ë ¥ì…ë‹ˆë‹¤.\n"; break;
         }
 
         if (choice != 0) {
-            cout << "\n°è¼ÓÇÏ·Á¸é Enter¸¦ ´©¸£¼¼¿ä...";
+            cout << "\nê³„ì†í•˜ë ¤ë©´ Enterë¥¼ ëˆ„ë¥´ì„¸ìš”...";
             cin.get();
         }
     } while (choice != 0);

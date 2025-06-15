@@ -1,29 +1,31 @@
 #include "FileExporter.h"
-#include "BatchManager.h" // struct FermentationBatch Á¤ÀÇ Æ÷ÇÔ
-#include <fstream>        // ÆÄÀÏ Ãâ·Â¿¡ »ç¿ë
+#include "BatchManager.h" // struct FermentationBatch ì •ì˜ í¬í•¨
+#include <fstream>        // íŒŒì¼ ì¶œë ¥ì— ì‚¬ìš©
 #include <iostream>
-#include <filesystem>     // ÇöÀç °æ·Î È®ÀÎ¿ë (C++17 ÀÌ»ó¿¡¼­ »ç¿ë °¡´É)
+#include <filesystem>     // í˜„ì¬ ê²½ë¡œ í™•ì¸ìš© (C++17 ì´ìƒì—ì„œ ì‚¬ìš© ê°€ëŠ¥)
+#include "EncodingUtils.h"
 
-//  FileExporter Å¬·¡½ºÀÇ Á¤Àû ÇÔ¼ö
-//  ÁÖ¾îÁø ¹èÄ¡ µ¥ÀÌÅÍ¸¦ CSV ÆÄÀÏ·Î ÀúÀå
+//  FileExporter í´ë˜ìŠ¤ì˜ ì •ì  í•¨ìˆ˜
+//  ì£¼ì–´ì§„ ë°°ì¹˜ ë°ì´í„°ë¥¼ CSV íŒŒì¼ë¡œ ì €ì¥
 bool FileExporter::exportToCSV(const std::vector<FermentationBatch>& batches, const std::string& filename) {
-    // ÆÄÀÏ ½ºÆ®¸² ¿­±â (¾²±â ¸ğµå)
+    // íŒŒì¼ ìŠ¤íŠ¸ë¦¼ ì—´ê¸° (ì“°ê¸° ëª¨ë“œ)
     std::ofstream file(filename);
+    applyCP949Locale(file);
 
-    // ÆÄÀÏ ¿­±â ½ÇÆĞ ½Ã false ¹İÈ¯
+    // íŒŒì¼ ì—´ê¸° ì‹¤íŒ¨ ì‹œ false ë°˜í™˜
     if (!file.is_open()) return false;
 
-    //  CSV Çì´õ ÀÛ¼º
+    //  CSV í—¤ë” ì‘ì„±
     file << "BatchID,StartDate,ParticleSize,YeastType,Ingredients,Amount(L),Temperature,Humidity,Duration(H)\n";
 
-    //  °¢ ¹èÄ¡ µ¥ÀÌÅÍ¸¦ ÇÑ ÁÙ¾¿ CSV Çü½ÄÀ¸·Î Ãâ·Â
+    //  ê° ë°°ì¹˜ ë°ì´í„°ë¥¼ í•œ ì¤„ì”© CSV í˜•ì‹ìœ¼ë¡œ ì¶œë ¥
     for (const auto& batch : batches) {
-        file << batch.toCSV() << "\n";  // FermentationBatch::toCSV() »ç¿ë
+        file << batch.toCSV() << "\n";  // FermentationBatch::toCSV() ì‚¬ìš©
     }
 
-    //  ÆÄÀÏ ´İ±â
+    //  íŒŒì¼ ë‹«ê¸°
     file.close();
 
-    //  ¼º°øÀûÀ¸·Î ÀúÀå ¿Ï·á
+    //  ì„±ê³µì ìœ¼ë¡œ ì €ì¥ ì™„ë£Œ
     return true;
 }

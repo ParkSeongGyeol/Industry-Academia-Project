@@ -7,6 +7,7 @@
 #include "RecipeManager.h"
 #include "Recipe.h"
 #include "UIUtils.h"
+#include "EncodingUtils.h"
 #include "StorageEnvironment.h"
 #include <iostream>
 #include <set>
@@ -99,6 +100,7 @@ RawMaterial* findMaterialById(vector<RawMaterial>& materials, const string& id) 
 void RawMaterialManager::loadMaterialsFromCSV(const string& filename) {
     materials.clear();
     ifstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
         cout << "[경고] 원재료 CSV 파일을 열 수 없습니다: " << filename << endl;
         return;
@@ -143,6 +145,7 @@ void RawMaterialManager::loadMaterialsFromCSV(const string& filename) {
 
 void RawMaterialManager::saveMaterialsToCSV(const string& filename) {
     ofstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
         cout << "[오류] 파일 저장 실패: " << filename << endl;
         return;
@@ -156,6 +159,7 @@ void RawMaterialManager::saveMaterialsToCSV(const string& filename) {
 
 bool RawMaterialManager::exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList) {
     ofstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) return false;
     writeCSVHeader(file, true);
     for (const auto& m : usedList) {
