@@ -66,19 +66,19 @@ void MainPage::displayDashboard(BatchManager& batch, RawMaterialManager& raw, Sp
 void MainPage::handleSelection(int choice, RawMaterialManager& rawMgr, BatchManager& batchMgr, SpiritManager& spiritMgr, OakAgingManager& oakMgr, BottledWhiskyManager& bottleMgr, RecipeManager& recipeMgr) {
     switch (choice) {
     case 1:
-        rawMgr.showRawMaterialPage(recipeMgr);
+        rawMgr.showRawMaterialPage();
         break;
     case 2:
         batchMgr.showBatchPage(recipeMgr, rawMgr);
         break;
     case 3:
-        spiritMgr.showSpiritPage(recipeMgr);
+        spiritMgr.showSpiritPage();
         break;
     case 4:
-        oakMgr.showOakAgingPage(recipeMgr);
+        oakMgr.showOakAgingPage();
         break;
     case 5:
-        bottleMgr.showBottledWhiskyPage(recipeMgr);
+        bottleMgr.showBottledWhiskyPage();
         break;
     case 0:
         cout << "프로그램을 종료합니다.\n";

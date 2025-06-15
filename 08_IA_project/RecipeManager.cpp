@@ -5,7 +5,6 @@
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
-#include "EncodingUtils.h"
 
 using namespace std;
 
@@ -13,7 +12,6 @@ using namespace std;
 void RecipeManager::loadRecipesFromCSV(const string& filename) {
     recipes.clear();
     ifstream file(filename);
-    applyCP949Locale(file);
     if (!file.is_open()) {
         cout << "[경고] 레시피 CSV 파일을 열 수 없습니다: " << filename << endl;
         return;
@@ -30,7 +28,6 @@ void RecipeManager::loadRecipesFromCSV(const string& filename) {
 // 레시피 목록을 CSV로 저장
 void RecipeManager::saveRecipesToCSV(const string& filename) {
     ofstream file(filename);
-    applyCP949Locale(file);
     if (!file.is_open()) {
         cout << "[오류] 레시피 CSV 저장 실패: " << filename << endl;
         return;

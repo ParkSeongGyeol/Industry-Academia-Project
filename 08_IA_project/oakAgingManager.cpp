@@ -1,7 +1,7 @@
-#define WIN32_LEAN_AND_MEAN      // windows í—¤ë” ìµœì†Œí™”
-#define NOMINMAX                 // min/max ë§¤í¬ë¡œ ì¶©ëŒ ë°©ì§€
+#define WIN32_LEAN_AND_MEAN      // windows Çì´õ ÃÖ¼ÒÈ­
+#define NOMINMAX                 // min/max ¸ÅÅ©·Î Ãæµ¹ ¹æÁö
 
-#include <windows.h>            // byte ì¶©ëŒ ë°œìƒí•˜ëŠ” í—¤ë”
+#include <windows.h>            // byte Ãæµ¹ ¹ß»ıÇÏ´Â Çì´õ
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib")
 
@@ -13,8 +13,6 @@
 #include <iomanip>
 #include <ctime>
 #include <algorithm>
-#include "EncodingUtils.h"
-
 #include "OakAgingManager.h"
 #include "UIUtils.h"
 #include "RecipeManager.h"
@@ -22,14 +20,14 @@
 
 using namespace std;
 
-// ----------------------------- ìƒìˆ˜ ì •ì˜ -----------------------------
+// ----------------------------- »ó¼ö Á¤ÀÇ -----------------------------
 namespace {
     constexpr char OAKAGING_CSV[] = "oakaging_dummy.csv";
 }
 
-// ----------------------------- ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ -----------------------------
+// ----------------------------- À¯Æ¿¸®Æ¼ ÇÔ¼ö -----------------------------
 
-// í˜„ì¬ ì‹œìŠ¤í…œ ë‚ ì§œë¥¼ "YYYY-MM-DD" í˜•ì‹ìœ¼ë¡œ ë°˜í™˜
+// ÇöÀç ½Ã½ºÅÛ ³¯Â¥¸¦ "YYYY-MM-DD" Çü½ÄÀ¸·Î ¹İÈ¯
 string getCurrentDate() {
     time_t now = time(nullptr);
     tm t;
@@ -39,7 +37,7 @@ string getCurrentDate() {
     return string(buf);
 }
 
-// ì•ˆì „í•œ double ì…ë ¥ í•¨ìˆ˜
+// ¾ÈÀüÇÑ double ÀÔ·Â ÇÔ¼ö
 double inputDouble(const string& prompt) {
     double val;
     while (true) {
@@ -48,13 +46,13 @@ double inputDouble(const string& prompt) {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return val;
         }
-        cout << "ìˆ«ìë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
+        cout << "¼ıÀÚ¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-// ì•ˆì „í•œ int ì…ë ¥ í•¨ìˆ˜
+// ¾ÈÀüÇÑ int ÀÔ·Â ÇÔ¼ö
 int inputInt(const string& prompt) {
     int val;
     while (true) {
@@ -63,13 +61,13 @@ int inputInt(const string& prompt) {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return val;
         }
-        cout << "ì •ìˆ˜ë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
+        cout << "Á¤¼ö¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-// ì•ˆì „í•œ string ì…ë ¥ í•¨ìˆ˜
+// ¾ÈÀüÇÑ string ÀÔ·Â ÇÔ¼ö
 string inputString(const string& prompt) {
     cout << prompt;
     string val;
@@ -77,19 +75,18 @@ string inputString(const string& prompt) {
     return val;
 }
 
-// ----------------------------- [1] ë°ì´í„° ì…ì¶œë ¥ -----------------------------
+// ----------------------------- [1] µ¥ÀÌÅÍ ÀÔÃâ·Â -----------------------------
 
-// CSVì—ì„œ ì˜¤í¬í†µ ëª©ë¡ ë¡œë“œ
+// CSV¿¡¼­ ¿ÀÅ©Åë ¸ñ·Ï ·Îµå
 void OakAgingManager::loadOakBoxesFromCSV(const string& filename) {
     oakList.clear();
     ifstream file(filename);
-    applyCP949Locale(file);
     if (!file.is_open()) {
-        cout << "[ê²½ê³ ] ì˜¤í¬í†µ CSV íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << filename << endl;
+        cout << "[°æ°í] ¿ÀÅ©Åë CSV ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù: " << filename << endl;
         return;
     }
     string line;
-    getline(file, line); // í—¤ë” ìŠ¤í‚µ
+    getline(file, line); // Çì´õ ½ºÅµ
     while (getline(file, line)) {
         if (line.empty()) continue;
         istringstream iss(line);
@@ -114,19 +111,18 @@ void OakAgingManager::loadOakBoxesFromCSV(const string& filename) {
         box.setSpiritId(fields[11]);
         box.setAgingStartDate(fields[12]);
         box.setAgingEndDate(fields[13]);
-        // roasted í•„ë“œëŠ” CSVì— ì—†ìœ¼ë©´ falseë¡œ ë‘ 
+        // roasted ÇÊµå´Â CSV¿¡ ¾øÀ¸¸é false·Î µÒ
         box.setRoasted(false);
         oakList.push_back(box);
     }
     file.close();
 }
 
-// ì˜¤í¬í†µ ëª©ë¡ì„ CSVë¡œ ì €ì¥
+// ¿ÀÅ©Åë ¸ñ·ÏÀ» CSV·Î ÀúÀå
 void OakAgingManager::saveOakBoxesToCSV(const string& filename) {
     ofstream file(filename);
-    applyCP949Locale(file);
     if (!file.is_open()) {
-        cout << "[ì˜¤ë¥˜] ì˜¤í¬í†µ CSV ì €ì¥ ì‹¤íŒ¨: " << filename << endl;
+        cout << "[¿À·ù] ¿ÀÅ©Åë CSV ÀúÀå ½ÇÆĞ: " << filename << endl;
         return;
     }
     file << "OakID,Name,Type,Origin,AgingPeriod,RefillCount,EvaporationRate,Temperature,Humidity,WaterAbsorptionTime,WoodType,SpiritID,AgingStartDate,AgingEndDate\n";
@@ -149,38 +145,38 @@ void OakAgingManager::saveOakBoxesToCSV(const string& filename) {
     file.close();
 }
 
-// ----------------------------- [2] ë ˆì‹œí”¼ ê¸°ë°˜ ì˜¤í¬ ìˆ™ì„± -----------------------------
+// ----------------------------- [2] ·¹½ÃÇÇ ±â¹İ ¿ÀÅ© ¼÷¼º -----------------------------
 /**
- * ë ˆì‹œí”¼ ê¸°ë°˜ ì˜¤í¬ ìˆ™ì„±
- * - ë ˆì‹œí”¼ ëª©ë¡ì„ ë³´ì—¬ì£¼ê³ , ì‚¬ìš©ìê°€ ë ˆì‹œí”¼ IDì™€ ìˆ™ì„± ì¡°ê±´ì„ ì…ë ¥
- * - ìˆ™ì„± ê³µì •(ì¦ë°œë¥ , ê¸°ê°„ ë“±) ì…ë ¥ í›„, OakBox ê°ì²´ë¡œ ê¸°ë¡
+ * ·¹½ÃÇÇ ±â¹İ ¿ÀÅ© ¼÷¼º
+ * - ·¹½ÃÇÇ ¸ñ·ÏÀ» º¸¿©ÁÖ°í, »ç¿ëÀÚ°¡ ·¹½ÃÇÇ ID¿Í ¼÷¼º Á¶°ÇÀ» ÀÔ·Â
+ * - ¼÷¼º °øÁ¤(Áõ¹ß·ü, ±â°£ µî) ÀÔ·Â ÈÄ, OakBox °´Ã¼·Î ±â·Ï
  */
 void OakAgingManager::produceOakAgingByRecipe(RecipeManager& recipeMgr) {
     recipeMgr.listRecipes();
-    string recipeId = inputString("\nì˜¤í¬ ìˆ™ì„±ì— ì‚¬ìš©í•  ë ˆì‹œí”¼ ID ì…ë ¥: ");
+    string recipeId = inputString("\n¿ÀÅ© ¼÷¼º¿¡ »ç¿ëÇÒ ·¹½ÃÇÇ ID ÀÔ·Â: ");
     Recipe recipe;
     if (!recipeMgr.getRecipeById(recipeId, recipe)) {
-        cout << "í•´ë‹¹ IDì˜ ë ˆì‹œí”¼ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "ÇØ´ç IDÀÇ ·¹½ÃÇÇ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
         UIUtils::pauseConsole();
         return;
     }
 
-    // ìˆ™ì„± ì¦ë°œë¥ /ê¸°ê°„/íšŸìˆ˜ ë“± ì…ë ¥
-    double evaporationRate = inputDouble("ìˆ™ì„± ì¦ë°œë¥ (%): ");
-    int agingMonths = inputInt("ìˆ™ì„± ê¸°ê°„(ì›”): ");
-    int refillCount = inputInt("ìˆ™ì„± íšŸìˆ˜(ë¦¬í•„ í¬í•¨): ");
-    string oakType = inputString("ì˜¤í¬í†µ ì¢…ë¥˜: ");
-    string woodType = inputString("ë‚˜ë¬´ ì¢…ë¥˜: ");
-    string origin = inputString("ì˜¤í¬í†µ ì¶œì‹  ì§€ì—­: ");
-    double temp = inputDouble("ìˆ™ì„± ì˜¨ë„(â„ƒ): ");
-    double hum = inputDouble("ìˆ™ì„± ìŠµë„(%): ");
-    int waterAbsorption = inputInt("ë¬¼ì„ ë¨¸ê¸ˆì€ ì‹œê°„(ì‹œê°„): ");
-    string spiritId = recipe.spiritId.empty() ? inputString("ìŠ¤í”¼ë¦¿ ID: ") : recipe.spiritId;
+    // ¼÷¼º Áõ¹ß·ü/±â°£/È½¼ö µî ÀÔ·Â
+    double evaporationRate = inputDouble("¼÷¼º Áõ¹ß·ü(%): ");
+    int agingMonths = inputInt("¼÷¼º ±â°£(¿ù): ");
+    int refillCount = inputInt("¼÷¼º È½¼ö(¸®ÇÊ Æ÷ÇÔ): ");
+    string oakType = inputString("¿ÀÅ©Åë Á¾·ù: ");
+    string woodType = inputString("³ª¹« Á¾·ù: ");
+    string origin = inputString("¿ÀÅ©Åë Ãâ½Å Áö¿ª: ");
+    double temp = inputDouble("¼÷¼º ¿Âµµ(¡É): ");
+    double hum = inputDouble("¼÷¼º ½Àµµ(%): ");
+    int waterAbsorption = inputInt("¹°À» ¸Ó±İÀº ½Ã°£(½Ã°£): ");
+    string spiritId = recipe.spiritId.empty() ? inputString("½ºÇÇ¸´ ID: ") : recipe.spiritId;
     string startDate = getCurrentDate();
-    string endDate = inputString("ìˆ™ì„± ì¢…ë£Œì¼ (YYYY-MM-DD): ");
-    string name = inputString("ì˜¤í¬í†µ ë³„ì¹­: ");
+    string endDate = inputString("¼÷¼º Á¾·áÀÏ (YYYY-MM-DD): ");
+    string name = inputString("¿ÀÅ©Åë º°Äª: ");
 
-    // ë ˆì‹œí”¼ ìˆ™ì„± ì •ë³´ ê¸°ë¡
+    // ·¹½ÃÇÇ ¼÷¼º Á¤º¸ ±â·Ï
     recipe.oakType = oakType;
     recipe.agingMonths = agingMonths;
     recipe.ageSpirit(evaporationRate);
@@ -190,7 +186,7 @@ void OakAgingManager::produceOakAgingByRecipe(RecipeManager& recipeMgr) {
     box.setName(name);
     box.setType(oakType);
     box.setOrigin(origin);
-    box.setRipeningPeriod(agingMonths * 30); // ì›” â†’ ì¼ í™˜ì‚°
+    box.setRipeningPeriod(agingMonths * 30); // ¿ù ¡æ ÀÏ È¯»ê
     box.setAgingCount(refillCount);
     box.setEvaporationRate(evaporationRate);
     box.setTemperature(temp);
@@ -205,18 +201,18 @@ void OakAgingManager::produceOakAgingByRecipe(RecipeManager& recipeMgr) {
     oakList.push_back(box);
     saveOakBoxesToCSV(OAKAGING_CSV);
 
-    cout << "ë ˆì‹œí”¼ ê¸°ë°˜ ì˜¤í¬ ìˆ™ì„± ì •ë³´ê°€ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤. (ì˜¤í¬í†µID: " << box.getId() << ")\n";
+    cout << "·¹½ÃÇÇ ±â¹İ ¿ÀÅ© ¼÷¼º Á¤º¸°¡ µî·ÏµÇ¾ú½À´Ï´Ù. (¿ÀÅ©ÅëID: " << box.getId() << ")\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [3] ì •ë³´ ìš”ì•½/ì¡°íšŒ/ì¶œë ¥ -----------------------------
+// ----------------------------- [3] Á¤º¸ ¿ä¾à/Á¶È¸/Ãâ·Â -----------------------------
 
-// ì „ì²´ ì˜¤í¬í†µ ìš”ì•½ ì •ë³´(ê°œìˆ˜ ë“±) ë°˜í™˜
+// ÀüÃ¼ ¿ÀÅ©Åë ¿ä¾à Á¤º¸(°³¼ö µî) ¹İÈ¯
 string OakAgingManager::getSummary() {
-    return "ìˆ™ì„±í†µ ìˆ˜: " + to_string(oakList.size()) + "ê°œ";
+    return "¼÷¼ºÅë ¼ö: " + to_string(oakList.size()) + "°³";
 }
 
-// ëŒ€ì‹œë³´ë“œ/ë©”ë‰´ìš© ì •ë³´ ìš”ì•½ ë¼ì¸ ë°˜í™˜
+// ´ë½Ãº¸µå/¸Ş´º¿ë Á¤º¸ ¿ä¾à ¶óÀÎ ¹İÈ¯
 vector<string> OakAgingManager::getPageInfoLines() {
     vector<string> lines;
     size_t count = oakList.size();
@@ -226,21 +222,22 @@ vector<string> OakAgingManager::getPageInfoLines() {
         totalPeriod += box.getRipeningPeriod();
         totalEvap += box.getEvaporationRate();
     }
-    lines.push_back("ë“±ë¡ëœ ì˜¤í¬í†µ ìˆ˜: " + to_string(count));
+    lines.push_back("µî·ÏµÈ ¿ÀÅ©Åë ¼ö: " + to_string(count));
     if (count > 0) {
-        lines.push_back("í‰ê·  ìˆ™ì„± ê¸°ê°„: " + to_string(totalPeriod / (int)count) + "ì¼");
-        lines.push_back("í‰ê·  ì¦ë°œë¥ : " + to_string((int)(totalEvap / count)) + "%");
-    } else {
-        lines.push_back("í‰ê·  ìˆ™ì„± ê¸°ê°„: -");
-        lines.push_back("í‰ê·  ì¦ë°œë¥ : -");
+        lines.push_back("Æò±Õ ¼÷¼º ±â°£: " + to_string(totalPeriod / (int)count) + "ÀÏ");
+        lines.push_back("Æò±Õ Áõ¹ß·ü: " + to_string((int)(totalEvap / count)) + "%");
+    }
+    else {
+        lines.push_back("Æò±Õ ¼÷¼º ±â°£: -");
+        lines.push_back("Æò±Õ Áõ¹ß·ü: -");
     }
     return lines;
 }
 
-// ì „ì²´ ì˜¤í¬í†µ ëª©ë¡ ì¶œë ¥
+// ÀüÃ¼ ¿ÀÅ©Åë ¸ñ·Ï Ãâ·Â
 void OakAgingManager::showOakList() {
     if (oakList.empty()) {
-        cout << "ë“±ë¡ëœ ì˜¤í¬í†µì´ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "µî·ÏµÈ ¿ÀÅ©ÅëÀÌ ¾ø½À´Ï´Ù.\n";
         return;
     }
     for (const auto& oak : oakList) {
@@ -250,90 +247,91 @@ void OakAgingManager::showOakList() {
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [4] CSV ë‚´ë³´ë‚´ê¸° -----------------------------
+// ----------------------------- [4] CSV ³»º¸³»±â -----------------------------
 
-// ì˜¤í¬í†µ ëª©ë¡ì„ CSVë¡œ ë‚´ë³´ë‚´ê¸°
+// ¿ÀÅ©Åë ¸ñ·ÏÀ» CSV·Î ³»º¸³»±â
 void OakAgingManager::exportOakBoxesToCSV(const string& filename) {
     saveOakBoxesToCSV(filename);
-    cout << "[ " << filename << " ] íŒŒì¼ë¡œ ì €ì¥ ì™„ë£Œ!\n";
+    cout << "[ " << filename << " ] ÆÄÀÏ·Î ÀúÀå ¿Ï·á!\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [5] ì…ë ¥/ìˆ˜ì •/ì‚­ì œ/ê²€ìƒ‰ -----------------------------
+// ----------------------------- [5] ÀÔ·Â/¼öÁ¤/»èÁ¦/°Ë»ö -----------------------------
 
-// ì˜¤í¬í†µ ì‹ ê·œ ì¶”ê°€
+// ¿ÀÅ©Åë ½Å±Ô Ãß°¡
 void OakAgingManager::addOakBox() {
     OakBox box;
-    box.setId(inputString("ì˜¤í¬í†µ ID: "));
-    box.setName(inputString("ì˜¤í¬í†µ ë³„ì¹­: "));
-    box.setType(inputString("ì¢…ë¥˜: "));
-    box.setOrigin(inputString("ì¶œì‹  ì§€ì—­: "));
-    box.setRipeningPeriod(inputInt("ìˆ™ì„± ê¸°ê°„(ì¼): "));
-    box.setAgingCount(inputInt("ìˆ™ì„± íšŸìˆ˜: "));
-    box.setEvaporationRate(inputDouble("ì¦ë°œë¥ (%): "));
-    box.setTemperature(inputDouble("ì˜¨ë„(â„ƒ): "));
-    box.setHumidity(inputDouble("ìŠµë„(%): "));
-    box.setWaterAbsorptionTime(inputInt("ë¬¼ì„ ë¨¸ê¸ˆì€ ì‹œê°„(ì‹œê°„): "));
-    box.setWoodType(inputString("ë‚˜ë¬´ ì¢…ë¥˜: "));
-    box.setSpiritId(inputString("ìŠ¤í”¼ë¦¿ ID: "));
-    box.setAgingStartDate(inputString("ìˆ™ì„± ì‹œì‘ì¼ (YYYY-MM-DD): "));
-    box.setAgingEndDate(inputString("ìˆ™ì„± ì¢…ë£Œì¼ (YYYY-MM-DD): "));
-    box.setRoasted(inputInt("ë¡œìŠ¤íŒ… ì—¬ë¶€ (1: ìˆìŒ, 0: ì—†ìŒ): ") == 1);
+    box.setId(inputString("¿ÀÅ©Åë ID: "));
+    box.setName(inputString("¿ÀÅ©Åë º°Äª: "));
+    box.setType(inputString("Á¾·ù: "));
+    box.setOrigin(inputString("Ãâ½Å Áö¿ª: "));
+    box.setRipeningPeriod(inputInt("¼÷¼º ±â°£(ÀÏ): "));
+    box.setAgingCount(inputInt("¼÷¼º È½¼ö: "));
+    box.setEvaporationRate(inputDouble("Áõ¹ß·ü(%): "));
+    box.setTemperature(inputDouble("¿Âµµ(¡É): "));
+    box.setHumidity(inputDouble("½Àµµ(%): "));
+    box.setWaterAbsorptionTime(inputInt("¹°À» ¸Ó±İÀº ½Ã°£(½Ã°£): "));
+    box.setWoodType(inputString("³ª¹« Á¾·ù: "));
+    box.setSpiritId(inputString("½ºÇÇ¸´ ID: "));
+    box.setAgingStartDate(inputString("¼÷¼º ½ÃÀÛÀÏ (YYYY-MM-DD): "));
+    box.setAgingEndDate(inputString("¼÷¼º Á¾·áÀÏ (YYYY-MM-DD): "));
+    box.setRoasted(inputInt("·Î½ºÆÃ ¿©ºÎ (1: ÀÖÀ½, 0: ¾øÀ½): ") == 1);
 
     oakList.push_back(box);
     saveOakBoxesToCSV(OAKAGING_CSV);
-    cout << "ì˜¤í¬í†µì´ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤!\n";
+    cout << "¿ÀÅ©ÅëÀÌ Ãß°¡µÇ¾ú½À´Ï´Ù!\n";
     UIUtils::pauseConsole();
 }
 
-// ì˜¤í¬í†µ ì •ë³´ ìˆ˜ì •
+// ¿ÀÅ©Åë Á¤º¸ ¼öÁ¤
 void OakAgingManager::updateOakBox() {
-    string id = inputString("ìˆ˜ì •í•  ì˜¤í¬í†µ ID ì…ë ¥: ");
+    string id = inputString("¼öÁ¤ÇÒ ¿ÀÅ©Åë ID ÀÔ·Â: ");
     for (auto& box : oakList) {
         if (box.getId() == id) {
-            cout << "=== ì˜¤í¬í†µ ì •ë³´ ìˆ˜ì • ===\n";
-            box.setOrigin(inputString("ì¶œì‹  ì§€ì—­ (" + box.getOrigin() + "): "));
-            box.setAgingCount(inputInt("ìˆ™ì„± íšŸìˆ˜ (" + to_string(box.getAgingCount()) + "): "));
-            box.setWaterAbsorptionTime(inputInt("ë¬¼ì„ ë¨¸ê¸ˆì€ ì‹œê°„ (" + to_string(box.getWaterAbsorptionTime()) + "): "));
-            box.setRoasted(inputInt("ë¡œìŠ¤íŒ… ì—¬ë¶€ (" + string(box.isRoasted() ? "1" : "0") + "): ") == 1);
-            box.setWoodType(inputString("ë‚˜ë¬´ ì¢…ë¥˜ (" + box.getWoodType() + "): "));
-            box.setType(inputString("ì¢…ë¥˜ (" + box.getType() + "): "));
-            box.setRipeningPeriod(inputInt("ìˆ™ì„± ê¸°ê°„(ì¼) (" + to_string(box.getRipeningPeriod()) + "): "));
-            box.setEvaporationRate(inputDouble("ì¦ë°œë¥ (%) (" + to_string(box.getEvaporationRate()) + "): "));
-            box.setTemperature(inputDouble("ì˜¨ë„(â„ƒ) (" + to_string(box.getTemperature()) + "): "));
-            box.setHumidity(inputDouble("ìŠµë„(%) (" + to_string(box.getHumidity()) + "): "));
-            box.setId(inputString("ì˜¤í¬í†µ ID (" + box.getId() + "): "));
-            box.setName(inputString("ì˜¤í¬í†µ ë³„ì¹­ (" + box.getName() + "): "));
-            box.setSpiritId(inputString("ìŠ¤í”¼ë¦¿ ID (" + box.getSpiritId() + "): "));
-            box.setAgingStartDate(inputString("ìˆ™ì„± ì‹œì‘ì¼ (" + box.getAgingStartDate() + "): "));
-            box.setAgingEndDate(inputString("ìˆ™ì„± ì¢…ë£Œì¼ (" + box.getAgingEndDate() + "): "));
+            cout << "=== ¿ÀÅ©Åë Á¤º¸ ¼öÁ¤ ===\n";
+            box.setOrigin(inputString("Ãâ½Å Áö¿ª (" + box.getOrigin() + "): "));
+            box.setAgingCount(inputInt("¼÷¼º È½¼ö (" + to_string(box.getAgingCount()) + "): "));
+            box.setWaterAbsorptionTime(inputInt("¹°À» ¸Ó±İÀº ½Ã°£ (" + to_string(box.getWaterAbsorptionTime()) + "): "));
+            box.setRoasted(inputInt("·Î½ºÆÃ ¿©ºÎ (" + string(box.isRoasted() ? "1" : "0") + "): ") == 1);
+            box.setWoodType(inputString("³ª¹« Á¾·ù (" + box.getWoodType() + "): "));
+            box.setType(inputString("Á¾·ù (" + box.getType() + "): "));
+            box.setRipeningPeriod(inputInt("¼÷¼º ±â°£(ÀÏ) (" + to_string(box.getRipeningPeriod()) + "): "));
+            box.setEvaporationRate(inputDouble("Áõ¹ß·ü(%) (" + to_string(box.getEvaporationRate()) + "): "));
+            box.setTemperature(inputDouble("¿Âµµ(¡É) (" + to_string(box.getTemperature()) + "): "));
+            box.setHumidity(inputDouble("½Àµµ(%) (" + to_string(box.getHumidity()) + "): "));
+            box.setId(inputString("¿ÀÅ©Åë ID (" + box.getId() + "): "));
+            box.setName(inputString("¿ÀÅ©Åë º°Äª (" + box.getName() + "): "));
+            box.setSpiritId(inputString("½ºÇÇ¸´ ID (" + box.getSpiritId() + "): "));
+            box.setAgingStartDate(inputString("¼÷¼º ½ÃÀÛÀÏ (" + box.getAgingStartDate() + "): "));
+            box.setAgingEndDate(inputString("¼÷¼º Á¾·áÀÏ (" + box.getAgingEndDate() + "): "));
             saveOakBoxesToCSV(OAKAGING_CSV);
-            cout << "ìˆ˜ì • ì™„ë£Œ.\n";
+            cout << "¼öÁ¤ ¿Ï·á.\n";
             UIUtils::pauseConsole();
             return;
         }
     }
-    cout << "í•´ë‹¹ IDë¥¼ ê°€ì§„ ì˜¤í¬í†µì´ ì—†ìŠµë‹ˆë‹¤.\n";
+    cout << "ÇØ´ç ID¸¦ °¡Áø ¿ÀÅ©ÅëÀÌ ¾ø½À´Ï´Ù.\n";
     UIUtils::pauseConsole();
 }
 
-// ì˜¤í¬í†µ ì‚­ì œ
+// ¿ÀÅ©Åë »èÁ¦
 void OakAgingManager::deleteOakBox() {
-    string id = inputString("ì‚­ì œí•  ì˜¤í¬í†µ ID ì…ë ¥: ");
+    string id = inputString("»èÁ¦ÇÒ ¿ÀÅ©Åë ID ÀÔ·Â: ");
     auto it = remove_if(oakList.begin(), oakList.end(), [&](const OakBox& b) { return b.getId() == id; });
     if (it != oakList.end()) {
         oakList.erase(it, oakList.end());
         saveOakBoxesToCSV(OAKAGING_CSV);
-        cout << "ì˜¤í¬í†µì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.\n";
-    } else {
-        cout << "í•´ë‹¹ IDë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "¿ÀÅ©ÅëÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù.\n";
+    }
+    else {
+        cout << "ÇØ´ç ID¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
     }
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [6] ë©”ì¸ ë©”ë‰´ ë£¨í”„ -----------------------------
+// ----------------------------- [6] ¸ŞÀÎ ¸Ş´º ·çÇÁ -----------------------------
 
-// ì˜¤í¬í†µ ìˆ™ì„± ê´€ë¦¬ ë©”ì¸ ë©”ë‰´ (ë ˆì‹œí”¼ ì—°ë™ í¬í•¨)
+// ¿ÀÅ©Åë ¼÷¼º °ü¸® ¸ŞÀÎ ¸Ş´º (·¹½ÃÇÇ ¿¬µ¿ Æ÷ÇÔ)
 void OakAgingManager::showOakAgingPage() {
     loadOakBoxesFromCSV(OAKAGING_CSV);
 
@@ -345,17 +343,17 @@ void OakAgingManager::showOakAgingPage() {
         system("cls");
         vector<string> infoLines = getPageInfoLines();
         vector<string> menu = {
-            "[1] ì˜¤í¬í†µ ëª©ë¡ ë³´ê¸°",
-            "[2] ì˜¤í¬í†µ ì¶”ê°€",
-            "[3] ì˜¤í¬í†µ ìˆ˜ì •",
-            "[4] ì˜¤í¬í†µ ì‚­ì œ",
-            "[5] CSVë¡œ ì €ì¥",
-            "[6] ë ˆì‹œí”¼ ê¸°ë°˜ ì˜¤í¬ ìˆ™ì„±",
-            "[7] ESP32 í™˜ê²½ ë°ì´í„° ìˆ˜ì‹ ",
-            "[0] ë©”ì¸ìœ¼ë¡œ ëŒì•„ê°€ê¸°"
+            "[1] ¿ÀÅ©Åë ¸ñ·Ï º¸±â",
+            "[2] ¿ÀÅ©Åë Ãß°¡",
+            "[3] ¿ÀÅ©Åë ¼öÁ¤",
+            "[4] ¿ÀÅ©Åë »èÁ¦",
+            "[5] CSV·Î ÀúÀå",
+            "[6] ·¹½ÃÇÇ ±â¹İ ¿ÀÅ© ¼÷¼º",
+            "[7] ESP32 È¯°æ µ¥ÀÌÅÍ ¼ö½Å",
+            "[0] ¸ŞÀÎÀ¸·Î µ¹¾Æ°¡±â"
         };
         UIUtils::drawDashboard(infoLines, menu, 72, 30);
-        cout << "\nì…ë ¥ >> ";
+        cout << "\nÀÔ·Â >> ";
         cin >> choice;
         cin.ignore();
 
@@ -367,20 +365,20 @@ void OakAgingManager::showOakAgingPage() {
         case 5: exportOakBoxesToCSV(OAKAGING_CSV); break;
         case 6: produceOakAgingByRecipe(recipeMgr); break;
         case 7: receiveOakBoxFromESP32(); break;
-        case 0: cout << "ë©”ì¸ìœ¼ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤.\n"; break;
-        default: cout << "ì˜ëª»ëœ ì…ë ¥ì…ë‹ˆë‹¤.\n"; break;
+        case 0: cout << "¸ŞÀÎÀ¸·Î µ¹¾Æ°©´Ï´Ù.\n"; break;
+        default: cout << "Àß¸øµÈ ÀÔ·ÂÀÔ´Ï´Ù.\n"; break;
         }
 
         if (choice != 0) {
-            cout << "\nê³„ì†í•˜ë ¤ë©´ Enterë¥¼ ëˆ„ë¥´ì„¸ìš”...";
+            cout << "\n°è¼ÓÇÏ·Á¸é Enter¸¦ ´©¸£¼¼¿ä...";
             cin.get();
         }
     } while (choice != 0);
 }
 
-// ----------------------------- [7] ESP32 ì—°ë™ ë° í™˜ê²½ ì„¼ì„œ ìˆ˜ì‹  -----------------------------
+// ----------------------------- [7] ESP32 ¿¬µ¿ ¹× È¯°æ ¼¾¼­ ¼ö½Å -----------------------------
 
-// ESP32ë¡œë¶€í„° ì˜¤í¬í†µ í™˜ê²½ ë°ì´í„°(TCP) ìˆ˜ì‹  ë° ë“±ë¡
+// ESP32·ÎºÎÅÍ ¿ÀÅ©Åë È¯°æ µ¥ÀÌÅÍ(TCP) ¼ö½Å ¹× µî·Ï
 void OakAgingManager::receiveOakBoxFromESP32() {
     WSADATA wsaData;
     SOCKET serverSocket, clientSocket;
@@ -388,34 +386,34 @@ void OakAgingManager::receiveOakBoxFromESP32() {
     int clientSize = sizeof(clientAddr);
 
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        cout << "WSAStartup ì‹¤íŒ¨" << endl;
+        cout << "WSAStartup ½ÇÆĞ" << endl;
         return;
     }
 
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == INVALID_SOCKET) {
-        cout << "ì†Œì¼“ ìƒì„± ì‹¤íŒ¨" << endl;
+        cout << "¼ÒÄÏ »ı¼º ½ÇÆĞ" << endl;
         WSACleanup();
         return;
     }
 
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(5000); // OakAging ì „ìš© í¬íŠ¸
+    serverAddr.sin_port = htons(5000); // OakAging Àü¿ë Æ÷Æ®
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(serverSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        cout << "bind ì‹¤íŒ¨" << endl;
+        cout << "bind ½ÇÆĞ" << endl;
         closesocket(serverSocket);
         WSACleanup();
         return;
     }
 
     listen(serverSocket, 1);
-    cout << "[TCP ì„œë²„] ESP32 ì—°ê²° ëŒ€ê¸° ì¤‘...\n";
+    cout << "[TCP ¼­¹ö] ESP32 ¿¬°á ´ë±â Áß...\n";
 
     clientSocket = accept(serverSocket, (SOCKADDR*)&clientAddr, &clientSize);
     if (clientSocket == INVALID_SOCKET) {
-        cout << "accept ì‹¤íŒ¨" << endl;
+        cout << "accept ½ÇÆĞ" << endl;
         closesocket(serverSocket);
         WSACleanup();
         return;
@@ -426,7 +424,7 @@ void OakAgingManager::receiveOakBoxFromESP32() {
 
     if (bytesReceived > 0) {
         string data(buffer);
-        cout << "[ìˆ˜ì‹  ë°ì´í„°] " << data << endl;
+        cout << "[¼ö½Å µ¥ÀÌÅÍ] " << data << endl;
 
         istringstream ss(data);
         string token;
@@ -455,11 +453,11 @@ void OakAgingManager::receiveOakBoxFromESP32() {
             box.setRoasted(false);
 
             oakList.push_back(box);
-            cout << "ì˜¤í¬í†µ í™˜ê²½ ë°ì´í„° ì €ì¥ ì™„ë£Œ!\n";
+            cout << "¿ÀÅ©Åë È¯°æ µ¥ÀÌÅÍ ÀúÀå ¿Ï·á!\n";
             saveOakBoxesToCSV(OAKAGING_CSV);
         }
         else {
-            cout << "í•„ë“œ ìˆ˜ ì˜¤ë¥˜: " << fields.size() << "ê°œ" << endl;
+            cout << "ÇÊµå ¼ö ¿À·ù: " << fields.size() << "°³" << endl;
         }
     }
 
