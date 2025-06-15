@@ -11,12 +11,21 @@
 #include <vector>
 #include <sstream>
 #include <limits>
+#include <stdexcept>
 
 using namespace std;
 
-// -----------------------------------------------------------------------------
-// [유틸리티] 현재 시스템 날짜를 "YYYY-MM-DD" 형식으로 반환
-// -----------------------------------------------------------------------------
+// ----------------------------- 상수 정의 -----------------------------
+namespace {
+    constexpr int CSV_FIELD_COUNT = 17;
+    constexpr char RAW_MATERIAL_CSV[] = "rawmaterial_dummy.csv";
+    constexpr char USED_MATERIAL_CSV[] = "used_raw_materials.csv";
+    constexpr char STOCK_MATERIAL_CSV[] = "stock_raw_materials.csv";
+}
+
+// ----------------------------- 유틸리티 함수 -----------------------------
+
+// 현재 시스템 날짜를 "YYYY-MM-DD" 형식으로 반환
 string getCurrentDate() {
     time_t now = time(nullptr);
     tm t;
@@ -26,11 +35,60 @@ string getCurrentDate() {
     return string(buf);
 }
 
-// -----------------------------------------------------------------------------
-// [1] 데이터 입출력 (CSV 파일 로드/저장)
-// -----------------------------------------------------------------------------
+// 안전한 double 입력
+double inputDouble(const string& prompt) {
+    double val;
+    while (true) {
+        cout << prompt;
+        if (cin >> val) {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            return val;
+        }
+        cout << "숫자를 입력하세요.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
 
-// CSV 파일에서 원재료 목록을 읽어 materials 벡터를 초기화
+// 안전한 string 입력
+string inputString(const string& prompt) {
+    cout << prompt;
+    string val;
+    getline(cin, val);
+    return val;
+}
+
+// CSV 헤더 출력
+void writeCSVHeader(ofstream& file, bool withUsedDate = false) {
+    file << "ID,Name,Type,Origin,Weight(kg),Storage,StorageMethod,ExpiryDate,EntryDate,ExitDate,"
+         << "Status,Unit,UnitPrice,EntryManager,ExitManager,QualityCheck,QualityCheckDate";
+    if (withUsedDate) file << ",UsedDate";
+    file << "\n";
+}
+
+// CSV 한 줄 출력
+void writeCSVRow(ofstream& file, const RawMaterial& m, bool withUsedDate = false) {
+    file << m.getMaterialId() << "," << m.getName() << "," << m.getType() << "," << m.getOrigin() << ","
+         << m.getWeightKg() << "," << m.getStorageLocation() << "," << m.getStorageMethod() << ","
+         << m.getExpiryDate() << "," << m.getEntryDate() << "," << m.getExitDate() << ","
+         << m.getStatus() << "," << m.getUnit() << "," << m.getUnitPrice() << ","
+         << m.getEntryManager() << "," << m.getExitManager() << ","
+         << m.getQualityCheck() << "," << m.getQualityCheckDate();
+    if (withUsedDate) file << "," << getCurrentDate();
+    file << "\n";
+}
+
+// ID로 원재료 검색 (출고되지 않은 것만)
+RawMaterial* findMaterialById(vector<RawMaterial>& materials, const string& id) {
+    for (auto& m : materials) {
+        if (m.getMaterialId() == id && m.getExitDate().empty())
+            return &m;
+    }
+    return nullptr;
+}
+
+// ----------------------------- [1] 데이터 입출력 -----------------------------
+
 void RawMaterialManager::loadMaterialsFromCSV(const string& filename) {
     materials.clear();
     ifstream file(filename);
@@ -48,81 +106,69 @@ void RawMaterialManager::loadMaterialsFromCSV(const string& filename) {
         while (getline(ss, token, ',')) {
             fields.push_back(token);
         }
-        if (fields.size() < 17) continue;
-        RawMaterial m;
-        m.setMaterialId(fields[0]);
-        m.setName(fields[1]);
-        m.setType(fields[2]);
-        m.setOrigin(fields[3]);
-        m.setWeightKg(stod(fields[4]));
-        m.setStorageLocation(fields[5]);
-        m.setStorageMethod(fields[6]);
-        m.setExpiryDate(fields[7]);
-        m.setEntryDate(fields[8]);
-        m.setExitDate(fields[9]);
-        m.setStatus(fields[10]);
-        m.setUnit(fields[11]);
-        m.setUnitPrice(stod(fields[12]));
-        m.setEntryManager(fields[13]);
-        m.setExitManager(fields[14]);
-        m.setQualityCheck(fields[15]);
-        m.setQualityCheckDate(fields[16]);
-        materials.push_back(m);
+        if (fields.size() < CSV_FIELD_COUNT) continue;
+        try {
+            RawMaterial m;
+            m.setMaterialId(fields[0]);
+            m.setName(fields[1]);
+            m.setType(fields[2]);
+            m.setOrigin(fields[3]);
+            m.setWeightKg(stod(fields[4]));
+            m.setStorageLocation(fields[5]);
+            m.setStorageMethod(fields[6]);
+            m.setExpiryDate(fields[7]);
+            m.setEntryDate(fields[8]);
+            m.setExitDate(fields[9]);
+            m.setStatus(fields[10]);
+            m.setUnit(fields[11]);
+            m.setUnitPrice(stod(fields[12]));
+            m.setEntryManager(fields[13]);
+            m.setExitManager(fields[14]);
+            m.setQualityCheck(fields[15]);
+            m.setQualityCheckDate(fields[16]);
+            materials.push_back(m);
+        } catch (...) {
+            cout << "[경고] CSV 파싱 오류: " << line << endl;
+        }
     }
     file.close();
 }
 
-// CSV 파일로 전체 materials 저장
 void RawMaterialManager::saveMaterialsToCSV(const string& filename) {
     ofstream file(filename);
-    if (!file.is_open()) return;
-    file << "ID,Name,Type,Origin,Weight(kg),Storage,StorageMethod,ExpiryDate,EntryDate,ExitDate,"
-         << "Status,Unit,UnitPrice,EntryManager,ExitManager,QualityCheck,QualityCheckDate\n";
+    if (!file.is_open()) {
+        cout << "[오류] 파일 저장 실패: " << filename << endl;
+        return;
+    }
+    writeCSVHeader(file);
     for (const auto& m : materials) {
-        file << m.getMaterialId() << "," << m.getName() << "," << m.getType() << "," << m.getOrigin() << ","
-             << m.getWeightKg() << "," << m.getStorageLocation() << "," << m.getStorageMethod() << ","
-             << m.getExpiryDate() << "," << m.getEntryDate() << "," << m.getExitDate() << ","
-             << m.getStatus() << "," << m.getUnit() << "," << m.getUnitPrice() << ","
-             << m.getEntryManager() << "," << m.getExitManager() << ","
-             << m.getQualityCheck() << "," << m.getQualityCheckDate() << "\n";
+        writeCSVRow(file, m);
     }
     file.close();
 }
 
-// 사용된 원재료 목록을 지정된 파일 이름의 CSV 파일로 저장
 bool RawMaterialManager::exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList) {
     ofstream file(filename);
     if (!file.is_open()) return false;
-    file << "ID,Name,Type,Origin,Weight(kg),Storage,StorageMethod,ExpiryDate,EntryDate,ExitDate,"
-        << "Status,Unit,UnitPrice,EntryManager,ExitManager,QualityCheck,QualityCheckDate,UsedDate\n";
+    writeCSVHeader(file, true);
     for (const auto& m : usedList) {
-        file << m.getMaterialId() << "," << m.getName() << "," << m.getType() << "," << m.getOrigin() << ","
-            << m.getWeightKg() << "," << m.getStorageLocation() << "," << m.getStorageMethod() << ","
-            << m.getExpiryDate() << "," << m.getEntryDate() << "," << m.getExitDate() << ","
-            << m.getStatus() << "," << m.getUnit() << "," << m.getUnitPrice() << ","
-            << m.getEntryManager() << "," << m.getExitManager() << ","
-            << m.getQualityCheck() << "," << m.getQualityCheckDate() << ","
-            << getCurrentDate() << "\n";
+        writeCSVRow(file, m, true);
     }
     file.close();
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// [2] 내부 연산 (재고 계산, 소모, 배치 처리 등)
-// -----------------------------------------------------------------------------
+// ----------------------------- [2] 내부 연산 -----------------------------
 
-// 특정 원재료 이름에 대해 현재 출고되지 않은 총 재고량을 반환
-double RawMaterialManager::getStock(const string& materialId) const {
+double RawMaterialManager::getStock(const string& materialName) const {
     double total = 0;
     for (const auto& m : materials) {
-        if (m.getName() == materialId && m.getExitDate().empty())
+        if (m.getName() == materialName && m.getExitDate().empty())
             total += m.getWeightKg();
     }
     return total;
 }
 
-// 주어진 이름의 원재료에서 지정된 양을 차감하여 출고 처리
 void RawMaterialManager::consumeMaterial(const string& name, double amount) {
     for (auto& m : materials) {
         if (m.getName() == name && m.getExitDate().empty()) {
@@ -140,7 +186,6 @@ void RawMaterialManager::consumeMaterial(const string& name, double amount) {
     }
 }
 
-// 발효 배치 생산을 위한 원재료 소모 처리 (보리 60%, 호밀 10%, 물 30%)
 bool RawMaterialManager::processFermentationBatch(double totalBatchKg) {
     double requiredBarley = totalBatchKg * 0.6;
     double requiredRye = totalBatchKg * 0.1;
@@ -164,7 +209,6 @@ bool RawMaterialManager::processFermentationBatch(double totalBatchKg) {
     consumeMaterial("호밀", requiredRye);
     consumeMaterial("물", requiredWater);
 
-    // 사용된 원재료 내역 생성 및 CSV 저장
     vector<RawMaterial> used;
 
     RawMaterial barley;
@@ -219,26 +263,22 @@ bool RawMaterialManager::processFermentationBatch(double totalBatchKg) {
     water.setQualityCheckDate("-");
     used.push_back(water);
 
-    exportUsedMaterialsToCSV("used_raw_materials.csv", used);
+    exportUsedMaterialsToCSV(USED_MATERIAL_CSV, used);
     cout << "발효 배치용 원재료가 CSV에 저장되었습니다.\n";
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// [3] 정보 요약/조회/출력
-// -----------------------------------------------------------------------------
+// ----------------------------- [3] 정보 요약/조회/출력 -----------------------------
 
-// 전체 원재료 개수와 총 재고 무게 요약 문자열 반환
 string RawMaterialManager::getSummary() {
     double totalKg = 0;
     for (const auto& item : materials)
-        if (item.getExitDate().empty())  // 출고되지 않은 경우
+        if (item.getExitDate().empty())
             totalKg += item.getWeightKg();
 
     return "원재료: " + to_string(materials.size()) + "종 / " + to_string((int)totalKg) + "kg";
 }
 
-// 원재료 페이지 상단 정보 요약 (종류, 무게, 종류별 수량, 보관 위치 등)
 vector<string> RawMaterialManager::getPageInfoLines() {
     int totalKinds = 0;
     double totalWeight = 0;
@@ -270,7 +310,6 @@ vector<string> RawMaterialManager::getPageInfoLines() {
     return lines;
 }
 
-// 출고되지 않은 원재료만 출력
 void RawMaterialManager::showInventory() {
     cout << "\n=== 현재 보유 원재료 목록 ===\n";
     for (const auto& m : materials) {
@@ -292,7 +331,6 @@ void RawMaterialManager::showInventory() {
     }
 }
 
-// 전체 원재료 입출고 이력 출력 (출고된 항목 포함)
 void RawMaterialManager::showAllMaterials() {
     cout << "\n=== 전체 원재료 입출고 이력 ===\n";
     for (const auto& m : materials) {
@@ -315,7 +353,6 @@ void RawMaterialManager::showAllMaterials() {
     }
 }
 
-// 품질 검사 미완료 원재료 목록 출력
 void RawMaterialManager::showUninspectedMaterials() {
     cout << "\n=== 품질 검사 미완료 원재료 목록 ===\n";
     bool found = false;
@@ -337,12 +374,9 @@ void RawMaterialManager::showUninspectedMaterials() {
     }
 }
 
-// 담당자별 입출고 이력 출력
 void RawMaterialManager::showMaterialsByManager() {
-    string manager;
     cin.ignore();
-    cout << "\n조회할 담당자 이름 입력: ";
-    getline(cin, manager);
+    string manager = inputString("\n조회할 담당자 이름 입력: ");
 
     bool found = false;
     cout << "\n=== " << manager << " 담당 입출고 이력 ===\n";
@@ -365,7 +399,6 @@ void RawMaterialManager::showMaterialsByManager() {
     }
 }
 
-// 보관 장소의 환경 정보 출력
 void RawMaterialManager::showStorageEnvironment() {
     vector<StorageEnvironment> storageList = {
         {"창고 A", 18.5f, 55.2f},
@@ -383,14 +416,10 @@ void RawMaterialManager::showStorageEnvironment() {
     cin.ignore(); cin.get();
 }
 
-// -----------------------------------------------------------------------------
-// [4] CSV 내보내기(출고/재고)
-// -----------------------------------------------------------------------------
+// ----------------------------- [4] CSV 내보내기 -----------------------------
 
-// 출고된(사용된) 원재료 목록을 CSV 파일로 내보내기
 void RawMaterialManager::exportUsedInventoryToCSV() {
     vector<RawMaterial> usedList;
-
     for (const auto& m : materials) {
         if (!m.getExitDate().empty()) {
             usedList.push_back(m);
@@ -402,18 +431,16 @@ void RawMaterialManager::exportUsedInventoryToCSV() {
         return;
     }
 
-    if (exportUsedMaterialsToCSV("used_raw_materials.csv", usedList)) {
-        cout << "\n[used_raw_materials.csv] 파일로 저장 완료!\n";
+    if (exportUsedMaterialsToCSV(USED_MATERIAL_CSV, usedList)) {
+        cout << "\n[" << USED_MATERIAL_CSV << "] 파일로 저장 완료!\n";
     }
     else {
         cout << "\nCSV 저장에 실패했습니다.\n";
     }
 }
 
-// 출고되지 않은(보유 중인) 원재료 목록을 CSV 파일로 내보내기
 void RawMaterialManager::exportRemainingStockToCSV() {
     vector<RawMaterial> stockList;
-
     for (const auto& m : materials) {
         if (m.getExitDate().empty()) {
             stockList.push_back(m);
@@ -425,134 +452,71 @@ void RawMaterialManager::exportRemainingStockToCSV() {
         return;
     }
 
-    if (exportUsedMaterialsToCSV("stock_raw_materials.csv", stockList)) {
-        cout << "\n[stock_raw_materials.csv] 파일로 저장 완료!\n";
+    if (exportUsedMaterialsToCSV(STOCK_MATERIAL_CSV, stockList)) {
+        cout << "\n[" << STOCK_MATERIAL_CSV << "] 파일로 저장 완료!\n";
     }
     else {
         cout << "\nCSV 저장에 실패했습니다.\n";
     }
 }
 
-// -----------------------------------------------------------------------------
-// [5] 입력/수정/삭제/검색
-// -----------------------------------------------------------------------------
+// ----------------------------- [5] 입력/수정/삭제/검색 -----------------------------
 
-// 원재료 추가(입력)
 void RawMaterialManager::addMaterial() {
+    cin.ignore();
     RawMaterial newItem;
-    cin.ignore();  // 입력 버퍼 초기화
     cout << "\n=== 원재료 추가 ===\n";
 
-    string input;
-    double doubleInput;
-
-    cout << "ID: ";
-    getline(cin, input);
-    newItem.setMaterialId(input);
-
-    cout << "이름: ";
-    getline(cin, input);
-    newItem.setName(input);
-
-    cout << "종류: ";
-    getline(cin, input);
-    newItem.setType(input);
-
-    cout << "출신 지역: ";
-    getline(cin, input);
-    newItem.setOrigin(input);
-
-    cout << "무게(kg): ";
-    cin >> doubleInput;
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    newItem.setWeightKg(doubleInput);
-
-    cout << "단위 (예: kg, L): ";
-    getline(cin, input);
-    newItem.setUnit(input);
-
-    cout << "단가 (" << input << "당): ";
-    cin >> doubleInput;
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    newItem.setUnitPrice(doubleInput);
-
-    cout << "보관 위치: ";
-    getline(cin, input);
-    newItem.setStorageLocation(input);
-
-    cout << "보관 방법: ";
-    getline(cin, input);
-    newItem.setStorageMethod(input);
-
-    cout << "유통기한: ";
-    getline(cin, input);
-    newItem.setExpiryDate(input);
-
-    cout << "입고일(YYYY-MM-DD): ";
-    getline(cin, input);
-    newItem.setEntryDate(input);
-
-    cout << "입고 담당자: ";
-    getline(cin, input);
-    newItem.setEntryManager(input);
-
-    cout << "품질 검사 결과 (예: 통과, 불량, 검사 안함): ";
-    getline(cin, input);
-    newItem.setQualityCheck(input);
-
-    cout << "품질 검사 일자 (YYYY-MM-DD): ";
-    getline(cin, input);
-    newItem.setQualityCheckDate(input);
+    newItem.setMaterialId(inputString("ID: "));
+    newItem.setName(inputString("이름: "));
+    newItem.setType(inputString("종류: "));
+    newItem.setOrigin(inputString("출신 지역: "));
+    newItem.setWeightKg(inputDouble("무게(kg): "));
+    newItem.setUnit(inputString("단위 (예: kg, L): "));
+    newItem.setUnitPrice(inputDouble("단가 (" + newItem.getUnit() + "당): "));
+    newItem.setStorageLocation(inputString("보관 위치: "));
+    newItem.setStorageMethod(inputString("보관 방법: "));
+    newItem.setExpiryDate(inputString("유통기한: "));
+    newItem.setEntryDate(inputString("입고일(YYYY-MM-DD): "));
+    newItem.setEntryManager(inputString("입고 담당자: "));
+    newItem.setQualityCheck(inputString("품질 검사 결과 (예: 통과, 불량, 검사 안함): "));
+    newItem.setQualityCheckDate(inputString("품질 검사 일자 (YYYY-MM-DD): "));
 
     newItem.setExitDate("");
     newItem.setExitManager("");
     newItem.setStatus("정상");
 
     materials.push_back(newItem);
-    saveMaterialsToCSV("rawmaterial_dummy.csv");
+    saveMaterialsToCSV(RAW_MATERIAL_CSV);
     cout << "원재료가 추가되었습니다.\n";
 }
 
-// 원재료 정보 수정
 void RawMaterialManager::updateMaterial() {
-    string name;
     cin.ignore();
-    cout << "\n수정할 원재료 이름 입력: ";
-    getline(cin, name);
+    string name = inputString("\n수정할 원재료 이름 입력: ");
 
     for (auto& m : materials) {
         if (m.getName() == name && m.getExitDate().empty()) {
             cout << "=== 원재료 수정 ===\n";
 
             string input;
-            double doubleInput;
-
-            cout << "보관 위치 (" << m.getStorageLocation() << "): ";
-            getline(cin, input);
+            input = inputString("보관 위치 (" + m.getStorageLocation() + "): ");
             if (!input.empty()) m.setStorageLocation(input);
 
-            cout << "보관 방법 (" << m.getStorageMethod() << "): ";
-            getline(cin, input);
+            input = inputString("보관 방법 (" + m.getStorageMethod() + "): ");
             if (!input.empty()) m.setStorageMethod(input);
 
-            cout << "유통기한 (" << m.getExpiryDate() << "): ";
-            getline(cin, input);
+            input = inputString("유통기한 (" + m.getExpiryDate() + "): ");
             if (!input.empty()) m.setExpiryDate(input);
 
-            cout << "무게(kg) (" << m.getWeightKg() << "): ";
-            string weightStr;
-            getline(cin, weightStr);
-            if (!weightStr.empty()) {
+            input = inputString("무게(kg) (" + to_string(m.getWeightKg()) + "): ");
+            if (!input.empty()) {
                 try {
-                    doubleInput = stod(weightStr);
-                    m.setWeightKg(doubleInput);
-                }
-                catch (...) {}
+                    m.setWeightKg(stod(input));
+                } catch (...) {}
             }
 
-            saveMaterialsToCSV("rawmaterial_dummy.csv");
+            saveMaterialsToCSV(RAW_MATERIAL_CSV);
             cout << "수정 완료.\n";
             return;
         }
@@ -561,20 +525,15 @@ void RawMaterialManager::updateMaterial() {
     cout << "해당 이름의 원재료(재고)를 찾을 수 없습니다.\n";
 }
 
-// 원재료 출고 처리 (exit_date 설정)
 void RawMaterialManager::deleteMaterial() {
-    string name;
     cin.ignore();
-    cout << "\n출고 처리할 원재료 이름 입력: ";
-    getline(cin, name);
+    string name = inputString("\n출고 처리할 원재료 이름 입력: ");
 
     for (auto& m : materials) {
         if (m.getName() == name && m.getExitDate().empty()) {
-            string date;
-            cout << "출고일 입력 (YYYY-MM-DD): ";
-            getline(cin, date);
+            string date = inputString("출고일 입력 (YYYY-MM-DD): ");
             m.setExitDate(date);
-            saveMaterialsToCSV("rawmaterial_dummy.csv");
+            saveMaterialsToCSV(RAW_MATERIAL_CSV);
             cout << "출고 처리 완료.\n";
             return;
         }
@@ -583,12 +542,9 @@ void RawMaterialManager::deleteMaterial() {
     cout << "해당 이름의 원재료(재고)를 찾을 수 없습니다.\n";
 }
 
-// 이름으로 원재료 검색
 void RawMaterialManager::searchMaterial() {
-    string name;
     cin.ignore();
-    cout << "\n검색할 원재료 이름 입력: ";
-    getline(cin, name);
+    string name = inputString("\n검색할 원재료 이름 입력: ");
 
     bool found = false;
     for (const auto& m : materials) {
@@ -611,13 +567,10 @@ void RawMaterialManager::searchMaterial() {
         cout << "해당 이름의 원재료를 찾을 수 없습니다.\n";
 }
 
-// -----------------------------------------------------------------------------
-// [6] 메인 메뉴 루프
-// -----------------------------------------------------------------------------
+// ----------------------------- [6] 메인 메뉴 루프 -----------------------------
 
-// 원재료 관리 콘솔 메뉴 루프
 void RawMaterialManager::showRawMaterialPage() {
-    loadMaterialsFromCSV("rawmaterial_dummy.csv");
+    loadMaterialsFromCSV(RAW_MATERIAL_CSV);
 
     int choice;
     do {
@@ -654,11 +607,7 @@ void RawMaterialManager::showRawMaterialPage() {
         case 6: searchMaterial(); break;
         case 7: showStorageEnvironment(); break;
         case 8: {
-            double totalKg;
-            cout << "\n생산할 총 발효 배치량 입력 (kg): ";
-            cin >> totalKg;
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            double totalKg = inputDouble("\n생산할 총 발효 배치량 입력 (kg): ");
             processFermentationBatch(totalKg);
             break;
         }
