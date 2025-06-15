@@ -92,8 +92,7 @@ public:
     bool processFermentationBatch(double totalBatchKg); // 발효 배치용 원재료 처리
     bool exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList); // 사용 재료 저장
 
-    void loadMaterialsFromCSV(const string& filename); // CSV에서 원재료 목록 로드
-
 private:
     vector<RawMaterial> materials; // 원재료 리스트 (메모리 상 저장)
+    void initializeDummyData();    // 초기 더미 데이터 삽입
 };
