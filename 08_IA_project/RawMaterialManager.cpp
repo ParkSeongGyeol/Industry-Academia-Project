@@ -1,5 +1,7 @@
 ﻿// 원재료 관리 기능 정의 파일
 #include "RawMaterialManager.h"
+#include "RecipeManager.h" // 새로 추가: 레시피 CRUD/조회용
+#include "Recipe.h"
 #include "UIUtils.h"
 #include "StorageEnvironment.h"
 #include <iostream>
@@ -186,86 +188,37 @@ void RawMaterialManager::consumeMaterial(const string& name, double amount) {
     }
 }
 
-bool RawMaterialManager::processFermentationBatch(double totalBatchKg) {
-    double requiredBarley = totalBatchKg * 0.6;
-    double requiredRye = totalBatchKg * 0.1;
-    double requiredWater = totalBatchKg * 0.3;
-    double stockBarley = getStock("보리");
-    double stockRye = getStock("호밀");
-    double stockWater = getStock("물");
-    if (stockBarley < requiredBarley) {
-        cout << "보리 재고 부족 (" << stockBarley << "kg 보유 / " << requiredBarley << "kg 필요)\n";
-        return false;
+// ----------------------------- [2-1] 레시피 기반 배치 생산 기능 -----------------------------
+/**
+ * processFermentationBatch 대체 함수
+ * - 사용자가 레시피 ID를 입력하면, 해당 레시피를 RecipeManager에서 불러와서
+ *   재고 검증 후, produceBatch를 호출하여 배치 생산을 처리한다.
+ * - 재고 부족 시 안내 메시지 출력, 성공 시 배치ID 출력 및 재고 CSV 저장
+ */
+void RawMaterialManager::produceBatchByRecipe(RecipeManager& recipeMgr) {
+    // 1. 레시피 목록 출력 및 선택
+    recipeMgr.listRecipes();
+    string recipeId = inputString("\n사용할 레시피 ID 입력: ");
+    Recipe recipe;
+    if (!recipeMgr.getRecipeById(recipeId, recipe)) {
+        cout << "해당 ID의 레시피를 찾을 수 없습니다.\n";
+        return;
     }
-    if (stockRye < requiredRye) {
-        cout << "호밀 재고 부족 (" << stockRye << "kg 보유 / " << requiredRye << "kg 필요)\n";
-        return false;
+
+    // 2. 배치 생산량 입력
+    double batchSize = inputDouble("생산할 배치량(kg): ");
+
+    // 3. 재고 검증
+    if (!recipe.validateRawMaterialStock(*this, batchSize)) {
+        cout << "재고가 부족하여 배치 생산이 불가합니다.\n";
+        return;
     }
-    if (stockWater < requiredWater) {
-        cout << "물 재고 부족 (" << stockWater << "kg 보유 / " << requiredWater << "kg 필요)\n";
-        return false;
-    }
-    consumeMaterial("보리", requiredBarley);
-    consumeMaterial("호밀", requiredRye);
-    consumeMaterial("물", requiredWater);
 
-    vector<RawMaterial> used;
+    // 4. 배치 생산(원재료 차감 및 배치ID 생성)
+    string batchId = recipe.produceBatch(*this, batchSize);
+    saveMaterialsToCSV(RAW_MATERIAL_CSV);
 
-    RawMaterial barley;
-    barley.setMaterialId("USED001");
-    barley.setName("보리");
-    barley.setType("곡물");
-    barley.setOrigin("스코틀랜드");
-    barley.setWeightKg(requiredBarley);
-    barley.setStorageLocation("창고 A");
-    barley.setStorageMethod("저온 건조");
-    barley.setExitDate(getCurrentDate());
-    barley.setStatus("출고");
-    barley.setUnit("kg");
-    barley.setUnitPrice(950.0);
-    barley.setExitManager("자동출고");
-    barley.setQualityCheck("자동 검사");
-    barley.setQualityCheckDate(getCurrentDate());
-    used.push_back(barley);
-
-    RawMaterial rye;
-    rye.setMaterialId("USED002");
-    rye.setName("호밀");
-    rye.setType("곡물");
-    rye.setOrigin("미국");
-    rye.setWeightKg(requiredRye);
-    rye.setStorageLocation("창고 A");
-    rye.setStorageMethod("상온 보관");
-    rye.setExitDate(getCurrentDate());
-    rye.setStatus("출고");
-    rye.setUnit("kg");
-    rye.setUnitPrice(900.0);
-    rye.setExitManager("자동출고");
-    rye.setQualityCheck("자동 검사");
-    rye.setQualityCheckDate(getCurrentDate());
-    used.push_back(rye);
-
-    RawMaterial water;
-    water.setMaterialId("USED003");
-    water.setName("물");
-    water.setType("기타");
-    water.setOrigin("제조 현장");
-    water.setWeightKg(requiredWater);
-    water.setStorageLocation("탱크 B");
-    water.setStorageMethod("청결 밀봉");
-    water.setExpiryDate("-");
-    water.setExitDate(getCurrentDate());
-    water.setStatus("출고");
-    water.setUnit("L");
-    water.setUnitPrice(100.0);
-    water.setExitManager("자동출고");
-    water.setQualityCheck("검사 없음");
-    water.setQualityCheckDate("-");
-    used.push_back(water);
-
-    exportUsedMaterialsToCSV(USED_MATERIAL_CSV, used);
-    cout << "발효 배치용 원재료가 CSV에 저장되었습니다.\n";
-    return true;
+    cout << "배치 생산 완료! 배치ID: " << batchId << "\n";
 }
 
 // ----------------------------- [3] 정보 요약/조회/출력 -----------------------------
@@ -572,6 +525,10 @@ void RawMaterialManager::searchMaterial() {
 void RawMaterialManager::showRawMaterialPage() {
     loadMaterialsFromCSV(RAW_MATERIAL_CSV);
 
+    // 레시피 매니저 객체 생성 (실제 구현에서는 싱글턴/전역 등으로 관리 가능)
+    RecipeManager recipeMgr;
+    recipeMgr.loadRecipesFromCSV("recipe_list.csv"); // 레시피 목록 CSV에서 불러오기
+
     int choice;
     do {
         system("cls");
@@ -586,7 +543,7 @@ void RawMaterialManager::showRawMaterialPage() {
             "[5] 원재료 삭제 (출고 처리)",
             "[6] 원재료 검색",
             "[7] 보관 장소 환경정보 보기",
-            "[8] 발효 배치용 원재료 사용",
+            "[8] 레시피 기반 배치 생산",
             "[9] 사용된 원재료 CSV 확인/내보내기",
             "[10] 출고되지 않은 재고 CSV 내보내기",
             "[11] 품질 검사 미완료 재료 보기",
@@ -606,11 +563,9 @@ void RawMaterialManager::showRawMaterialPage() {
         case 5: deleteMaterial(); break;
         case 6: searchMaterial(); break;
         case 7: showStorageEnvironment(); break;
-        case 8: {
-            double totalKg = inputDouble("\n생산할 총 발효 배치량 입력 (kg): ");
-            processFermentationBatch(totalKg);
+        case 8: // 기존 processFermentationBatch → 레시피 기반 배치 생산으로 대체
+            produceBatchByRecipe(recipeMgr);
             break;
-        }
         case 9:
             exportUsedInventoryToCSV();
             break;

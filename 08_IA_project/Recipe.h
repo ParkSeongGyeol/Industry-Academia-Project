@@ -84,4 +84,17 @@ public:
     // --- CSV 직렬화/역직렬화 ---
     std::string toCSV() const;
     static Recipe fromCSV(const std::string& line);
+
+    // --- 생산 공정 ---
+    // 배치 생산 (원재료 차감 및 배치 생성)
+    std::string produceBatch(RawMaterialManager& mgr, double batchSize);
+
+    // 배치 → 스피릿 변환
+    std::vector<std::string> distillBatch(const std::string& batchId, double abv, int count);
+
+    // 스피릿 → 숙성
+    std::string ageSpirit(const std::string& spiritId, const std::string& oakType, int months);
+
+    // 숙성 → 병입
+    std::string bottleProduct(const std::string& agingId, int bottleCount, double volume, double price);
 };

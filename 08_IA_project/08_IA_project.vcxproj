@@ -137,6 +137,7 @@
     <ClCompile Include="BottledWhiskyManager.cpp" />
     <ClCompile Include="FileExporter.cpp" />
     <ClCompile Include="Recipe.cpp" />
+    <ClCompile Include="RecipeManager.cpp" />
     <ClCompile Include="StorageEnvironment.cpp" />
     <ClCompile Include="UIUtils.cpp" />
     <ClCompile Include="main.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="BottledWhiskyManager.h" />
     <ClInclude Include="FileExporter.h" />
     <ClInclude Include="Recipe.h" />
+    <ClInclude Include="RecipeManager.h" />
     <ClInclude Include="StorageEnvironment.h" />
     <ClInclude Include="UIUtils.h" />
     <ClInclude Include="MainPage.h" />

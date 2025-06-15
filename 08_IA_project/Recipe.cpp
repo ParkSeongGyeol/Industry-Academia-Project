@@ -99,10 +99,15 @@ void Recipe::addBottledId(const std::string& id) {
 // CSV 직렬화 (간단 예시)
 std::string Recipe::toCSV() const {
     std::ostringstream oss;
-    oss << recipeId << "," << name << "," << batchSizeKg << "," << yeastType << "," << fermentationTemp << "," << fermentationHours
+    // 원재료 비율 직렬화
+    std::string ratioStr;
+    for (const auto& [k, v] : rawMaterialRatio) {
+        if (!ratioStr.empty()) ratioStr += ";";
+        ratioStr += k + ":" + std::to_string(v);
+    }
+    oss << recipeId << "," << name << "," << ratioStr << "," << yeastType << "," << fermentationTemp << "," << fermentationHours
         << "," << distillationABV << "," << distillationCount << "," << oakType << "," << agingMonths
         << "," << bottledName << "," << bottleCount << "," << bottleVolume << "," << bottlePrice;
-    // 필요시 추가 필드 직렬화
     return oss.str();
 }
 
@@ -111,20 +116,47 @@ Recipe Recipe::fromCSV(const std::string& line) {
     Recipe r;
     std::istringstream iss(line);
     std::string tmp;
-    std::getline(iss, r.recipeId, ',');
-    std::getline(iss, r.name, ',');
-    std::getline(iss, tmp, ','); r.batchSizeKg = std::stod(tmp);
-    std::getline(iss, r.yeastType, ',');
-    std::getline(iss, tmp, ','); r.fermentationTemp = std::stod(tmp);
-    std::getline(iss, tmp, ','); r.fermentationHours = std::stoi(tmp);
-    std::getline(iss, tmp, ','); r.distillationABV = std::stod(tmp);
-    std::getline(iss, tmp, ','); r.distillationCount = std::stoi(tmp);
-    std::getline(iss, r.oakType, ',');
-    std::getline(iss, tmp, ','); r.agingMonths = std::stoi(tmp);
-    std::getline(iss, r.bottledName, ',');
-    std::getline(iss, tmp, ','); r.bottleCount = std::stoi(tmp);
-    std::getline(iss, tmp, ','); r.bottleVolume = std::stod(tmp);
-    std::getline(iss, tmp, ','); r.bottlePrice = std::stod(tmp);
-    // 필요시 추가 필드 역직렬화
+    getline(iss, r.recipeId, ',');
+    getline(iss, r.name, ',');
+    getline(iss, tmp, ','); // ratio
+    std::istringstream riss(tmp);
+    std::string pair;
+    while (getline(riss, pair, ';')) {
+        auto pos = pair.find(':');
+        if (pos != std::string::npos) {
+            r.rawMaterialRatio[pair.substr(0, pos)] = stod(pair.substr(pos + 1));
+        }
+    }
+    getline(iss, r.yeastType, ',');
+    getline(iss, tmp, ','); r.fermentationTemp = stod(tmp);
+    getline(iss, tmp, ','); r.fermentationHours = stoi(tmp);
+    getline(iss, tmp, ','); r.distillationABV = stod(tmp);
+    getline(iss, tmp, ','); r.distillationCount = stoi(tmp);
+    getline(iss, r.oakType, ',');
+    getline(iss, tmp, ','); r.agingMonths = stoi(tmp);
+    getline(iss, r.bottledName, ',');
+    getline(iss, tmp, ','); r.bottleCount = stoi(tmp);
+    getline(iss, tmp, ','); r.bottleVolume = stod(tmp);
+    getline(iss, tmp, ','); r.bottlePrice = stod(tmp);
     return r;
+}
+
+// 배치 생성
+std::string Recipe::produceBatch(RawMaterialManager& mgr, double batchSize) {
+    // 1. 필요 원재료 계산
+    auto required = getRequiredRawMaterials(batchSize);
+
+    // 2. 재고 차감
+    for (const auto& [name, amount] : required) {
+        mgr.consumeMaterial(name, amount);
+    }
+
+    // 3. 배치 ID 생성 및 저장
+    std::string newBatchId = "BATCH_" + std::to_string(rand()); // 실제로는 더 안전한 ID 생성 필요
+    setBatchId(newBatchId);
+
+    // 4. 사용된 원재료 ID 기록 (선택)
+    // mgr.materials에서 출고된 원재료의 ID를 usedRawMaterialIds에 추가하는 로직 구현 가능
+
+    return newBatchId;
 }
