@@ -95,4 +95,6 @@ public:
     void updateWhisky();       // 제품 수정
     void deleteWhisky();       // 제품 삭제
 	void exportInventoryToCSV(const string& filename); // 재고 CSV로 저장
+    void receiveWhiskyFromESP32();  // TCP로 수신
+
 };
