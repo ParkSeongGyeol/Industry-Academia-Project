@@ -1,6 +1,6 @@
-ï»¿// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // RawMaterialManager.cpp
-// ì›ì¬ë£Œ ê´€ë¦¬ ê¸°ëŠ¥ ì •ì˜ íŒŒì¼ (ë ˆì‹œí”¼ ì—°ë™ í¬í•¨)
+// ¿øÀç·á °ü¸® ±â´É Á¤ÀÇ ÆÄÀÏ (·¹½ÃÇÇ ¿¬µ¿ Æ÷ÇÔ)
 // -----------------------------------------------------------------------------
 
 #include "RawMaterialManager.h"
@@ -21,8 +21,8 @@
 
 using namespace std;
 
-// ----------------------------- ìƒìˆ˜ ì •ì˜ -----------------------------
-// CSV íŒŒì¼ í•„ë“œ ê°œìˆ˜ ë° íŒŒì¼ëª… ìƒìˆ˜ ì •ì˜
+// ----------------------------- »ó¼ö Á¤ÀÇ -----------------------------
+// CSV ÆÄÀÏ ÇÊµå °³¼ö ¹× ÆÄÀÏ¸í »ó¼ö Á¤ÀÇ
 namespace {
     constexpr int CSV_FIELD_COUNT = 17;
     constexpr char RAW_MATERIAL_CSV[] = "rawmaterial_dummy.csv";
@@ -30,9 +30,9 @@ namespace {
     constexpr char STOCK_MATERIAL_CSV[] = "stock_raw_materials.csv";
 }
 
-// ----------------------------- ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ -----------------------------
+// ----------------------------- À¯Æ¿¸®Æ¼ ÇÔ¼ö -----------------------------
 
-// í˜„ì¬ ì‹œìŠ¤í…œ ë‚ ì§œë¥¼ "YYYY-MM-DD" í˜•ì‹ìœ¼ë¡œ ë°˜í™˜
+// ÇöÀç ½Ã½ºÅÛ ³¯Â¥¸¦ "YYYY-MM-DD" Çü½ÄÀ¸·Î ¹İÈ¯
 string getCurrentDate() {
     time_t now = time(nullptr);
     tm t;
@@ -42,7 +42,7 @@ string getCurrentDate() {
     return string(buf);
 }
 
-// ì•ˆì „í•œ double ì…ë ¥ í•¨ìˆ˜
+// ¾ÈÀüÇÑ double ÀÔ·Â ÇÔ¼ö
 double inputDouble(const string& prompt) {
     double val;
     while (true) {
@@ -51,13 +51,13 @@ double inputDouble(const string& prompt) {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return val;
         }
-        cout << "ìˆ«ìë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
+        cout << "¼ıÀÚ¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-// ì•ˆì „í•œ string ì…ë ¥ í•¨ìˆ˜
+// ¾ÈÀüÇÑ string ÀÔ·Â ÇÔ¼ö
 string inputString(const string& prompt) {
     cout << prompt;
     string val;
@@ -65,7 +65,7 @@ string inputString(const string& prompt) {
     return val;
 }
 
-// CSV í—¤ë”ë¥¼ íŒŒì¼ì— ì¶œë ¥
+// CSV Çì´õ¸¦ ÆÄÀÏ¿¡ Ãâ·Â
 void writeCSVHeader(ofstream& file, bool withUsedDate = false) {
     file << "ID,Name,Type,Origin,Weight(kg),Storage,StorageMethod,ExpiryDate,EntryDate,ExitDate,"
          << "Status,Unit,UnitPrice,EntryManager,ExitManager,QualityCheck,QualityCheckDate";
@@ -73,7 +73,7 @@ void writeCSVHeader(ofstream& file, bool withUsedDate = false) {
     file << "\n";
 }
 
-// RawMaterial ê°ì²´ì˜ ì •ë³´ë¥¼ CSV í•œ ì¤„ë¡œ íŒŒì¼ì— ì¶œë ¥
+// RawMaterial °´Ã¼ÀÇ Á¤º¸¸¦ CSV ÇÑ ÁÙ·Î ÆÄÀÏ¿¡ Ãâ·Â
 void writeCSVRow(ofstream& file, const RawMaterial& m, bool withUsedDate = false) {
     file << m.getMaterialId() << "," << m.getName() << "," << m.getType() << "," << m.getOrigin() << ","
          << m.getWeightKg() << "," << m.getStorageLocation() << "," << m.getStorageMethod() << ","
@@ -85,7 +85,7 @@ void writeCSVRow(ofstream& file, const RawMaterial& m, bool withUsedDate = false
     file << "\n";
 }
 
-// IDë¡œ ì›ì¬ë£Œ ê²€ìƒ‰ (ì¶œê³ ë˜ì§€ ì•Šì€ ê²ƒë§Œ ë°˜í™˜)
+// ID·Î ¿øÀç·á °Ë»ö (Ãâ°íµÇÁö ¾ÊÀº °Í¸¸ ¹İÈ¯)
 RawMaterial* findMaterialById(vector<RawMaterial>& materials, const string& id) {
     for (auto& m : materials) {
         if (m.getMaterialId() == id && m.getExitDate().empty())
@@ -94,17 +94,17 @@ RawMaterial* findMaterialById(vector<RawMaterial>& materials, const string& id) 
     return nullptr;
 }
 
-// ----------------------------- [1] ë°ì´í„° ì…ì¶œë ¥ -----------------------------
+// ----------------------------- [1] µ¥ÀÌÅÍ ÀÔÃâ·Â -----------------------------
 
 void RawMaterialManager::loadMaterialsFromCSV(const string& filename) {
     materials.clear();
     ifstream file(filename);
     if (!file.is_open()) {
-        cout << "[ê²½ê³ ] ì›ì¬ë£Œ CSV íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << filename << endl;
+        cout << "[°æ°í] ¿øÀç·á CSV ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù: " << filename << endl;
         return;
     }
     string line;
-    getline(file, line); // í—¤ë” ìŠ¤í‚µ
+    getline(file, line); // Çì´õ ½ºÅµ
     while (getline(file, line)) {
         if (line.empty()) continue;
         stringstream ss(line);
@@ -135,7 +135,7 @@ void RawMaterialManager::loadMaterialsFromCSV(const string& filename) {
             m.setQualityCheckDate(fields[16]);
             materials.push_back(m);
         } catch (...) {
-            cout << "[ê²½ê³ ] CSV íŒŒì‹± ì˜¤ë¥˜: " << line << endl;
+            cout << "[°æ°í] CSV ÆÄ½Ì ¿À·ù: " << line << endl;
         }
     }
     file.close();
@@ -144,7 +144,7 @@ void RawMaterialManager::loadMaterialsFromCSV(const string& filename) {
 void RawMaterialManager::saveMaterialsToCSV(const string& filename) {
     ofstream file(filename);
     if (!file.is_open()) {
-        cout << "[ì˜¤ë¥˜] íŒŒì¼ ì €ì¥ ì‹¤íŒ¨: " << filename << endl;
+        cout << "[¿À·ù] ÆÄÀÏ ÀúÀå ½ÇÆĞ: " << filename << endl;
         return;
     }
     writeCSVHeader(file);
@@ -165,7 +165,7 @@ bool RawMaterialManager::exportUsedMaterialsToCSV(const string& filename, const 
     return true;
 }
 
-// ----------------------------- [2] ë‚´ë¶€ ì—°ì‚° -----------------------------
+// ----------------------------- [2] ³»ºÎ ¿¬»ê -----------------------------
 
 double RawMaterialManager::getStock(const string& materialName) const {
     double total = 0;
@@ -193,52 +193,52 @@ void RawMaterialManager::consumeMaterial(const string& name, double amount) {
     }
 }
 
-// ----------------------------- [2-1] ë ˆì‹œí”¼ ê¸°ë°˜ ë°°ì¹˜ ìƒì‚° ê¸°ëŠ¥ -----------------------------
+// ----------------------------- [2-1] ·¹½ÃÇÇ ±â¹İ ¹èÄ¡ »ı»ê ±â´É -----------------------------
 /**
- * ë ˆì‹œí”¼ ê¸°ë°˜ ë°°ì¹˜ ìƒì‚°
- * - ì‚¬ìš©ìê°€ ë ˆì‹œí”¼ IDë¥¼ ì…ë ¥í•˜ë©´, í•´ë‹¹ ë ˆì‹œí”¼ë¥¼ RecipeManagerì—ì„œ ë¶ˆëŸ¬ì™€ì„œ
- *   ì¬ê³  ê²€ì¦ í›„, produceBatchë¥¼ í˜¸ì¶œí•˜ì—¬ ë°°ì¹˜ ìƒì‚°ì„ ì²˜ë¦¬í•œë‹¤.
- * - ì¬ê³  ë¶€ì¡± ì‹œ ì•ˆë‚´ ë©”ì‹œì§€ ì¶œë ¥, ì„±ê³µ ì‹œ ë°°ì¹˜ID ì¶œë ¥ ë° ì¬ê³  CSV ì €ì¥
+ * ·¹½ÃÇÇ ±â¹İ ¹èÄ¡ »ı»ê
+ * - »ç¿ëÀÚ°¡ ·¹½ÃÇÇ ID¸¦ ÀÔ·ÂÇÏ¸é, ÇØ´ç ·¹½ÃÇÇ¸¦ RecipeManager¿¡¼­ ºÒ·¯¿Í¼­
+ *   Àç°í °ËÁõ ÈÄ, produceBatch¸¦ È£ÃâÇÏ¿© ¹èÄ¡ »ı»êÀ» Ã³¸®ÇÑ´Ù.
+ * - Àç°í ºÎÁ· ½Ã ¾È³» ¸Ş½ÃÁö Ãâ·Â, ¼º°ø ½Ã ¹èÄ¡ID Ãâ·Â ¹× Àç°í CSV ÀúÀå
  */
 void RawMaterialManager::produceBatchByRecipe(RecipeManager& recipeMgr) {
-    // 1. ë ˆì‹œí”¼ ëª©ë¡ ì¶œë ¥ ë° ì„ íƒ
+    // 1. ·¹½ÃÇÇ ¸ñ·Ï Ãâ·Â ¹× ¼±ÅÃ
     recipeMgr.listRecipes();
-    string recipeId = inputString("\nì‚¬ìš©í•  ë ˆì‹œí”¼ ID ì…ë ¥: ");
+    string recipeId = inputString("\n»ç¿ëÇÒ ·¹½ÃÇÇ ID ÀÔ·Â: ");
     Recipe recipe;
     if (!recipeMgr.getRecipeById(recipeId, recipe)) {
-        cout << "í•´ë‹¹ IDì˜ ë ˆì‹œí”¼ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "ÇØ´ç IDÀÇ ·¹½ÃÇÇ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
         return;
     }
 
-    // 2. ë°°ì¹˜ ìƒì‚°ëŸ‰ ì…ë ¥
-    double batchSize = inputDouble("ìƒì‚°í•  ë°°ì¹˜ëŸ‰(kg): ");
+    // 2. ¹èÄ¡ »ı»ê·® ÀÔ·Â
+    double batchSize = inputDouble("»ı»êÇÒ ¹èÄ¡·®(kg): ");
 
-    // 3. ì¬ê³  ê²€ì¦
+    // 3. Àç°í °ËÁõ
     if (!recipe.validateRawMaterialStock(*this, batchSize)) {
-        cout << "ì¬ê³ ê°€ ë¶€ì¡±í•˜ì—¬ ë°°ì¹˜ ìƒì‚°ì´ ë¶ˆê°€í•©ë‹ˆë‹¤.\n";
+        cout << "Àç°í°¡ ºÎÁ·ÇÏ¿© ¹èÄ¡ »ı»êÀÌ ºÒ°¡ÇÕ´Ï´Ù.\n";
         return;
     }
 
-    // 4. ë°°ì¹˜ ìƒì‚°(ì›ì¬ë£Œ ì°¨ê° ë° ë°°ì¹˜ID ìƒì„±)
+    // 4. ¹èÄ¡ »ı»ê(¿øÀç·á Â÷°¨ ¹× ¹èÄ¡ID »ı¼º)
     string batchId = recipe.produceBatch(*this, batchSize);
     saveMaterialsToCSV(RAW_MATERIAL_CSV);
 
-    cout << "ë°°ì¹˜ ìƒì‚° ì™„ë£Œ! ë°°ì¹˜ID: " << batchId << "\n";
+    cout << "¹èÄ¡ »ı»ê ¿Ï·á! ¹èÄ¡ID: " << batchId << "\n";
 }
 
-// ----------------------------- [3] ì •ë³´ ìš”ì•½/ì¡°íšŒ/ì¶œë ¥ -----------------------------
+// ----------------------------- [3] Á¤º¸ ¿ä¾à/Á¶È¸/Ãâ·Â -----------------------------
 
-// ì „ì²´ ì›ì¬ë£Œ ìš”ì•½ ì •ë³´(ì¢…ë¥˜/ì´ëŸ‰) ë°˜í™˜
+// ÀüÃ¼ ¿øÀç·á ¿ä¾à Á¤º¸(Á¾·ù/ÃÑ·®) ¹İÈ¯
 string RawMaterialManager::getSummary() {
     double totalKg = 0;
     for (const auto& item : materials)
         if (item.getExitDate().empty())
             totalKg += item.getWeightKg();
 
-    return "ì›ì¬ë£Œ: " + to_string(materials.size()) + "ì¢… / " + to_string((int)totalKg) + "kg";
+    return "¿øÀç·á: " + to_string(materials.size()) + "Á¾ / " + to_string((int)totalKg) + "kg";
 }
 
-// ëŒ€ì‹œë³´ë“œ/ë©”ë‰´ìš© ì •ë³´ ìš”ì•½ ë¼ì¸ ë°˜í™˜
+// ´ë½Ãº¸µå/¸Ş´º¿ë Á¤º¸ ¿ä¾à ¶óÀÎ ¹İÈ¯
 vector<string> RawMaterialManager::getPageInfoLines() {
     int totalKinds = 0;
     double totalWeight = 0;
@@ -255,14 +255,14 @@ vector<string> RawMaterialManager::getPageInfoLines() {
     }
 
     vector<string> lines;
-    lines.push_back("í˜„ì¬ ë³´ìœ  ì›ì¬ë£Œ: " + to_string(totalKinds) + "ì¢… / " + to_string((int)totalWeight) + "kg");
+    lines.push_back("ÇöÀç º¸À¯ ¿øÀç·á: " + to_string(totalKinds) + "Á¾ / " + to_string((int)totalWeight) + "kg");
 
-    string typeSummary = "ì¢…ë¥˜ë³„ ìˆ˜ëŸ‰: ";
+    string typeSummary = "Á¾·ùº° ¼ö·®: ";
     for (const auto& pair : typeCount)
-        typeSummary += pair.first + ": " + to_string(pair.second) + "ê°œ  ";
+        typeSummary += pair.first + ": " + to_string(pair.second) + "°³  ";
     lines.push_back(typeSummary);
 
-    string storageSummary = "ë³´ê´€ ìœ„ì¹˜: ";
+    string storageSummary = "º¸°ü À§Ä¡: ";
     for (const auto& place : storagePlaces)
         storageSummary += place + "  ";
     lines.push_back(storageSummary);
@@ -270,120 +270,120 @@ vector<string> RawMaterialManager::getPageInfoLines() {
     return lines;
 }
 
-// í˜„ì¬ ë³´ìœ  ì›ì¬ë£Œ(ì¶œê³ ë˜ì§€ ì•Šì€ ê²ƒë§Œ) ëª©ë¡ ì¶œë ¥
+// ÇöÀç º¸À¯ ¿øÀç·á(Ãâ°íµÇÁö ¾ÊÀº °Í¸¸) ¸ñ·Ï Ãâ·Â
 void RawMaterialManager::showInventory() {
-    cout << "\n=== í˜„ì¬ ë³´ìœ  ì›ì¬ë£Œ ëª©ë¡ ===\n";
+    cout << "\n=== ÇöÀç º¸À¯ ¿øÀç·á ¸ñ·Ï ===\n";
     for (const auto& m : materials) {
         if (m.getExitDate().empty()) {
             cout << "ID: " << m.getMaterialId() << "\n"
-                << "ì´ë¦„: " << m.getName() << "\n"
-                << "ì¢…ë¥˜: " << m.getType() << "\n"
-                << "ì›ì‚°ì§€: " << m.getOrigin() << "\n"
-                << "ì¬ê³ : " << m.getWeightKg() << " " << m.getUnit() << "\n"
-                << "ë‹¨ê°€: " << m.getUnitPrice() << "ì›/" << m.getUnit() << "\n"
-                << "ë³´ê´€ ìœ„ì¹˜: " << m.getStorageLocation() << "\n"
-                << "ë³´ê´€ ë°©ë²•: " << m.getStorageMethod() << "\n"
-                << "ìœ í†µê¸°í•œ: " << m.getExpiryDate() << "\n"
-                << "ì…ê³ ì¼: " << m.getEntryDate() << "\n"
-                << "ì…ê³  ë‹´ë‹¹ì: " << m.getEntryManager() << "\n"
-                << "í’ˆì§ˆ ê²€ì‚¬: " << m.getQualityCheck() << " (" << m.getQualityCheckDate() << ")\n"
+                << "ÀÌ¸§: " << m.getName() << "\n"
+                << "Á¾·ù: " << m.getType() << "\n"
+                << "¿ø»êÁö: " << m.getOrigin() << "\n"
+                << "Àç°í: " << m.getWeightKg() << " " << m.getUnit() << "\n"
+                << "´Ü°¡: " << m.getUnitPrice() << "¿ø/" << m.getUnit() << "\n"
+                << "º¸°ü À§Ä¡: " << m.getStorageLocation() << "\n"
+                << "º¸°ü ¹æ¹ı: " << m.getStorageMethod() << "\n"
+                << "À¯Åë±âÇÑ: " << m.getExpiryDate() << "\n"
+                << "ÀÔ°íÀÏ: " << m.getEntryDate() << "\n"
+                << "ÀÔ°í ´ã´çÀÚ: " << m.getEntryManager() << "\n"
+                << "Ç°Áú °Ë»ç: " << m.getQualityCheck() << " (" << m.getQualityCheckDate() << ")\n"
                 << "-----------------------------\n";
         }
     }
 }
 
-// ì „ì²´ ì›ì¬ë£Œ ì…ì¶œê³  ì´ë ¥ ì¶œë ¥
+// ÀüÃ¼ ¿øÀç·á ÀÔÃâ°í ÀÌ·Â Ãâ·Â
 void RawMaterialManager::showAllMaterials() {
-    cout << "\n=== ì „ì²´ ì›ì¬ë£Œ ì…ì¶œê³  ì´ë ¥ ===\n";
+    cout << "\n=== ÀüÃ¼ ¿øÀç·á ÀÔÃâ°í ÀÌ·Â ===\n";
     for (const auto& m : materials) {
         cout << "ID: " << m.getMaterialId() << "\n"
-            << "ì´ë¦„: " << m.getName() << "\n"
-            << "ì¢…ë¥˜: " << m.getType() << "\n"
-            << "ì›ì‚°ì§€: " << m.getOrigin() << "\n"
-            << "ë¬´ê²Œ: " << m.getWeightKg() << " " << m.getUnit() << "\n"
-            << "ë‹¨ê°€: " << m.getUnitPrice() << "ì›/" << m.getUnit() << "\n"
-            << "ë³´ê´€ ìœ„ì¹˜: " << m.getStorageLocation() << "\n"
-            << "ë³´ê´€ ë°©ë²•: " << m.getStorageMethod() << "\n"
-            << "ìœ í†µê¸°í•œ: " << m.getExpiryDate() << "\n"
-            << "ì…ê³ ì¼: " << m.getEntryDate() << "\n"
-            << "ì¶œê³ ì¼: " << (m.getExitDate().empty() ? "-" : m.getExitDate()) << "\n"
-            << "ìƒíƒœ: " << m.getStatus() << "\n"
-            << "ì…ê³  ë‹´ë‹¹ì: " << m.getEntryManager() << "\n"
-            << "ì¶œê³  ë‹´ë‹¹ì: " << (m.getExitManager().empty() ? "-" : m.getExitManager()) << "\n"
-            << "í’ˆì§ˆ ê²€ì‚¬: " << m.getQualityCheck() << " (" << m.getQualityCheckDate() << ")\n"
+            << "ÀÌ¸§: " << m.getName() << "\n"
+            << "Á¾·ù: " << m.getType() << "\n"
+            << "¿ø»êÁö: " << m.getOrigin() << "\n"
+            << "¹«°Ô: " << m.getWeightKg() << " " << m.getUnit() << "\n"
+            << "´Ü°¡: " << m.getUnitPrice() << "¿ø/" << m.getUnit() << "\n"
+            << "º¸°ü À§Ä¡: " << m.getStorageLocation() << "\n"
+            << "º¸°ü ¹æ¹ı: " << m.getStorageMethod() << "\n"
+            << "À¯Åë±âÇÑ: " << m.getExpiryDate() << "\n"
+            << "ÀÔ°íÀÏ: " << m.getEntryDate() << "\n"
+            << "Ãâ°íÀÏ: " << (m.getExitDate().empty() ? "-" : m.getExitDate()) << "\n"
+            << "»óÅÂ: " << m.getStatus() << "\n"
+            << "ÀÔ°í ´ã´çÀÚ: " << m.getEntryManager() << "\n"
+            << "Ãâ°í ´ã´çÀÚ: " << (m.getExitManager().empty() ? "-" : m.getExitManager()) << "\n"
+            << "Ç°Áú °Ë»ç: " << m.getQualityCheck() << " (" << m.getQualityCheckDate() << ")\n"
             << "-----------------------------\n";
     }
 }
 
-// í’ˆì§ˆ ê²€ì‚¬ ë¯¸ì™„ë£Œ ì›ì¬ë£Œ ëª©ë¡ ì¶œë ¥
+// Ç°Áú °Ë»ç ¹Ì¿Ï·á ¿øÀç·á ¸ñ·Ï Ãâ·Â
 void RawMaterialManager::showUninspectedMaterials() {
-    cout << "\n=== í’ˆì§ˆ ê²€ì‚¬ ë¯¸ì™„ë£Œ ì›ì¬ë£Œ ëª©ë¡ ===\n";
+    cout << "\n=== Ç°Áú °Ë»ç ¹Ì¿Ï·á ¿øÀç·á ¸ñ·Ï ===\n";
     bool found = false;
 
     for (const auto& m : materials) {
-        if (m.getQualityCheck().empty() || m.getQualityCheck() == "ê²€ì‚¬ ì•ˆí•¨") {
+        if (m.getQualityCheck().empty() || m.getQualityCheck() == "°Ë»ç ¾ÈÇÔ") {
             found = true;
             cout << "ID: " << m.getMaterialId() << "\n"
-                << "ì´ë¦„: " << m.getName() << "\n"
-                << "ì…ê³ ì¼: " << m.getEntryDate() << "\n"
-                << "ë³´ê´€ ìœ„ì¹˜: " << m.getStorageLocation() << "\n"
-                << "ì…ê³  ë‹´ë‹¹ì: " << m.getEntryManager() << "\n"
+                << "ÀÌ¸§: " << m.getName() << "\n"
+                << "ÀÔ°íÀÏ: " << m.getEntryDate() << "\n"
+                << "º¸°ü À§Ä¡: " << m.getStorageLocation() << "\n"
+                << "ÀÔ°í ´ã´çÀÚ: " << m.getEntryManager() << "\n"
                 << "-----------------------------\n";
         }
     }
 
     if (!found) {
-        cout << "ëª¨ë“  ì›ì¬ë£ŒëŠ” í’ˆì§ˆ ê²€ì‚¬ë¥¼ ì™„ë£Œí–ˆìŠµë‹ˆë‹¤.\n";
+        cout << "¸ğµç ¿øÀç·á´Â Ç°Áú °Ë»ç¸¦ ¿Ï·áÇß½À´Ï´Ù.\n";
     }
 }
 
-// ë‹´ë‹¹ìë³„ ì…ì¶œê³  ì´ë ¥ ì¶œë ¥
+// ´ã´çÀÚº° ÀÔÃâ°í ÀÌ·Â Ãâ·Â
 void RawMaterialManager::showMaterialsByManager() {
     cin.ignore();
-    string manager = inputString("\nì¡°íšŒí•  ë‹´ë‹¹ì ì´ë¦„ ì…ë ¥: ");
+    string manager = inputString("\nÁ¶È¸ÇÒ ´ã´çÀÚ ÀÌ¸§ ÀÔ·Â: ");
 
     bool found = false;
-    cout << "\n=== " << manager << " ë‹´ë‹¹ ì…ì¶œê³  ì´ë ¥ ===\n";
+    cout << "\n=== " << manager << " ´ã´ç ÀÔÃâ°í ÀÌ·Â ===\n";
 
     for (const auto& m : materials) {
         if (m.getEntryManager() == manager || m.getExitManager() == manager) {
             found = true;
             cout << "ID: " << m.getMaterialId() << "\n"
-                << "ì´ë¦„: " << m.getName() << "\n"
-                << "ì…ê³ ì¼: " << m.getEntryDate() << " (ì…ê³  ë‹´ë‹¹: " << m.getEntryManager() << ")\n"
-                << "ì¶œê³ ì¼: " << (m.getExitDate().empty() ? "-" : m.getExitDate())
-                << " (ì¶œê³  ë‹´ë‹¹: " << (m.getExitManager().empty() ? "-" : m.getExitManager()) << ")\n"
-                << "ìƒíƒœ: " << m.getStatus() << "\n"
+                << "ÀÌ¸§: " << m.getName() << "\n"
+                << "ÀÔ°íÀÏ: " << m.getEntryDate() << " (ÀÔ°í ´ã´ç: " << m.getEntryManager() << ")\n"
+                << "Ãâ°íÀÏ: " << (m.getExitDate().empty() ? "-" : m.getExitDate())
+                << " (Ãâ°í ´ã´ç: " << (m.getExitManager().empty() ? "-" : m.getExitManager()) << ")\n"
+                << "»óÅÂ: " << m.getStatus() << "\n"
                 << "-----------------------------\n";
         }
     }
 
     if (!found) {
-        cout << "í•´ë‹¹ ë‹´ë‹¹ìì˜ ì…ì¶œê³  ê¸°ë¡ì´ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "ÇØ´ç ´ã´çÀÚÀÇ ÀÔÃâ°í ±â·ÏÀÌ ¾ø½À´Ï´Ù.\n";
     }
 }
 
-// ë³´ê´€ ì¥ì†Œ í™˜ê²½ ì •ë³´ ì¶œë ¥
+// º¸°ü Àå¼Ò È¯°æ Á¤º¸ Ãâ·Â
 void RawMaterialManager::showStorageEnvironment() {
     vector<StorageEnvironment> storageList = {
-        {"ì°½ê³  A", 18.5f, 55.2f},
-        {"ì§€í•˜ ì €ì¥ê³ ", 12.0f, 70.0f},
-        {"ì‹¤í—˜ì‹¤ ë³´ê´€ì†Œ", 22.3f, 40.0f}
+        {"Ã¢°í A", 18.5f, 55.2f},
+        {"ÁöÇÏ ÀúÀå°í", 12.0f, 70.0f},
+        {"½ÇÇè½Ç º¸°ü¼Ò", 22.3f, 40.0f}
     };
 
-    cout << "\n=== ë³´ê´€ ì¥ì†Œ í™˜ê²½ ì •ë³´ ì¡°íšŒ ===\n";
+    cout << "\n=== º¸°ü Àå¼Ò È¯°æ Á¤º¸ Á¶È¸ ===\n";
     for (const auto& storage : storageList) {
         cout << "-----------------------------\n";
         storage.displayInfo();
     }
 
-    cout << "\nê³„ì†í•˜ë ¤ë©´ Enterë¥¼ ëˆ„ë¥´ì„¸ìš”...";
+    cout << "\n°è¼ÓÇÏ·Á¸é Enter¸¦ ´©¸£¼¼¿ä...";
     cin.ignore(); cin.get();
 }
 
-// ----------------------------- [4] CSV ë‚´ë³´ë‚´ê¸° -----------------------------
+// ----------------------------- [4] CSV ³»º¸³»±â -----------------------------
 
-// ì¶œê³ ëœ(ì‚¬ìš©ëœ) ì›ì¬ë£Œë¥¼ CSVë¡œ ë‚´ë³´ë‚´ê¸°
+// Ãâ°íµÈ(»ç¿ëµÈ) ¿øÀç·á¸¦ CSV·Î ³»º¸³»±â
 void RawMaterialManager::exportUsedInventoryToCSV() {
     vector<RawMaterial> usedList;
     for (const auto& m : materials) {
@@ -393,19 +393,19 @@ void RawMaterialManager::exportUsedInventoryToCSV() {
     }
 
     if (usedList.empty()) {
-        cout << "\nì¶œê³ ëœ ì›ì¬ë£Œê°€ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "\nÃâ°íµÈ ¿øÀç·á°¡ ¾ø½À´Ï´Ù.\n";
         return;
     }
 
     if (exportUsedMaterialsToCSV(USED_MATERIAL_CSV, usedList)) {
-        cout << "\n[" << USED_MATERIAL_CSV << "] íŒŒì¼ë¡œ ì €ì¥ ì™„ë£Œ!\n";
+        cout << "\n[" << USED_MATERIAL_CSV << "] ÆÄÀÏ·Î ÀúÀå ¿Ï·á!\n";
     }
     else {
-        cout << "\nCSV ì €ì¥ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.\n";
+        cout << "\nCSV ÀúÀå¿¡ ½ÇÆĞÇß½À´Ï´Ù.\n";
     }
 }
 
-// ì¶œê³ ë˜ì§€ ì•Šì€(ë³´ìœ  ì¤‘ì¸) ì›ì¬ë£Œë¥¼ CSVë¡œ ë‚´ë³´ë‚´ê¸°
+// Ãâ°íµÇÁö ¾ÊÀº(º¸À¯ ÁßÀÎ) ¿øÀç·á¸¦ CSV·Î ³»º¸³»±â
 void RawMaterialManager::exportRemainingStockToCSV() {
     vector<RawMaterial> stockList;
     for (const auto& m : materials) {
@@ -415,70 +415,70 @@ void RawMaterialManager::exportRemainingStockToCSV() {
     }
 
     if (stockList.empty()) {
-        cout << "\në³´ìœ  ì¤‘ì¸ ì›ì¬ë£Œê°€ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "\nº¸À¯ ÁßÀÎ ¿øÀç·á°¡ ¾ø½À´Ï´Ù.\n";
         return;
     }
 
     if (exportUsedMaterialsToCSV(STOCK_MATERIAL_CSV, stockList)) {
-        cout << "\n[" << STOCK_MATERIAL_CSV << "] íŒŒì¼ë¡œ ì €ì¥ ì™„ë£Œ!\n";
+        cout << "\n[" << STOCK_MATERIAL_CSV << "] ÆÄÀÏ·Î ÀúÀå ¿Ï·á!\n";
     }
     else {
-        cout << "\nCSV ì €ì¥ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.\n";
+        cout << "\nCSV ÀúÀå¿¡ ½ÇÆĞÇß½À´Ï´Ù.\n";
     }
 }
 
-// ----------------------------- [5] ì…ë ¥/ìˆ˜ì •/ì‚­ì œ/ê²€ìƒ‰ -----------------------------
+// ----------------------------- [5] ÀÔ·Â/¼öÁ¤/»èÁ¦/°Ë»ö -----------------------------
 
-// ì›ì¬ë£Œ ì‹ ê·œ ì¶”ê°€
+// ¿øÀç·á ½Å±Ô Ãß°¡
 void RawMaterialManager::addMaterial() {
     cin.ignore();
     RawMaterial newItem;
-    cout << "\n=== ì›ì¬ë£Œ ì¶”ê°€ ===\n";
+    cout << "\n=== ¿øÀç·á Ãß°¡ ===\n";
 
     newItem.setMaterialId(inputString("ID: "));
-    newItem.setName(inputString("ì´ë¦„: "));
-    newItem.setType(inputString("ì¢…ë¥˜: "));
-    newItem.setOrigin(inputString("ì¶œì‹  ì§€ì—­: "));
-    newItem.setWeightKg(inputDouble("ë¬´ê²Œ(kg): "));
-    newItem.setUnit(inputString("ë‹¨ìœ„ (ì˜ˆ: kg, L): "));
-    newItem.setUnitPrice(inputDouble("ë‹¨ê°€ (" + newItem.getUnit() + "ë‹¹): "));
-    newItem.setStorageLocation(inputString("ë³´ê´€ ìœ„ì¹˜: "));
-    newItem.setStorageMethod(inputString("ë³´ê´€ ë°©ë²•: "));
-    newItem.setExpiryDate(inputString("ìœ í†µê¸°í•œ: "));
-    newItem.setEntryDate(inputString("ì…ê³ ì¼(YYYY-MM-DD): "));
-    newItem.setEntryManager(inputString("ì…ê³  ë‹´ë‹¹ì: "));
-    newItem.setQualityCheck(inputString("í’ˆì§ˆ ê²€ì‚¬ ê²°ê³¼ (ì˜ˆ: í†µê³¼, ë¶ˆëŸ‰, ê²€ì‚¬ ì•ˆí•¨): "));
-    newItem.setQualityCheckDate(inputString("í’ˆì§ˆ ê²€ì‚¬ ì¼ì (YYYY-MM-DD): "));
+    newItem.setName(inputString("ÀÌ¸§: "));
+    newItem.setType(inputString("Á¾·ù: "));
+    newItem.setOrigin(inputString("Ãâ½Å Áö¿ª: "));
+    newItem.setWeightKg(inputDouble("¹«°Ô(kg): "));
+    newItem.setUnit(inputString("´ÜÀ§ (¿¹: kg, L): "));
+    newItem.setUnitPrice(inputDouble("´Ü°¡ (" + newItem.getUnit() + "´ç): "));
+    newItem.setStorageLocation(inputString("º¸°ü À§Ä¡: "));
+    newItem.setStorageMethod(inputString("º¸°ü ¹æ¹ı: "));
+    newItem.setExpiryDate(inputString("À¯Åë±âÇÑ: "));
+    newItem.setEntryDate(inputString("ÀÔ°íÀÏ(YYYY-MM-DD): "));
+    newItem.setEntryManager(inputString("ÀÔ°í ´ã´çÀÚ: "));
+    newItem.setQualityCheck(inputString("Ç°Áú °Ë»ç °á°ú (¿¹: Åë°ú, ºÒ·®, °Ë»ç ¾ÈÇÔ): "));
+    newItem.setQualityCheckDate(inputString("Ç°Áú °Ë»ç ÀÏÀÚ (YYYY-MM-DD): "));
 
     newItem.setExitDate("");
     newItem.setExitManager("");
-    newItem.setStatus("ì •ìƒ");
+    newItem.setStatus("Á¤»ó");
 
     materials.push_back(newItem);
     saveMaterialsToCSV(RAW_MATERIAL_CSV);
-    cout << "ì›ì¬ë£Œê°€ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤.\n";
+    cout << "¿øÀç·á°¡ Ãß°¡µÇ¾ú½À´Ï´Ù.\n";
 }
 
-// ì›ì¬ë£Œ ì •ë³´ ìˆ˜ì •(ì´ë¦„ìœ¼ë¡œ ê²€ìƒ‰, ì¶œê³ ë˜ì§€ ì•Šì€ ê²ƒë§Œ)
+// ¿øÀç·á Á¤º¸ ¼öÁ¤(ÀÌ¸§À¸·Î °Ë»ö, Ãâ°íµÇÁö ¾ÊÀº °Í¸¸)
 void RawMaterialManager::updateMaterial() {
     cin.ignore();
-    string name = inputString("\nìˆ˜ì •í•  ì›ì¬ë£Œ ì´ë¦„ ì…ë ¥: ");
+    string name = inputString("\n¼öÁ¤ÇÒ ¿øÀç·á ÀÌ¸§ ÀÔ·Â: ");
 
     for (auto& m : materials) {
         if (m.getName() == name && m.getExitDate().empty()) {
-            cout << "=== ì›ì¬ë£Œ ìˆ˜ì • ===\n";
+            cout << "=== ¿øÀç·á ¼öÁ¤ ===\n";
 
             string input;
-            input = inputString("ë³´ê´€ ìœ„ì¹˜ (" + m.getStorageLocation() + "): ");
+            input = inputString("º¸°ü À§Ä¡ (" + m.getStorageLocation() + "): ");
             if (!input.empty()) m.setStorageLocation(input);
 
-            input = inputString("ë³´ê´€ ë°©ë²• (" + m.getStorageMethod() + "): ");
+            input = inputString("º¸°ü ¹æ¹ı (" + m.getStorageMethod() + "): ");
             if (!input.empty()) m.setStorageMethod(input);
 
-            input = inputString("ìœ í†µê¸°í•œ (" + m.getExpiryDate() + "): ");
+            input = inputString("À¯Åë±âÇÑ (" + m.getExpiryDate() + "): ");
             if (!input.empty()) m.setExpiryDate(input);
 
-            input = inputString("ë¬´ê²Œ(kg) (" + to_string(m.getWeightKg()) + "): ");
+            input = inputString("¹«°Ô(kg) (" + to_string(m.getWeightKg()) + "): ");
             if (!input.empty()) {
                 try {
                     m.setWeightKg(stod(input));
@@ -486,92 +486,92 @@ void RawMaterialManager::updateMaterial() {
             }
 
             saveMaterialsToCSV(RAW_MATERIAL_CSV);
-            cout << "ìˆ˜ì • ì™„ë£Œ.\n";
+            cout << "¼öÁ¤ ¿Ï·á.\n";
             return;
         }
     }
 
-    cout << "í•´ë‹¹ ì´ë¦„ì˜ ì›ì¬ë£Œ(ì¬ê³ )ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+    cout << "ÇØ´ç ÀÌ¸§ÀÇ ¿øÀç·á(Àç°í)¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
 }
 
-// ì›ì¬ë£Œ ì¶œê³  ì²˜ë¦¬(ì´ë¦„ìœ¼ë¡œ ê²€ìƒ‰, ì¶œê³ ì¼ ì…ë ¥)
+// ¿øÀç·á Ãâ°í Ã³¸®(ÀÌ¸§À¸·Î °Ë»ö, Ãâ°íÀÏ ÀÔ·Â)
 void RawMaterialManager::deleteMaterial() {
     cin.ignore();
-    string name = inputString("\nì¶œê³  ì²˜ë¦¬í•  ì›ì¬ë£Œ ì´ë¦„ ì…ë ¥: ");
+    string name = inputString("\nÃâ°í Ã³¸®ÇÒ ¿øÀç·á ÀÌ¸§ ÀÔ·Â: ");
 
     for (auto& m : materials) {
         if (m.getName() == name && m.getExitDate().empty()) {
-            string date = inputString("ì¶œê³ ì¼ ì…ë ¥ (YYYY-MM-DD): ");
+            string date = inputString("Ãâ°íÀÏ ÀÔ·Â (YYYY-MM-DD): ");
             m.setExitDate(date);
             saveMaterialsToCSV(RAW_MATERIAL_CSV);
-            cout << "ì¶œê³  ì²˜ë¦¬ ì™„ë£Œ.\n";
+            cout << "Ãâ°í Ã³¸® ¿Ï·á.\n";
             return;
         }
     }
 
-    cout << "í•´ë‹¹ ì´ë¦„ì˜ ì›ì¬ë£Œ(ì¬ê³ )ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+    cout << "ÇØ´ç ÀÌ¸§ÀÇ ¿øÀç·á(Àç°í)¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
 }
 
-// ì›ì¬ë£Œ ì´ë¦„ìœ¼ë¡œ ê²€ìƒ‰ ë° ìƒì„¸ ì •ë³´ ì¶œë ¥
+// ¿øÀç·á ÀÌ¸§À¸·Î °Ë»ö ¹× »ó¼¼ Á¤º¸ Ãâ·Â
 void RawMaterialManager::searchMaterial() {
     cin.ignore();
-    string name = inputString("\nê²€ìƒ‰í•  ì›ì¬ë£Œ ì´ë¦„ ì…ë ¥: ");
+    string name = inputString("\n°Ë»öÇÒ ¿øÀç·á ÀÌ¸§ ÀÔ·Â: ");
 
     bool found = false;
     for (const auto& m : materials) {
         if (m.getName() == name) {
-            cout << "ì´ë¦„: " << m.getName() << "\n"
-                << "ì¢…ë¥˜: " << m.getType() << "\n"
-                << "ì¶œì‹ : " << m.getOrigin() << "\n"
-                << "ë¬´ê²Œ: " << m.getWeightKg() << "kg\n"
-                << "ë³´ê´€ ìœ„ì¹˜: " << m.getStorageLocation() << "\n"
-                << "ë³´ê´€ ë°©ë²•: " << m.getStorageMethod() << "\n"
-                << "ìœ í†µê¸°í•œ: " << m.getExpiryDate() << "\n"
-                << "ì…ê³ ì¼: " << m.getEntryDate() << "\n"
-                << "ì¶œê³ ì¼: " << (m.getExitDate().empty() ? "-" : m.getExitDate()) << "\n"
+            cout << "ÀÌ¸§: " << m.getName() << "\n"
+                << "Á¾·ù: " << m.getType() << "\n"
+                << "Ãâ½Å: " << m.getOrigin() << "\n"
+                << "¹«°Ô: " << m.getWeightKg() << "kg\n"
+                << "º¸°ü À§Ä¡: " << m.getStorageLocation() << "\n"
+                << "º¸°ü ¹æ¹ı: " << m.getStorageMethod() << "\n"
+                << "À¯Åë±âÇÑ: " << m.getExpiryDate() << "\n"
+                << "ÀÔ°íÀÏ: " << m.getEntryDate() << "\n"
+                << "Ãâ°íÀÏ: " << (m.getExitDate().empty() ? "-" : m.getExitDate()) << "\n"
                 << "-----------------------------\n";
             found = true;
         }
     }
 
     if (!found)
-        cout << "í•´ë‹¹ ì´ë¦„ì˜ ì›ì¬ë£Œë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "ÇØ´ç ÀÌ¸§ÀÇ ¿øÀç·á¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
 }
 
-// ----------------------------- [6] ë©”ì¸ ë©”ë‰´ ë£¨í”„ -----------------------------
+// ----------------------------- [6] ¸ŞÀÎ ¸Ş´º ·çÇÁ -----------------------------
 
-// ì›ì¬ë£Œ ê´€ë¦¬ ë©”ì¸ ë©”ë‰´ (ë ˆì‹œí”¼ ì—°ë™ í¬í•¨)
+// ¿øÀç·á °ü¸® ¸ŞÀÎ ¸Ş´º (·¹½ÃÇÇ ¿¬µ¿ Æ÷ÇÔ)
 void RawMaterialManager::showRawMaterialPage() {
     loadMaterialsFromCSV(RAW_MATERIAL_CSV);
 
-    // ë ˆì‹œí”¼ ë§¤ë‹ˆì € ê°ì²´ ìƒì„± (ì‹¤ì œ êµ¬í˜„ì—ì„œëŠ” ì‹±ê¸€í„´/ì „ì—­ ë“±ìœ¼ë¡œ ê´€ë¦¬ ê°€ëŠ¥)
+    // ·¹½ÃÇÇ ¸Å´ÏÀú °´Ã¼ »ı¼º (½ÇÁ¦ ±¸Çö¿¡¼­´Â ½Ì±ÛÅÏ/Àü¿ª µîÀ¸·Î °ü¸® °¡´É)
     RecipeManager recipeMgr;
-    recipeMgr.loadRecipesFromCSV("recipe_list.csv"); // ë ˆì‹œí”¼ ëª©ë¡ CSVì—ì„œ ë¶ˆëŸ¬ì˜¤ê¸°
+    recipeMgr.loadRecipesFromCSV("recipe_list.csv"); // ·¹½ÃÇÇ ¸ñ·Ï CSV¿¡¼­ ºÒ·¯¿À±â
 
     int choice;
     do {
         system("cls");
-        cout << "=== ì›ì¬ë£Œ ê´€ë¦¬ ë©”ë‰´ ===\n\n";
+        cout << "=== ¿øÀç·á °ü¸® ¸Ş´º ===\n\n";
 
         vector<string> infoLines = getPageInfoLines();
         vector<string> menu = {
-            "[1] í˜„ì¬ ë³´ìœ  ì¬ê³  ë³´ê¸°",
-            "[2] ì „ì²´ ì´ë ¥ ë³´ê¸°",
-            "[3] ì›ì¬ë£Œ ì¶”ê°€",
-            "[4] ì›ì¬ë£Œ ì •ë³´ ìˆ˜ì •",
-            "[5] ì›ì¬ë£Œ ì‚­ì œ (ì¶œê³  ì²˜ë¦¬)",
-            "[6] ì›ì¬ë£Œ ê²€ìƒ‰",
-            "[7] ë³´ê´€ ì¥ì†Œ í™˜ê²½ì •ë³´ ë³´ê¸°",
-            "[8] ë ˆì‹œí”¼ ê¸°ë°˜ ë°°ì¹˜ ìƒì‚°",
-            "[9] ì‚¬ìš©ëœ ì›ì¬ë£Œ CSV í™•ì¸/ë‚´ë³´ë‚´ê¸°",
-            "[10] ì¶œê³ ë˜ì§€ ì•Šì€ ì¬ê³  CSV ë‚´ë³´ë‚´ê¸°",
-            "[11] í’ˆì§ˆ ê²€ì‚¬ ë¯¸ì™„ë£Œ ì¬ë£Œ ë³´ê¸°",
-            "[12] ë‹´ë‹¹ìë³„ ì…ì¶œê³  ì´ë ¥ ë³´ê¸°",
-            "[0] ë©”ì¸ìœ¼ë¡œ ëŒì•„ê°€ê¸°"
+            "[1] ÇöÀç º¸À¯ Àç°í º¸±â",
+            "[2] ÀüÃ¼ ÀÌ·Â º¸±â",
+            "[3] ¿øÀç·á Ãß°¡",
+            "[4] ¿øÀç·á Á¤º¸ ¼öÁ¤",
+            "[5] ¿øÀç·á »èÁ¦ (Ãâ°í Ã³¸®)",
+            "[6] ¿øÀç·á °Ë»ö",
+            "[7] º¸°ü Àå¼Ò È¯°æÁ¤º¸ º¸±â",
+            "[8] ·¹½ÃÇÇ ±â¹İ ¹èÄ¡ »ı»ê",
+            "[9] »ç¿ëµÈ ¿øÀç·á CSV È®ÀÎ/³»º¸³»±â",
+            "[10] Ãâ°íµÇÁö ¾ÊÀº Àç°í CSV ³»º¸³»±â",
+            "[11] Ç°Áú °Ë»ç ¹Ì¿Ï·á Àç·á º¸±â",
+            "[12] ´ã´çÀÚº° ÀÔÃâ°í ÀÌ·Â º¸±â",
+            "[0] ¸ŞÀÎÀ¸·Î µ¹¾Æ°¡±â"
         };
 
         UIUtils::drawDashboard(infoLines, menu, 72, 30);
-        cout << "\nì…ë ¥ >> ";
+        cout << "\nÀÔ·Â >> ";
         cin >> choice;
 
         switch (choice) {
@@ -597,12 +597,12 @@ void RawMaterialManager::showRawMaterialPage() {
         case 12:
             showMaterialsByManager();
             break;
-        case 0: cout << "ë©”ì¸ìœ¼ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤...\n"; break;
-        default: cout << "ì˜ëª»ëœ ì…ë ¥ì…ë‹ˆë‹¤.\n"; break;
+        case 0: cout << "¸ŞÀÎÀ¸·Î µ¹¾Æ°©´Ï´Ù...\n"; break;
+        default: cout << "Àß¸øµÈ ÀÔ·ÂÀÔ´Ï´Ù.\n"; break;
         }
 
         if (choice != 0) {
-            cout << "\nê³„ì†í•˜ë ¤ë©´ Enterë¥¼ ëˆ„ë¥´ì„¸ìš”...";
+            cout << "\n°è¼ÓÇÏ·Á¸é Enter¸¦ ´©¸£¼¼¿ä...";
             cin.ignore(); cin.get();
         }
     } while (choice != 0);

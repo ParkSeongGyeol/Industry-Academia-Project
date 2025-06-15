@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <string>
 #include <vector>
 #include <set>
@@ -6,21 +6,21 @@
 using namespace std;
 
 // -----------------------------------------------------------------------------
-// [FermentationBatch] ë°œíš¨ ë°°ì¹˜ ì •ë³´ í´ë˜ìŠ¤
+// [FermentationBatch] ¹ßÈ¿ ¹èÄ¡ Á¤º¸ Å¬·¡½º
 // -----------------------------------------------------------------------------
 class FermentationBatch {
 private:
-    string batch_id;                // ë°°ì¹˜ ID
-    string yeast_type;              // íš¨ëª¨ ì¢…ë¥˜
-    string ingredient_info;         // ì›ì¬ë£Œ ì¡°ì„± (ì˜ˆ: RM101:60%)
-    string start_date;              // ë°œíš¨ ì‹œì‘ì¼
-    int duration_hours = 0;         // ë°œíš¨ ì‹œê°„(ì‹œê°„)
-    double temperature = 0.0;       // ì˜¨ë„(Â°C)
-    double amount_liters = 0.0;     // ì´ ì–‘(ë¦¬í„°)
-    string end_date;                // ë°œíš¨ ì™„ë£Œì¼
-    string expiry_date;             // ìœ í†µê¸°í•œ
-    string particle_size;           // ì…ì í¬ê¸°(ì†Œ/ì¤‘/ëŒ€)
-    string batch_finish_date;       // ë°°ì¹˜ ì¢…ë£Œì¼(ì¤‘ë³µ ê°€ëŠ¥)
+    string batch_id;                // ¹èÄ¡ ID
+    string yeast_type;              // È¿¸ğ Á¾·ù
+    string ingredient_info;         // ¿øÀç·á Á¶¼º (¿¹: RM101:60%)
+    string start_date;              // ¹ßÈ¿ ½ÃÀÛÀÏ
+    int duration_hours = 0;         // ¹ßÈ¿ ½Ã°£(½Ã°£)
+    double temperature = 0.0;       // ¿Âµµ(¡ÆC)
+    double amount_liters = 0.0;     // ÃÑ ¾ç(¸®ÅÍ)
+    string end_date;                // ¹ßÈ¿ ¿Ï·áÀÏ
+    string expiry_date;             // À¯Åë±âÇÑ
+    string particle_size;           // ÀÔÀÚ Å©±â(¼Ò/Áß/´ë)
+    string batch_finish_date;       // ¹èÄ¡ Á¾·áÀÏ(Áßº¹ °¡´É)
 
 public:
     FermentationBatch() = default;
@@ -49,43 +49,43 @@ public:
     string getBatchFinishDate() const;
     void setBatchFinishDate(const string& val);
 
-    // CSV ì§ë ¬í™”/ì—­ì§ë ¬í™”
+    // CSV Á÷·ÄÈ­/¿ªÁ÷·ÄÈ­
     string toCSV() const;
     static FermentationBatch fromCSV(const string& line);
 };
 
 // -----------------------------------------------------------------------------
-// [BatchManager] ë°œíš¨ ë°°ì¹˜ ì „ì²´ ëª©ë¡ ë° ê¸°ëŠ¥ ê´€ë¦¬ í´ë˜ìŠ¤
+// [BatchManager] ¹ßÈ¿ ¹èÄ¡ ÀüÃ¼ ¸ñ·Ï ¹× ±â´É °ü¸® Å¬·¡½º
 // -----------------------------------------------------------------------------
 class BatchManager {
 public:
-    // [1] ë°ì´í„° ì…ì¶œë ¥
+    // [1] µ¥ÀÌÅÍ ÀÔÃâ·Â
     void loadBatchesFromCSV(const string& filename);
     void saveBatchesToCSV(const string& filename);
 
-    // [2] ë‚´ë¶€ ì—°ì‚°/ë ˆì‹œí”¼ ì—°ë™
+    // [2] ³»ºÎ ¿¬»ê/·¹½ÃÇÇ ¿¬µ¿
     void produceBatchByRecipe(class RecipeManager& recipeMgr, class RawMaterialManager& rawMgr);
 
-    // [3] ì •ë³´ ìš”ì•½/ì¡°íšŒ/ì¶œë ¥
+    // [3] Á¤º¸ ¿ä¾à/Á¶È¸/Ãâ·Â
     string getSummary();
     vector<string> getPageInfoLines();
     void showBatchList();
     void showBatchDetail();
     void showFermentingBatches();
 
-    // [4] CSV ë‚´ë³´ë‚´ê¸°
+    // [4] CSV ³»º¸³»±â
     void exportBatchesToCSV();
 
-    // [5] ì…ë ¥/ìˆ˜ì •/ì‚­ì œ/ê²€ìƒ‰
+    // [5] ÀÔ·Â/¼öÁ¤/»èÁ¦/°Ë»ö
     void addBatch();
     void updateBatch();
     void deleteBatch();
     void searchBatch();
 
-    // [6] ë°œíš¨ ì˜ˆì¸¡
+    // [6] ¹ßÈ¿ ¿¹Ãø
     void predictBatchFermentation();
 
-    // [7] ë©”ì¸ ë©”ë‰´
+    // [7] ¸ŞÀÎ ¸Ş´º
     void showBatchPage(class RecipeManager& recipeMgr, class RawMaterialManager& rawMgr);
 
 private:

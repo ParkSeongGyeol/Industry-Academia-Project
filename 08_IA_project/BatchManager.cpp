@@ -1,6 +1,6 @@
-ï»¿// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // BatchManager.cpp
-// ë°œíš¨ ë°°ì¹˜ ê´€ë¦¬ ê¸°ëŠ¥ ì •ì˜ íŒŒì¼ (ë ˆì‹œí”¼ ì—°ë™ í¬í•¨)
+// ¹ßÈ¿ ¹èÄ¡ °ü¸® ±â´É Á¤ÀÇ ÆÄÀÏ (·¹½ÃÇÇ ¿¬µ¿ Æ÷ÇÔ)
 // -----------------------------------------------------------------------------
 
 #include "BatchManager.h"
@@ -18,7 +18,7 @@
 
 using namespace std;
 
-// ----------------------------- ìƒìˆ˜ ì •ì˜ -----------------------------
+// ----------------------------- »ó¼ö Á¤ÀÇ -----------------------------
 namespace {
     constexpr int CSV_FIELD_COUNT = 11;
     constexpr char BATCH_CSV[] = "batch_dummy.csv";
@@ -26,9 +26,9 @@ namespace {
     constexpr char RAW_MATERIAL_CSV[] = "rawmaterial_dummy.csv";
 }
 
-// ----------------------------- ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ -----------------------------
+// ----------------------------- À¯Æ¿¸®Æ¼ ÇÔ¼ö -----------------------------
 
-// í˜„ì¬ ì‹œìŠ¤í…œ ë‚ ì§œë¥¼ "YYYY-MM-DD" í˜•ì‹ìœ¼ë¡œ ë°˜í™˜
+// ÇöÀç ½Ã½ºÅÛ ³¯Â¥¸¦ "YYYY-MM-DD" Çü½ÄÀ¸·Î ¹İÈ¯
 string getCurrentDate() {
     time_t now = time(nullptr);
     tm t;
@@ -38,7 +38,7 @@ string getCurrentDate() {
     return string(buf);
 }
 
-// ì•ˆì „í•œ double ì…ë ¥ í•¨ìˆ˜
+// ¾ÈÀüÇÑ double ÀÔ·Â ÇÔ¼ö
 double inputDouble(const string& prompt) {
     double val;
     while (true) {
@@ -47,13 +47,13 @@ double inputDouble(const string& prompt) {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return val;
         }
-        cout << "ìˆ«ìë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
+        cout << "¼ıÀÚ¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-// ì•ˆì „í•œ int ì…ë ¥ í•¨ìˆ˜
+// ¾ÈÀüÇÑ int ÀÔ·Â ÇÔ¼ö
 int inputInt(const string& prompt) {
     int val;
     while (true) {
@@ -62,13 +62,13 @@ int inputInt(const string& prompt) {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return val;
         }
-        cout << "ì •ìˆ˜ë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
+        cout << "Á¤¼ö¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-// ì•ˆì „í•œ string ì…ë ¥ í•¨ìˆ˜
+// ¾ÈÀüÇÑ string ÀÔ·Â ÇÔ¼ö
 string inputString(const string& prompt) {
     cout << prompt;
     string val;
@@ -76,7 +76,7 @@ string inputString(const string& prompt) {
     return val;
 }
 
-// ----------------------------- [FermentationBatch êµ¬í˜„] -----------------------------
+// ----------------------------- [FermentationBatch ±¸Çö] -----------------------------
 
 string FermentationBatch::getBatchId() const { return batch_id; }
 void FermentationBatch::setBatchId(const string& val) { batch_id = val; }
@@ -101,7 +101,7 @@ void FermentationBatch::setParticleSize(const string& val) { particle_size = val
 string FermentationBatch::getBatchFinishDate() const { return batch_finish_date; }
 void FermentationBatch::setBatchFinishDate(const string& val) { batch_finish_date = val; }
 
-// CSV ì§ë ¬í™”
+// CSV Á÷·ÄÈ­
 string FermentationBatch::toCSV() const {
     ostringstream oss;
     oss << batch_id << "," << yeast_type << "," << ingredient_info << "," << start_date << ","
@@ -110,7 +110,7 @@ string FermentationBatch::toCSV() const {
     return oss.str();
 }
 
-// CSV ì—­ì§ë ¬í™”
+// CSV ¿ªÁ÷·ÄÈ­
 FermentationBatch FermentationBatch::fromCSV(const string& line) {
     FermentationBatch b;
     istringstream iss(line);
@@ -129,18 +129,18 @@ FermentationBatch FermentationBatch::fromCSV(const string& line) {
     return b;
 }
 
-// ----------------------------- [1] ë°ì´í„° ì…ì¶œë ¥ -----------------------------
+// ----------------------------- [1] µ¥ÀÌÅÍ ÀÔÃâ·Â -----------------------------
 
-// CSV íŒŒì¼ì—ì„œ ë°°ì¹˜ ëª©ë¡ì„ ì½ì–´ì™€ batches ë²¡í„°ì— ì €ì¥
+// CSV ÆÄÀÏ¿¡¼­ ¹èÄ¡ ¸ñ·ÏÀ» ÀĞ¾î¿Í batches º¤ÅÍ¿¡ ÀúÀå
 void BatchManager::loadBatchesFromCSV(const string& filename) {
     batches.clear();
     ifstream file(filename);
     if (!file.is_open()) {
-        cout << "[ê²½ê³ ] ë°°ì¹˜ CSV íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << filename << endl;
+        cout << "[°æ°í] ¹èÄ¡ CSV ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù: " << filename << endl;
         return;
     }
     string line;
-    getline(file, line); // í—¤ë” ìŠ¤í‚µ
+    getline(file, line); // Çì´õ ½ºÅµ
     while (getline(file, line)) {
         if (line.empty()) continue;
         batches.push_back(FermentationBatch::fromCSV(line));
@@ -148,11 +148,11 @@ void BatchManager::loadBatchesFromCSV(const string& filename) {
     file.close();
 }
 
-// batches ë²¡í„°ì˜ ëª¨ë“  ë°°ì¹˜ ì •ë³´ë¥¼ ì§€ì •í•œ CSV íŒŒì¼ë¡œ ì €ì¥
+// batches º¤ÅÍÀÇ ¸ğµç ¹èÄ¡ Á¤º¸¸¦ ÁöÁ¤ÇÑ CSV ÆÄÀÏ·Î ÀúÀå
 void BatchManager::saveBatchesToCSV(const string& filename) {
     ofstream file(filename);
     if (!file.is_open()) {
-        cout << "[ì˜¤ë¥˜] íŒŒì¼ ì €ì¥ ì‹¤íŒ¨: " << filename << endl;
+        cout << "[¿À·ù] ÆÄÀÏ ÀúÀå ½ÇÆĞ: " << filename << endl;
         return;
     }
     file << "BatchID,YeastType,IngredientComposition,StartDate,FermentationDuration,Temperature,AmountLiters,EndDate,ExpiryDate,ParticleSize,BatchFinishDate\n";
@@ -162,30 +162,30 @@ void BatchManager::saveBatchesToCSV(const string& filename) {
     file.close();
 }
 
-// ----------------------------- [2] ë ˆì‹œí”¼ ê¸°ë°˜ ë°°ì¹˜ ìƒì‚° -----------------------------
+// ----------------------------- [2] ·¹½ÃÇÇ ±â¹İ ¹èÄ¡ »ı»ê -----------------------------
 /**
- * ë ˆì‹œí”¼ ê¸°ë°˜ ë°°ì¹˜ ìƒì‚°
- * - ë ˆì‹œí”¼ ëª©ë¡ì„ ë³´ì—¬ì£¼ê³ , ì‚¬ìš©ìê°€ ë ˆì‹œí”¼ IDì™€ ë°°ì¹˜ëŸ‰ì„ ì…ë ¥
- * - ì›ì¬ë£Œ ì¬ê³  ê²€ì¦ ë° ì°¨ê°ì€ RawMaterialManagerì—ì„œ ì²˜ë¦¬
- * - ë°°ì¹˜ ì •ë³´ëŠ” FermentationBatchë¡œ ê¸°ë¡
+ * ·¹½ÃÇÇ ±â¹İ ¹èÄ¡ »ı»ê
+ * - ·¹½ÃÇÇ ¸ñ·ÏÀ» º¸¿©ÁÖ°í, »ç¿ëÀÚ°¡ ·¹½ÃÇÇ ID¿Í ¹èÄ¡·®À» ÀÔ·Â
+ * - ¿øÀç·á Àç°í °ËÁõ ¹× Â÷°¨Àº RawMaterialManager¿¡¼­ Ã³¸®
+ * - ¹èÄ¡ Á¤º¸´Â FermentationBatch·Î ±â·Ï
  */
 void BatchManager::produceBatchByRecipe(RecipeManager& recipeMgr, RawMaterialManager& rawMgr) {
     recipeMgr.listRecipes();
-    string recipeId = inputString("\nì‚¬ìš©í•  ë ˆì‹œí”¼ ID ì…ë ¥: ");
+    string recipeId = inputString("\n»ç¿ëÇÒ ·¹½ÃÇÇ ID ÀÔ·Â: ");
     Recipe recipe;
     if (!recipeMgr.getRecipeById(recipeId, recipe)) {
-        cout << "í•´ë‹¹ IDì˜ ë ˆì‹œí”¼ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "ÇØ´ç IDÀÇ ·¹½ÃÇÇ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
         UIUtils::pauseConsole();
         return;
     }
-    double batchSize = inputDouble("ìƒì‚°í•  ë°°ì¹˜ëŸ‰(kg): ");
+    double batchSize = inputDouble("»ı»êÇÒ ¹èÄ¡·®(kg): ");
     if (!recipe.validateRawMaterialStock(rawMgr, batchSize)) {
-        cout << "ì¬ê³ ê°€ ë¶€ì¡±í•˜ì—¬ ë°°ì¹˜ ìƒì‚°ì´ ë¶ˆê°€í•©ë‹ˆë‹¤.\n";
+        cout << "Àç°í°¡ ºÎÁ·ÇÏ¿© ¹èÄ¡ »ı»êÀÌ ºÒ°¡ÇÕ´Ï´Ù.\n";
         UIUtils::pauseConsole();
         return;
     }
     string batchId = recipe.produceBatch(rawMgr, batchSize);
-    rawMgr.saveMaterialsToCSV("rawmaterial_dummy.csv"); // ì›ì¬ë£Œ ì°¨ê° í›„ ì €ì¥
+    rawMgr.saveMaterialsToCSV("rawmaterial_dummy.csv"); // ¿øÀç·á Â÷°¨ ÈÄ ÀúÀå
 
     FermentationBatch b;
     b.setBatchId(batchId);
@@ -199,27 +199,27 @@ void BatchManager::produceBatchByRecipe(RecipeManager& recipeMgr, RawMaterialMan
     b.setStartDate(getCurrentDate());
     b.setDurationHours(recipe.fermentationHours);
     b.setTemperature(recipe.fermentationTemp);
-    b.setAmountLiters(recipe.batchOutput); // ë ˆì‹œí”¼ì—ì„œ ì¶œë ¥ëŸ‰ ê³„ì‚°
+    b.setAmountLiters(recipe.batchOutput); // ·¹½ÃÇÇ¿¡¼­ Ãâ·Â·® °è»ê
     b.setEndDate(getCurrentDate());
     b.setExpiryDate("-");
-    b.setParticleSize("ì¤‘");
+    b.setParticleSize("Áß");
     b.setBatchFinishDate(getCurrentDate());
 
     batches.push_back(b);
-    saveBatchesToCSV("batch_dummy.csv"); // ë°°ì¹˜ ì •ë³´ ì €ì¥
+    saveBatchesToCSV("batch_dummy.csv"); // ¹èÄ¡ Á¤º¸ ÀúÀå
 
-    cout << "ë ˆì‹œí”¼ ê¸°ë°˜ ë°°ì¹˜ê°€ ìƒì„±ë˜ì—ˆìŠµë‹ˆë‹¤. (ë°°ì¹˜ID: " << batchId << ")\n";
+    cout << "·¹½ÃÇÇ ±â¹İ ¹èÄ¡°¡ »ı¼ºµÇ¾ú½À´Ï´Ù. (¹èÄ¡ID: " << batchId << ")\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [3] ì •ë³´ ìš”ì•½/ì¡°íšŒ/ì¶œë ¥ -----------------------------
+// ----------------------------- [3] Á¤º¸ ¿ä¾à/Á¶È¸/Ãâ·Â -----------------------------
 
-// ì „ì²´ ë°°ì¹˜ ìš”ì•½ ì •ë³´(ê°œìˆ˜ ë“±) ë°˜í™˜
+// ÀüÃ¼ ¹èÄ¡ ¿ä¾à Á¤º¸(°³¼ö µî) ¹İÈ¯
 string BatchManager::getSummary() {
-    return "ë°°ì¹˜: " + to_string(batches.size()) + "ê°œ";
+    return "¹èÄ¡: " + to_string(batches.size()) + "°³";
 }
 
-// ëŒ€ì‹œë³´ë“œ/ë©”ë‰´ìš© ì •ë³´ ìš”ì•½ ë¼ì¸ ë°˜í™˜
+// ´ë½Ãº¸µå/¸Ş´º¿ë Á¤º¸ ¿ä¾à ¶óÀÎ ¹İÈ¯
 vector<string> BatchManager::getPageInfoLines() {
     int total = static_cast<int>(batches.size());
     int fermenting = count_if(batches.begin(), batches.end(), [](const FermentationBatch& b) { return b.getDurationHours() < 72; });
@@ -230,180 +230,180 @@ vector<string> BatchManager::getPageInfoLines() {
         for (const auto& b : batches) sum += b.getDurationHours();
         avg = static_cast<double>(sum) / total;
     }
-    set<string> locations = { "íƒ±í¬" };
+    set<string> locations = { "ÅÊÅ©" };
     vector<string> lines;
-    lines.push_back("ì „ì²´ ë°°ì¹˜ ìˆ˜: " + to_string(total) + "ê°œ");
-    lines.push_back("ìƒíƒœ ë¶„í¬: ë°œíš¨ ì¤‘ " + to_string(fermenting) + "ê°œ / ì™„ë£Œ " + to_string(completed) + "ê°œ");
-    lines.push_back("í‰ê·  ë°œíš¨ ì‹œê°„: " + to_string(static_cast<int>(avg)) + "ì‹œê°„");
-    string locStr = "ì €ì¥ ìœ„ì¹˜: ";
+    lines.push_back("ÀüÃ¼ ¹èÄ¡ ¼ö: " + to_string(total) + "°³");
+    lines.push_back("»óÅÂ ºĞÆ÷: ¹ßÈ¿ Áß " + to_string(fermenting) + "°³ / ¿Ï·á " + to_string(completed) + "°³");
+    lines.push_back("Æò±Õ ¹ßÈ¿ ½Ã°£: " + to_string(static_cast<int>(avg)) + "½Ã°£");
+    string locStr = "ÀúÀå À§Ä¡: ";
     for (const auto& l : locations) locStr += l + " ";
     lines.push_back(locStr);
     return lines;
 }
 
-// ì „ì²´ ë°°ì¹˜ ëª©ë¡ ì¶œë ¥
+// ÀüÃ¼ ¹èÄ¡ ¸ñ·Ï Ãâ·Â
 void BatchManager::showBatchList() {
-    cout << "\n=== ë°œíš¨ ë°°ì¹˜ ëª©ë¡ ===\n";
+    cout << "\n=== ¹ßÈ¿ ¹èÄ¡ ¸ñ·Ï ===\n";
     for (const auto& b : batches) {
-        cout << "ID: " << b.getBatchId() << " | íš¨ëª¨: " << b.getYeastType() << " | ì‹œì‘ì¼: " << b.getStartDate() << " | ì–‘: " << b.getAmountLiters() << "L\n";
+        cout << "ID: " << b.getBatchId() << " | È¿¸ğ: " << b.getYeastType() << " | ½ÃÀÛÀÏ: " << b.getStartDate() << " | ¾ç: " << b.getAmountLiters() << "L\n";
     }
     UIUtils::pauseConsole();
 }
 
-// ë°°ì¹˜ ìƒì„¸ ì •ë³´ ì¶œë ¥
+// ¹èÄ¡ »ó¼¼ Á¤º¸ Ãâ·Â
 void BatchManager::showBatchDetail() {
     cin.ignore();
-    string id = inputString("ìƒì„¸ ì¡°íšŒí•  ë°°ì¹˜ ID ì…ë ¥: ");
+    string id = inputString("»ó¼¼ Á¶È¸ÇÒ ¹èÄ¡ ID ÀÔ·Â: ");
     for (const auto& b : batches) {
         if (b.getBatchId() == id) {
-            cout << "ë°°ì¹˜ ID: " << b.getBatchId() << "\n"
-                << "íš¨ëª¨: " << b.getYeastType() << "\n"
-                << "ì›ì¬ë£Œ ì¡°ì„±: " << b.getIngredientInfo() << "\n"
-                << "ì‹œì‘ì¼: " << b.getStartDate() << "\n"
-                << "ë°œíš¨ ì‹œê°„: " << b.getDurationHours() << "ì‹œê°„\n"
-                << "ì˜¨ë„: " << b.getTemperature() << "Â°C\n"
-                << "ì–‘ (ë¦¬í„°): " << b.getAmountLiters() << "L\n"
-                << "ì™„ë£Œì¼: " << b.getEndDate() << "\n"
-                << "ìœ í†µê¸°í•œ: " << b.getExpiryDate() << "\n"
-                << "ì…ì í¬ê¸°: " << b.getParticleSize() << "\n"
-                << "ë°°ì¹˜ ì¢…ë£Œì¼: " << b.getBatchFinishDate() << "\n";
+            cout << "¹èÄ¡ ID: " << b.getBatchId() << "\n"
+                << "È¿¸ğ: " << b.getYeastType() << "\n"
+                << "¿øÀç·á Á¶¼º: " << b.getIngredientInfo() << "\n"
+                << "½ÃÀÛÀÏ: " << b.getStartDate() << "\n"
+                << "¹ßÈ¿ ½Ã°£: " << b.getDurationHours() << "½Ã°£\n"
+                << "¿Âµµ: " << b.getTemperature() << "¡ÆC\n"
+                << "¾ç (¸®ÅÍ): " << b.getAmountLiters() << "L\n"
+                << "¿Ï·áÀÏ: " << b.getEndDate() << "\n"
+                << "À¯Åë±âÇÑ: " << b.getExpiryDate() << "\n"
+                << "ÀÔÀÚ Å©±â: " << b.getParticleSize() << "\n"
+                << "¹èÄ¡ Á¾·áÀÏ: " << b.getBatchFinishDate() << "\n";
             UIUtils::pauseConsole();
             return;
         }
     }
-    cout << "í•´ë‹¹ IDì˜ ë°°ì¹˜ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+    cout << "ÇØ´ç IDÀÇ ¹èÄ¡¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
     UIUtils::pauseConsole();
 }
 
-// ë°œíš¨ ì¤‘ì¸ ë°°ì¹˜ ëª©ë¡ ì¶œë ¥ (ì˜ˆì‹œ)
+// ¹ßÈ¿ ÁßÀÎ ¹èÄ¡ ¸ñ·Ï Ãâ·Â (¿¹½Ã)
 void BatchManager::showFermentingBatches() {
-    cout << "\n=== ë°œíš¨ ì¤‘ì¸ ë°°ì¹˜ ëª©ë¡ ===\n";
+    cout << "\n=== ¹ßÈ¿ ÁßÀÎ ¹èÄ¡ ¸ñ·Ï ===\n";
     for (const auto& b : batches) {
         if (b.getDurationHours() < 72) {
-            cout << "ID: " << b.getBatchId() << " | íš¨ëª¨: " << b.getYeastType() << " | ì‹œì‘ì¼: " << b.getStartDate() << "\n";
+            cout << "ID: " << b.getBatchId() << " | È¿¸ğ: " << b.getYeastType() << " | ½ÃÀÛÀÏ: " << b.getStartDate() << "\n";
         }
     }
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [4] CSV ë‚´ë³´ë‚´ê¸° -----------------------------
+// ----------------------------- [4] CSV ³»º¸³»±â -----------------------------
 
-// ë°°ì¹˜ ëª©ë¡ì„ CSVë¡œ ë‚´ë³´ë‚´ê¸°
+// ¹èÄ¡ ¸ñ·ÏÀ» CSV·Î ³»º¸³»±â
 void BatchManager::exportBatchesToCSV() {
     saveBatchesToCSV(BATCH_CSV);
-    cout << "\në°°ì¹˜ ëª©ë¡ì´ CSV íŒŒì¼ë¡œ ì €ì¥ë˜ì—ˆìŠµë‹ˆë‹¤.\n";
-    cout << "ì €ì¥ ê²½ë¡œ: " << filesystem::current_path() / BATCH_CSV << "\n";
+    cout << "\n¹èÄ¡ ¸ñ·ÏÀÌ CSV ÆÄÀÏ·Î ÀúÀåµÇ¾ú½À´Ï´Ù.\n";
+    cout << "ÀúÀå °æ·Î: " << filesystem::current_path() / BATCH_CSV << "\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [5] ì…ë ¥/ìˆ˜ì •/ì‚­ì œ/ê²€ìƒ‰ -----------------------------
+// ----------------------------- [5] ÀÔ·Â/¼öÁ¤/»èÁ¦/°Ë»ö -----------------------------
 
-// ë°°ì¹˜ ì‹ ê·œ ì¶”ê°€ (ìˆ˜ë™ ì…ë ¥)
+// ¹èÄ¡ ½Å±Ô Ãß°¡ (¼öµ¿ ÀÔ·Â)
 void BatchManager::addBatch() {
     FermentationBatch b;
     string input;
     double dInput;
     int iInput;
     cin.ignore();
-    cout << "\n=== ìƒˆ ë°œíš¨ ë°°ì¹˜ ì¶”ê°€ ===\n";
-    b.setBatchId(inputString("ë°°ì¹˜ ID: "));
-    b.setYeastType(inputString("íš¨ëª¨ ì¢…ë¥˜: "));
-    b.setIngredientInfo(inputString("ì›ì¬ë£Œ ì¡°ì„± (ì˜ˆ: RM101:60%): "));
-    b.setStartDate(inputString("ì‹œì‘ì¼ (YYYY-MM-DD): "));
-    b.setDurationHours(inputInt("ë°œíš¨ ì‹œê°„(ì‹œê°„): "));
-    b.setTemperature(inputDouble("ì˜¨ë„(Â°C): "));
-    b.setAmountLiters(inputDouble("ì–‘(ë¦¬í„°): "));
-    b.setEndDate(inputString("ì™„ë£Œì¼ (YYYY-MM-DD): "));
-    b.setExpiryDate(inputString("ìœ í†µê¸°í•œ (YYYY-MM-DD): "));
-    b.setParticleSize(inputString("ì…ì í¬ê¸°(ì†Œ/ì¤‘/ëŒ€): "));
-    b.setBatchFinishDate(inputString("ë°°ì¹˜ ì¢…ë£Œì¼ (YYYY-MM-DD): "));
+    cout << "\n=== »õ ¹ßÈ¿ ¹èÄ¡ Ãß°¡ ===\n";
+    b.setBatchId(inputString("¹èÄ¡ ID: "));
+    b.setYeastType(inputString("È¿¸ğ Á¾·ù: "));
+    b.setIngredientInfo(inputString("¿øÀç·á Á¶¼º (¿¹: RM101:60%): "));
+    b.setStartDate(inputString("½ÃÀÛÀÏ (YYYY-MM-DD): "));
+    b.setDurationHours(inputInt("¹ßÈ¿ ½Ã°£(½Ã°£): "));
+    b.setTemperature(inputDouble("¿Âµµ(¡ÆC): "));
+    b.setAmountLiters(inputDouble("¾ç(¸®ÅÍ): "));
+    b.setEndDate(inputString("¿Ï·áÀÏ (YYYY-MM-DD): "));
+    b.setExpiryDate(inputString("À¯Åë±âÇÑ (YYYY-MM-DD): "));
+    b.setParticleSize(inputString("ÀÔÀÚ Å©±â(¼Ò/Áß/´ë): "));
+    b.setBatchFinishDate(inputString("¹èÄ¡ Á¾·áÀÏ (YYYY-MM-DD): "));
 
     batches.push_back(b);
     saveBatchesToCSV(BATCH_CSV);
-    cout << "ë°œíš¨ ë°°ì¹˜ê°€ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤.\n";
+    cout << "¹ßÈ¿ ¹èÄ¡°¡ Ãß°¡µÇ¾ú½À´Ï´Ù.\n";
     UIUtils::pauseConsole();
 }
 
-// ë°°ì¹˜ ì •ë³´ ìˆ˜ì •
+// ¹èÄ¡ Á¤º¸ ¼öÁ¤
 void BatchManager::updateBatch() {
     cin.ignore();
-    string id = inputString("ìˆ˜ì •í•  ë°°ì¹˜ ID ì…ë ¥: ");
+    string id = inputString("¼öÁ¤ÇÒ ¹èÄ¡ ID ÀÔ·Â: ");
     for (auto& b : batches) {
         if (b.getBatchId() == id) {
             string input;
-            cout << "íš¨ëª¨ ì¢…ë¥˜ (" << b.getYeastType() << "): "; getline(cin, input); if (!input.empty()) b.setYeastType(input);
-            cout << "ì›ì¬ë£Œ ì¡°ì„± (" << b.getIngredientInfo() << "): "; getline(cin, input); if (!input.empty()) b.setIngredientInfo(input);
-            cout << "ì‹œì‘ì¼ (" << b.getStartDate() << "): "; getline(cin, input); if (!input.empty()) b.setStartDate(input);
-            cout << "ë°œíš¨ ì‹œê°„ (" << b.getDurationHours() << "): "; getline(cin, input); if (!input.empty()) b.setDurationHours(stoi(input));
-            cout << "ì˜¨ë„ (" << b.getTemperature() << "): "; getline(cin, input); if (!input.empty()) b.setTemperature(stod(input));
-            cout << "ì–‘ (" << b.getAmountLiters() << "): "; getline(cin, input); if (!input.empty()) b.setAmountLiters(stod(input));
-            cout << "ì™„ë£Œì¼ (" << b.getEndDate() << "): "; getline(cin, input); if (!input.empty()) b.setEndDate(input);
-            cout << "ìœ í†µê¸°í•œ (" << b.getExpiryDate() << "): "; getline(cin, input); if (!input.empty()) b.setExpiryDate(input);
-            cout << "ì…ì í¬ê¸° (" << b.getParticleSize() << "): "; getline(cin, input); if (!input.empty()) b.setParticleSize(input);
-            cout << "ë°°ì¹˜ ì¢…ë£Œì¼ (" << b.getBatchFinishDate() << "): "; getline(cin, input); if (!input.empty()) b.setBatchFinishDate(input);
+            cout << "È¿¸ğ Á¾·ù (" << b.getYeastType() << "): "; getline(cin, input); if (!input.empty()) b.setYeastType(input);
+            cout << "¿øÀç·á Á¶¼º (" << b.getIngredientInfo() << "): "; getline(cin, input); if (!input.empty()) b.setIngredientInfo(input);
+            cout << "½ÃÀÛÀÏ (" << b.getStartDate() << "): "; getline(cin, input); if (!input.empty()) b.setStartDate(input);
+            cout << "¹ßÈ¿ ½Ã°£ (" << b.getDurationHours() << "): "; getline(cin, input); if (!input.empty()) b.setDurationHours(stoi(input));
+            cout << "¿Âµµ (" << b.getTemperature() << "): "; getline(cin, input); if (!input.empty()) b.setTemperature(stod(input));
+            cout << "¾ç (" << b.getAmountLiters() << "): "; getline(cin, input); if (!input.empty()) b.setAmountLiters(stod(input));
+            cout << "¿Ï·áÀÏ (" << b.getEndDate() << "): "; getline(cin, input); if (!input.empty()) b.setEndDate(input);
+            cout << "À¯Åë±âÇÑ (" << b.getExpiryDate() << "): "; getline(cin, input); if (!input.empty()) b.setExpiryDate(input);
+            cout << "ÀÔÀÚ Å©±â (" << b.getParticleSize() << "): "; getline(cin, input); if (!input.empty()) b.setParticleSize(input);
+            cout << "¹èÄ¡ Á¾·áÀÏ (" << b.getBatchFinishDate() << "): "; getline(cin, input); if (!input.empty()) b.setBatchFinishDate(input);
             saveBatchesToCSV(BATCH_CSV);
-            cout << "ìˆ˜ì • ì™„ë£Œ.\n";
+            cout << "¼öÁ¤ ¿Ï·á.\n";
             UIUtils::pauseConsole();
             return;
         }
     }
-    cout << "í•´ë‹¹ IDì˜ ë°°ì¹˜ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+    cout << "ÇØ´ç IDÀÇ ¹èÄ¡¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
     UIUtils::pauseConsole();
 }
 
-// ë°°ì¹˜ ì‚­ì œ
+// ¹èÄ¡ »èÁ¦
 void BatchManager::deleteBatch() {
     cin.ignore();
-    string id = inputString("ì‚­ì œí•  ë°°ì¹˜ ID ì…ë ¥: ");
+    string id = inputString("»èÁ¦ÇÒ ¹èÄ¡ ID ÀÔ·Â: ");
     auto it = remove_if(batches.begin(), batches.end(), [&](const FermentationBatch& b) { return b.getBatchId() == id; });
     if (it != batches.end()) {
         batches.erase(it, batches.end());
         saveBatchesToCSV(BATCH_CSV);
-        cout << "ì‚­ì œ ì™„ë£Œ.\n";
+        cout << "»èÁ¦ ¿Ï·á.\n";
     } else {
-        cout << "í•´ë‹¹ IDì˜ ë°°ì¹˜ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+        cout << "ÇØ´ç IDÀÇ ¹èÄ¡¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
     }
     UIUtils::pauseConsole();
 }
 
-// ë°°ì¹˜ ê²€ìƒ‰(ìƒì„¸ ì¡°íšŒ)
+// ¹èÄ¡ °Ë»ö(»ó¼¼ Á¶È¸)
 void BatchManager::searchBatch() {
     cin.ignore();
-    string id = inputString("ì¡°íšŒí•  ë°°ì¹˜ ID ì…ë ¥: ");
+    string id = inputString("Á¶È¸ÇÒ ¹èÄ¡ ID ÀÔ·Â: ");
     for (const auto& b : batches) {
         if (b.getBatchId() == id) {
             showBatchDetail();
             return;
         }
     }
-    cout << "í•´ë‹¹ IDì˜ ë°°ì¹˜ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+    cout << "ÇØ´ç IDÀÇ ¹èÄ¡¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [6] ë°œíš¨ ì˜ˆì¸¡ -----------------------------
+// ----------------------------- [6] ¹ßÈ¿ ¿¹Ãø -----------------------------
 
-// ê°„ë‹¨í•œ ë°œíš¨ ì •ë„ ì˜ˆì¸¡(ì˜ˆì‹œ)
+// °£´ÜÇÑ ¹ßÈ¿ Á¤µµ ¿¹Ãø(¿¹½Ã)
 void BatchManager::predictBatchFermentation() {
     cin.ignore();
-    string id = inputString("ì˜ˆì¸¡í•  ë°°ì¹˜ ID ì…ë ¥: ");
+    string id = inputString("¿¹ÃøÇÒ ¹èÄ¡ ID ÀÔ·Â: ");
     for (const auto& b : batches) {
         if (b.getBatchId() == id) {
             double score = (b.getTemperature() * 0.8) + (b.getDurationHours() * 1.5);
-            if (b.getParticleSize() == "ì†Œ") score *= 1.2;
-            else if (b.getParticleSize() == "ëŒ€") score *= 0.8;
+            if (b.getParticleSize() == "¼Ò") score *= 1.2;
+            else if (b.getParticleSize() == "´ë") score *= 0.8;
             score = min(100.0, max(0.0, score));
-            cout << "\nì˜ˆì¸¡ëœ ë°œíš¨ ì •ë„: " << score << "% ì…ë‹ˆë‹¤.\n";
+            cout << "\n¿¹ÃøµÈ ¹ßÈ¿ Á¤µµ: " << score << "% ÀÔ´Ï´Ù.\n";
             UIUtils::pauseConsole();
             return;
         }
     }
-    cout << "í•´ë‹¹ IDì˜ ë°°ì¹˜ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
+    cout << "ÇØ´ç IDÀÇ ¹èÄ¡¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [7] ë©”ì¸ ë©”ë‰´ ë£¨í”„ -----------------------------
+// ----------------------------- [7] ¸ŞÀÎ ¸Ş´º ·çÇÁ -----------------------------
 
-// ë°œíš¨ ë°°ì¹˜ ê´€ë¦¬ ë©”ì¸ ë©”ë‰´ (ë ˆì‹œí”¼ ì—°ë™ í¬í•¨)
+// ¹ßÈ¿ ¹èÄ¡ °ü¸® ¸ŞÀÎ ¸Ş´º (·¹½ÃÇÇ ¿¬µ¿ Æ÷ÇÔ)
 void BatchManager::showBatchPage(RecipeManager& recipeMgr, RawMaterialManager& rawMgr) {
     loadBatchesFromCSV("batch_dummy.csv");
     int choice;
@@ -411,19 +411,19 @@ void BatchManager::showBatchPage(RecipeManager& recipeMgr, RawMaterialManager& r
         UIUtils::clearConsole();
         vector<string> infoLines = getPageInfoLines();
         vector<string> menu = {
-            "[1] ë°°ì¹˜ ëª©ë¡ ì¡°íšŒ",
-            "[2] ë°°ì¹˜ ìƒì„¸ ì¡°íšŒ",
-            "[3] ìƒˆ ë°°ì¹˜ ì¶”ê°€",
-            "[4] ë°°ì¹˜ ì •ë³´ ìˆ˜ì •",
-            "[5] ë°°ì¹˜ ì‚­ì œ",
-            "[6] ë°°ì¹˜ ê²€ìƒ‰",
-            "[7] ë°œíš¨ ì •ë„ ì˜ˆì¸¡",
-            "[8] ë ˆì‹œí”¼ ê¸°ë°˜ ë°°ì¹˜ ìƒì‚°",
-            "[9] ë°°ì¹˜ CSV ë‚´ë³´ë‚´ê¸°",
-            "[0] ë©”ì¸ìœ¼ë¡œ ëŒì•„ê°€ê¸°"
+            "[1] ¹èÄ¡ ¸ñ·Ï Á¶È¸",
+            "[2] ¹èÄ¡ »ó¼¼ Á¶È¸",
+            "[3] »õ ¹èÄ¡ Ãß°¡",
+            "[4] ¹èÄ¡ Á¤º¸ ¼öÁ¤",
+            "[5] ¹èÄ¡ »èÁ¦",
+            "[6] ¹èÄ¡ °Ë»ö",
+            "[7] ¹ßÈ¿ Á¤µµ ¿¹Ãø",
+            "[8] ·¹½ÃÇÇ ±â¹İ ¹èÄ¡ »ı»ê",
+            "[9] ¹èÄ¡ CSV ³»º¸³»±â",
+            "[0] ¸ŞÀÎÀ¸·Î µ¹¾Æ°¡±â"
         };
         UIUtils::drawDashboard(infoLines, menu, 72, 30);
-        cout << "\nì…ë ¥ >> ";
+        cout << "\nÀÔ·Â >> ";
         cin >> choice;
         switch (choice) {
         case 1: showBatchList(); break;
@@ -435,8 +435,8 @@ void BatchManager::showBatchPage(RecipeManager& recipeMgr, RawMaterialManager& r
         case 7: predictBatchFermentation(); break;
         case 8: produceBatchByRecipe(recipeMgr, rawMgr); break;
         case 9: exportBatchesToCSV(); break;
-        case 0: cout << "ë©”ì¸ ë©”ë‰´ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤.\n"; break;
-        default: UIUtils::printError("ì˜ëª»ëœ ì…ë ¥ì…ë‹ˆë‹¤."); UIUtils::pauseConsole(); break;
+        case 0: cout << "¸ŞÀÎ ¸Ş´º·Î µ¹¾Æ°©´Ï´Ù.\n"; break;
+        default: UIUtils::printError("Àß¸øµÈ ÀÔ·ÂÀÔ´Ï´Ù."); UIUtils::pauseConsole(); break;
         }
     } while (choice != 0);
 }

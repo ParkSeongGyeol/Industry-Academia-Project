@@ -1,37 +1,37 @@
-ï»¿#pragma once
+#pragma once
 #include <string>
 #include <vector>
 
 using namespace std;
 
 // -----------------------------------------------------------------------------
-// [RawMaterial] ì›ì¬ë£Œ ì •ë³´ í´ë˜ìŠ¤
+// [RawMaterial] ¿øÀç·á Á¤º¸ Å¬·¡½º
 // -----------------------------------------------------------------------------
 class RawMaterial {
 private:
-    // ì›ì¬ë£Œì˜ ì†ì„±(ìº¡ìŠí™”)
-    string material_id;         // ì›ì¬ë£Œ ê³ ìœ  ID
-    string name;                // ì›ì¬ë£Œ ì´ë¦„
-    string type;                // ì›ì¬ë£Œ ì¢…ë¥˜
-    string origin;              // ì›ì‚°ì§€
-    double weight_kg = 0.0;     // ë¬´ê²Œ(kg)
-    string storage_location;    // ë³´ê´€ ìœ„ì¹˜
-    string storage_method;      // ë³´ê´€ ë°©ë²•
-    string expiry_date;         // ìœ í†µê¸°í•œ
-    string entry_date;          // ì…ê³ ì¼
-    string exit_date;           // ì¶œê³ ì¼
-    string status;              // ìƒíƒœ(ì •ìƒ/ì¶œê³  ë“±)
-    string unit;                // ë‹¨ìœ„(kg, L ë“±)
-    double unit_price = 0.0;    // ë‹¨ê°€
-    string entry_manager;       // ì…ê³  ë‹´ë‹¹ì
-    string exit_manager;        // ì¶œê³  ë‹´ë‹¹ì
-    string quality_check;       // í’ˆì§ˆ ê²€ì‚¬ ê²°ê³¼
-    string quality_check_date;  // í’ˆì§ˆ ê²€ì‚¬ ì¼ì
+    // ¿øÀç·áÀÇ ¼Ó¼º(Ä¸½¶È­)
+    string material_id;         // ¿øÀç·á °íÀ¯ ID
+    string name;                // ¿øÀç·á ÀÌ¸§
+    string type;                // ¿øÀç·á Á¾·ù
+    string origin;              // ¿ø»êÁö
+    double weight_kg = 0.0;     // ¹«°Ô(kg)
+    string storage_location;    // º¸°ü À§Ä¡
+    string storage_method;      // º¸°ü ¹æ¹ı
+    string expiry_date;         // À¯Åë±âÇÑ
+    string entry_date;          // ÀÔ°íÀÏ
+    string exit_date;           // Ãâ°íÀÏ
+    string status;              // »óÅÂ(Á¤»ó/Ãâ°í µî)
+    string unit;                // ´ÜÀ§(kg, L µî)
+    double unit_price = 0.0;    // ´Ü°¡
+    string entry_manager;       // ÀÔ°í ´ã´çÀÚ
+    string exit_manager;        // Ãâ°í ´ã´çÀÚ
+    string quality_check;       // Ç°Áú °Ë»ç °á°ú
+    string quality_check_date;  // Ç°Áú °Ë»ç ÀÏÀÚ
 
 public:
     RawMaterial() = default;
 
-    // Getter/Setter (ê° ì†ì„±ë³„)
+    // Getter/Setter (°¢ ¼Ó¼ºº°)
     string getMaterialId() const;
     string getName() const;
     string getType() const;
@@ -70,47 +70,47 @@ public:
 };
 
 // -----------------------------------------------------------------------------
-// [RecipeManager] ë ˆì‹œí”¼ ê´€ë¦¬ í´ë˜ìŠ¤ (ì „ë°© ì„ ì–¸)
+// [RecipeManager] ·¹½ÃÇÇ °ü¸® Å¬·¡½º (Àü¹æ ¼±¾ğ)
 // -----------------------------------------------------------------------------
-class RecipeManager; // ì „ë°© ì„ ì–¸ í•„ìš”
+class RecipeManager; // Àü¹æ ¼±¾ğ ÇÊ¿ä
 
 // -----------------------------------------------------------------------------
-// [RawMaterialManager] ì›ì¬ë£Œ ì „ì²´ ëª©ë¡ ë° ê¸°ëŠ¥ ê´€ë¦¬ í´ë˜ìŠ¤
+// [RawMaterialManager] ¿øÀç·á ÀüÃ¼ ¸ñ·Ï ¹× ±â´É °ü¸® Å¬·¡½º
 // -----------------------------------------------------------------------------
 class RawMaterialManager {
 public:
-    // [1] ë°ì´í„° ì…ì¶œë ¥
-    void loadMaterialsFromCSV(const string& filename); // CSVì—ì„œ ì›ì¬ë£Œ ëª©ë¡ ë¡œë“œ
-    void saveMaterialsToCSV(const string& filename);   // ì „ì²´ materialsë¥¼ CSVë¡œ ì €ì¥
-    bool exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList); // ì‚¬ìš© ì¬ë£Œ ì €ì¥
+    // [1] µ¥ÀÌÅÍ ÀÔÃâ·Â
+    void loadMaterialsFromCSV(const string& filename); // CSV¿¡¼­ ¿øÀç·á ¸ñ·Ï ·Îµå
+    void saveMaterialsToCSV(const string& filename);   // ÀüÃ¼ materials¸¦ CSV·Î ÀúÀå
+    bool exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList); // »ç¿ë Àç·á ÀúÀå
 
-    // [2] ë‚´ë¶€ ì—°ì‚°
-    double getStock(const string& materialId) const; // í˜„ì¬ ì¬ê³  ì¡°íšŒ
-    void consumeMaterial(const string& name, double amount); // ì¬ê³  ì°¨ê°
-    void produceBatchByRecipe(RecipeManager& recipeMgr); // ë ˆì‹œí”¼ ê¸°ë°˜ ë°°ì¹˜ ìƒì‚°
+    // [2] ³»ºÎ ¿¬»ê
+    double getStock(const string& materialId) const; // ÇöÀç Àç°í Á¶È¸
+    void consumeMaterial(const string& name, double amount); // Àç°í Â÷°¨
+    void produceBatchByRecipe(RecipeManager& recipeMgr); // ·¹½ÃÇÇ ±â¹İ ¹èÄ¡ »ı»ê
 
-    // [3] ì •ë³´ ìš”ì•½/ì¡°íšŒ/ì¶œë ¥
-    string getSummary();   // ëŒ€ì‹œë³´ë“œìš© ìš”ì•½ ë¬¸ìì—´ ë°˜í™˜
-    vector<string> getPageInfoLines(); // ì •ë³´ ìš”ì•½ ë¼ì¸ êµ¬ì„±
-    void showInventory();       // í˜„ì¬ ë³´ìœ  ì›ì¬ë£Œë§Œ ì¶œë ¥
-    void showAllMaterials();    // ì „ì²´ ì…ì¶œê³  ì´ë ¥ ì¶œë ¥
-    void showUninspectedMaterials(); // í’ˆì§ˆ ê²€ì‚¬ ë¯¸ì™„ë£Œ ì¬ë£Œ ëª©ë¡ ë³´ê¸°
-    void showMaterialsByManager(); // ë‹´ë‹¹ìë³„ ì…ì¶œê³  ì´ë ¥ ë³´ê¸°
-    void showStorageEnvironment(); // ë³´ê´€ ì¥ì†Œ í™˜ê²½ ì •ë³´ ì¶œë ¥
+    // [3] Á¤º¸ ¿ä¾à/Á¶È¸/Ãâ·Â
+    string getSummary();   // ´ë½Ãº¸µå¿ë ¿ä¾à ¹®ÀÚ¿­ ¹İÈ¯
+    vector<string> getPageInfoLines(); // Á¤º¸ ¿ä¾à ¶óÀÎ ±¸¼º
+    void showInventory();       // ÇöÀç º¸À¯ ¿øÀç·á¸¸ Ãâ·Â
+    void showAllMaterials();    // ÀüÃ¼ ÀÔÃâ°í ÀÌ·Â Ãâ·Â
+    void showUninspectedMaterials(); // Ç°Áú °Ë»ç ¹Ì¿Ï·á Àç·á ¸ñ·Ï º¸±â
+    void showMaterialsByManager(); // ´ã´çÀÚº° ÀÔÃâ°í ÀÌ·Â º¸±â
+    void showStorageEnvironment(); // º¸°ü Àå¼Ò È¯°æ Á¤º¸ Ãâ·Â
 
-    // [4] CSV ë‚´ë³´ë‚´ê¸°
-    void exportUsedInventoryToCSV(); // ì‚¬ìš©ëœ ì›ì¬ë£Œ CSVë¡œ ì €ì¥
-    void exportRemainingStockToCSV(); // ì¶œê³ ë˜ì§€ ì•Šì€ ì¬ê³  CSVë¡œ ì €ì¥
+    // [4] CSV ³»º¸³»±â
+    void exportUsedInventoryToCSV(); // »ç¿ëµÈ ¿øÀç·á CSV·Î ÀúÀå
+    void exportRemainingStockToCSV(); // Ãâ°íµÇÁö ¾ÊÀº Àç°í CSV·Î ÀúÀå
 
-    // [5] ì…ë ¥/ìˆ˜ì •/ì‚­ì œ/ê²€ìƒ‰
-    void addMaterial();         // ì›ì¬ë£Œ ì¶”ê°€
-    void updateMaterial();      // ì›ì¬ë£Œ ì •ë³´ ìˆ˜ì •
-    void deleteMaterial();      // ì¶œê³  ì²˜ë¦¬
-    void searchMaterial();      // ì´ë¦„ìœ¼ë¡œ ì›ì¬ë£Œ ê²€ìƒ‰
+    // [5] ÀÔ·Â/¼öÁ¤/»èÁ¦/°Ë»ö
+    void addMaterial();         // ¿øÀç·á Ãß°¡
+    void updateMaterial();      // ¿øÀç·á Á¤º¸ ¼öÁ¤
+    void deleteMaterial();      // Ãâ°í Ã³¸®
+    void searchMaterial();      // ÀÌ¸§À¸·Î ¿øÀç·á °Ë»ö
 
-    // [6] ë©”ì¸ ë©”ë‰´
-    void showRawMaterialPage(); // ì½˜ì†” ë©”ë‰´ ë£¨í”„ ì‹¤í–‰
+    // [6] ¸ŞÀÎ ¸Ş´º
+    void showRawMaterialPage(); // ÄÜ¼Ö ¸Ş´º ·çÇÁ ½ÇÇà
 
 private:
-    vector<RawMaterial> materials; // ì›ì¬ë£Œ ë¦¬ìŠ¤íŠ¸ (ë©”ëª¨ë¦¬ ìƒ ì €ì¥)
+    vector<RawMaterial> materials; // ¿øÀç·á ¸®½ºÆ® (¸Ş¸ğ¸® »ó ÀúÀå)
 };
