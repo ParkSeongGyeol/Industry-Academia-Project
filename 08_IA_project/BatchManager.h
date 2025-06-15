@@ -2,80 +2,92 @@
 #include <string>
 #include <vector>
 #include <set>
+
 using namespace std;
 
-// FermentationBatch 클래스 정의
+// -----------------------------------------------------------------------------
+// [FermentationBatch] 발효 배치 정보 클래스
+// -----------------------------------------------------------------------------
 class FermentationBatch {
 private:
-    string batch_id;           // 배치 ID
-    string start_date;         // 발효 시작일
-    string end_date;           // 발효 완료일
-    string expiry_date;        // 유통기한
-    string particle_size;      // 입자 크기
-    string yeast_type;         // 효모 타입
-    string ingredient_info;    // 원재료 조성 (예: RM001:60%, RM002:40%)
-    double amount_liters = 0.0; // 총 양 (리터)
-    double temperature = 0.0;   // 온도
-    int humidity = 0;           // 습도
-    int duration_hours = 0;     // 발효 시간
+    string batch_id;                // 배치 ID
+    string yeast_type;              // 효모 종류
+    string ingredient_info;         // 원재료 조성 (예: RM101:60%)
+    string start_date;              // 발효 시작일
+    int duration_hours = 0;         // 발효 시간(시간)
+    double temperature = 0.0;       // 온도(°C)
+    double amount_liters = 0.0;     // 총 양(리터)
+    string end_date;                // 발효 완료일
+    string expiry_date;             // 유통기한
+    string particle_size;           // 입자 크기(소/중/대)
+    string batch_finish_date;       // 배치 종료일(중복 가능)
 
 public:
     FermentationBatch() = default;
 
-    // Getter
-    string getBatchId() const { return batch_id; }
-    string getStartDate() const { return start_date; }
-    string getEndDate() const { return end_date; }
-    string getExpiryDate() const { return expiry_date; }
-    string getParticleSize() const { return particle_size; }
-    string getYeastType() const { return yeast_type; }
-    string getIngredientInfo() const { return ingredient_info; }
-    double getAmountLiters() const { return amount_liters; }
-    double getTemperature() const { return temperature; }
-    int getHumidity() const { return humidity; }
-    int getDurationHours() const { return duration_hours; }
+    // Getter/Setter
+    string getBatchId() const;
+    void setBatchId(const string& val);
+    string getYeastType() const;
+    void setYeastType(const string& val);
+    string getIngredientInfo() const;
+    void setIngredientInfo(const string& val);
+    string getStartDate() const;
+    void setStartDate(const string& val);
+    int getDurationHours() const;
+    void setDurationHours(int val);
+    double getTemperature() const;
+    void setTemperature(double val);
+    double getAmountLiters() const;
+    void setAmountLiters(double val);
+    string getEndDate() const;
+    void setEndDate(const string& val);
+    string getExpiryDate() const;
+    void setExpiryDate(const string& val);
+    string getParticleSize() const;
+    void setParticleSize(const string& val);
+    string getBatchFinishDate() const;
+    void setBatchFinishDate(const string& val);
 
-    // Setter
-    void setBatchId(const string& val) { batch_id = val; }
-    void setStartDate(const string& val) { start_date = val; }
-    void setEndDate(const string& val) { end_date = val; }
-    void setExpiryDate(const string& val) { expiry_date = val; }
-    void setParticleSize(const string& val) { particle_size = val; }
-    void setYeastType(const string& val) { yeast_type = val; }
-    void setIngredientInfo(const string& val) { ingredient_info = val; }
-    void setAmountLiters(double val) { amount_liters = val; }
-    void setTemperature(double val) { temperature = val; }
-    void setHumidity(int val) { humidity = val; }
-    void setDurationHours(int val) { duration_hours = val; }
-
-    // CSV 저장용
+    // CSV 직렬화/역직렬화
     string toCSV() const;
+    static FermentationBatch fromCSV(const string& line);
 };
 
-
-// 발효 배치 전체를 관리하는 BatchManager 클래스
+// -----------------------------------------------------------------------------
+// [BatchManager] 발효 배치 전체 목록 및 기능 관리 클래스
+// -----------------------------------------------------------------------------
 class BatchManager {
-private:
-    vector<FermentationBatch> batches;
-
 public:
-    string getSummary();
-    vector<FermentationBatch> getDummyBatches();
-    void displayBatches(const vector<FermentationBatch>& batches);
+    // [1] 데이터 입출력
+    void loadBatchesFromCSV(const string& filename);
+    void saveBatchesToCSV(const string& filename);
 
+    // [2] 내부 연산/레시피 연동
+    void produceBatchByRecipe(class RecipeManager& recipeMgr);
+
+    // [3] 정보 요약/조회/출력
+    string getSummary();
+    vector<string> getPageInfoLines();
+    void showBatchList();
+    void showBatchDetail();
+    void showFermentingBatches();
+
+    // [4] CSV 내보내기
+    void exportBatchesToCSV();
+
+    // [5] 입력/수정/삭제/검색
     void addBatch();
     void updateBatch();
     void deleteBatch();
     void searchBatch();
 
-    double predictFermentation(const FermentationBatch& batch);
+    // [6] 발효 예측
     void predictBatchFermentation();
 
-    void exportFermentationStatusToCSV();
-
-    int countFermentingBatches();
-    double calculateAvgFermentationHours();
-    set<string> getStorageLocations();
-
+    // [7] 메인 메뉴
     void showBatchPage();
+
+private:
+    vector<FermentationBatch> batches;
 };
