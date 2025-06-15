@@ -5,6 +5,7 @@
 #include "RecipeManager.h"
 #include "Recipe.h"
 #include "UIUtils.h"
+#include "EncodingUtils.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -16,14 +17,14 @@
 
 using namespace std;
 
-// ----------------------------- »ó¼ö Á¤ÀÇ -----------------------------
+// ----------------------------- ìƒìˆ˜ ì •ì˜ -----------------------------
 namespace {
     constexpr char BOTTLED_CSV[] = "bottledwhisky_dummy.csv";
 }
 
-// ----------------------------- À¯Æ¿¸®Æ¼ ÇÔ¼ö -----------------------------
+// ----------------------------- ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ -----------------------------
 
-// ÇöÀç ½Ã½ºÅÛ ³¯Â¥¸¦ "YYYY-MM-DD" Çü½ÄÀ¸·Î ¹İÈ¯
+// í˜„ì¬ ì‹œìŠ¤í…œ ë‚ ì§œë¥¼ "YYYY-MM-DD" í˜•ì‹ìœ¼ë¡œ ë°˜í™˜
 string getCurrentDate() {
     time_t now = time(nullptr);
     tm t;
@@ -33,7 +34,7 @@ string getCurrentDate() {
     return string(buf);
 }
 
-// ¾ÈÀüÇÑ double ÀÔ·Â ÇÔ¼ö
+// ì•ˆì „í•œ double ì…ë ¥ í•¨ìˆ˜
 double inputDouble(const string& prompt) {
     double val;
     while (true) {
@@ -42,13 +43,13 @@ double inputDouble(const string& prompt) {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return val;
         }
-        cout << "¼ıÀÚ¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
+        cout << "ìˆ«ìë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-// ¾ÈÀüÇÑ int ÀÔ·Â ÇÔ¼ö
+// ì•ˆì „í•œ int ì…ë ¥ í•¨ìˆ˜
 int inputInt(const string& prompt) {
     int val;
     while (true) {
@@ -57,13 +58,13 @@ int inputInt(const string& prompt) {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return val;
         }
-        cout << "Á¤¼ö¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
+        cout << "ì •ìˆ˜ë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 }
 
-// ¾ÈÀüÇÑ string ÀÔ·Â ÇÔ¼ö
+// ì•ˆì „í•œ string ì…ë ¥ í•¨ìˆ˜
 string inputString(const string& prompt) {
     cout << prompt;
     string val;
@@ -71,18 +72,19 @@ string inputString(const string& prompt) {
     return val;
 }
 
-// ----------------------------- [1] µ¥ÀÌÅÍ ÀÔÃâ·Â -----------------------------
+// ----------------------------- [1] ë°ì´í„° ì…ì¶œë ¥ -----------------------------
 
-// CSV¿¡¼­ º´ÀÔ À§½ºÅ° ¸ñ·Ï ·Îµå
+// CSVì—ì„œ ë³‘ì… ìœ„ìŠ¤í‚¤ ëª©ë¡ ë¡œë“œ
 void BottledWhiskyManager::loadInventoryFromCSV(const string& filename) {
     inventory.clear();
     ifstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
-        cout << "[°æ°í] º´ÀÔ CSV ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù: " << filename << endl;
+        cout << "[ê²½ê³ ] ë³‘ì… CSV íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: " << filename << endl;
         return;
     }
     string line;
-    getline(file, line); // Çì´õ ½ºÅµ
+    getline(file, line); // í—¤ë” ìŠ¤í‚µ
     while (getline(file, line)) {
         if (line.empty()) continue;
         istringstream iss(line);
@@ -109,11 +111,12 @@ void BottledWhiskyManager::loadInventoryFromCSV(const string& filename) {
     file.close();
 }
 
-// º´ÀÔ À§½ºÅ° ¸ñ·ÏÀ» CSV·Î ÀúÀå
+// ë³‘ì… ìœ„ìŠ¤í‚¤ ëª©ë¡ì„ CSVë¡œ ì €ì¥
 void BottledWhiskyManager::saveInventoryToCSV(const string& filename) {
     ofstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
-        cout << "[¿À·ù] º´ÀÔ CSV ÀúÀå ½ÇÆĞ: " << filename << endl;
+        cout << "[ì˜¤ë¥˜] ë³‘ì… CSV ì €ì¥ ì‹¤íŒ¨: " << filename << endl;
         return;
     }
     file << "ProductID,ProductName,Quantity,TotalVolume,BottlePrice,LabelName,OakID,ReleaseTarget,ReleaseDate,ManufactureNumber,BottlingManager\n";
@@ -133,34 +136,34 @@ void BottledWhiskyManager::saveInventoryToCSV(const string& filename) {
     file.close();
 }
 
-// ----------------------------- [2] ·¹½ÃÇÇ ±â¹İ º´ÀÔ »ı»ê -----------------------------
+// ----------------------------- [2] ë ˆì‹œí”¼ ê¸°ë°˜ ë³‘ì… ìƒì‚° -----------------------------
 /**
- * ·¹½ÃÇÇ ±â¹İ º´ÀÔ »ı»ê
- * - ·¹½ÃÇÇ ¸ñ·ÏÀ» º¸¿©ÁÖ°í, »ç¿ëÀÚ°¡ ·¹½ÃÇÇ ID¿Í º´ÀÔ Á¶°ÇÀ» ÀÔ·Â
- * - º´ÀÔ °øÁ¤(º´ ¼ö, ¿ë·®, °¡°İ µî) ÀÔ·Â ÈÄ, BottledWhisky °´Ã¼·Î ±â·Ï
+ * ë ˆì‹œí”¼ ê¸°ë°˜ ë³‘ì… ìƒì‚°
+ * - ë ˆì‹œí”¼ ëª©ë¡ì„ ë³´ì—¬ì£¼ê³ , ì‚¬ìš©ìê°€ ë ˆì‹œí”¼ IDì™€ ë³‘ì… ì¡°ê±´ì„ ì…ë ¥
+ * - ë³‘ì… ê³µì •(ë³‘ ìˆ˜, ìš©ëŸ‰, ê°€ê²© ë“±) ì…ë ¥ í›„, BottledWhisky ê°ì²´ë¡œ ê¸°ë¡
  */
 void BottledWhiskyManager::produceBottledByRecipe(RecipeManager& recipeMgr) {
     recipeMgr.listRecipes();
-    string recipeId = inputString("\nº´ÀÔ¿¡ »ç¿ëÇÒ ·¹½ÃÇÇ ID ÀÔ·Â: ");
+    string recipeId = inputString("\në³‘ì…ì— ì‚¬ìš©í•  ë ˆì‹œí”¼ ID ì…ë ¥: ");
     Recipe recipe;
     if (!recipeMgr.getRecipeById(recipeId, recipe)) {
-        cout << "ÇØ´ç IDÀÇ ·¹½ÃÇÇ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+        cout << "í•´ë‹¹ IDì˜ ë ˆì‹œí”¼ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
         UIUtils::pauseConsole();
         return;
     }
 
-    // º´ÀÔ Á¤º¸ ÀÔ·Â
-    int bottleCount = inputInt("º´ ¼ö: ");
-    double bottleVolume = inputDouble("º´´ç ¿ë·®(ml): ");
-    double bottlePrice = inputDouble("º´´ç °¡°İ(¿ø): ");
-    string labelName = inputString("¶óº§¸í: ");
-    string oakId = inputString("¿ÀÅ©Åë ID: ");
-    string exportTarget = inputString("Ãâ°í ´ë»ó: ");
+    // ë³‘ì… ì •ë³´ ì…ë ¥
+    int bottleCount = inputInt("ë³‘ ìˆ˜: ");
+    double bottleVolume = inputDouble("ë³‘ë‹¹ ìš©ëŸ‰(ml): ");
+    double bottlePrice = inputDouble("ë³‘ë‹¹ ê°€ê²©(ì›): ");
+    string labelName = inputString("ë¼ë²¨ëª…: ");
+    string oakId = inputString("ì˜¤í¬í†µ ID: ");
+    string exportTarget = inputString("ì¶œê³  ëŒ€ìƒ: ");
     string shipmentDate = getCurrentDate();
-    string serialNumber = inputString("Á¦Á¶ ¹øÈ£: ");
-    string bottlingManager = inputString("º´ÀÔ ´ã´çÀÚ: ");
+    string serialNumber = inputString("ì œì¡° ë²ˆí˜¸: ");
+    string bottlingManager = inputString("ë³‘ì… ë‹´ë‹¹ì: ");
 
-    // ·¹½ÃÇÇ º´ÀÔ Á¤º¸ ±â·Ï
+    // ë ˆì‹œí”¼ ë³‘ì… ì •ë³´ ê¸°ë¡
     recipe.bottleCount = bottleCount;
     recipe.bottleVolume = bottleVolume;
     recipe.bottlePrice = bottlePrice;
@@ -171,7 +174,7 @@ void BottledWhiskyManager::produceBottledByRecipe(RecipeManager& recipeMgr) {
     w.setProductId("P" + to_string(inventory.size() + 1));
     w.setName(recipe.name);
     w.setBottleCount(bottleCount);
-    w.setTotalVolume(recipe.totalBottledVolume * 1000); // L ¡æ ml
+    w.setTotalVolume(recipe.totalBottledVolume * 1000); // L â†’ ml
     w.setPricePerBottle(bottlePrice);
     w.setLabelName(labelName);
     w.setOakId(oakId);
@@ -184,13 +187,13 @@ void BottledWhiskyManager::produceBottledByRecipe(RecipeManager& recipeMgr) {
     inventory.push_back(w);
     saveInventoryToCSV(BOTTLED_CSV);
 
-    cout << "·¹½ÃÇÇ ±â¹İ º´ÀÔ À§½ºÅ°°¡ µî·ÏµÇ¾ú½À´Ï´Ù. (Á¦Ç°ID: " << w.getProductId() << ")\n";
+    cout << "ë ˆì‹œí”¼ ê¸°ë°˜ ë³‘ì… ìœ„ìŠ¤í‚¤ê°€ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤. (ì œí’ˆID: " << w.getProductId() << ")\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [3] Á¤º¸ ¿ä¾à/Á¶È¸/Ãâ·Â -----------------------------
+// ----------------------------- [3] ì •ë³´ ìš”ì•½/ì¡°íšŒ/ì¶œë ¥ -----------------------------
 
-// ÀüÃ¼ º´ÀÔ À§½ºÅ° ¿ä¾à Á¤º¸(°³¼ö µî) ¹İÈ¯
+// ì „ì²´ ë³‘ì… ìœ„ìŠ¤í‚¤ ìš”ì•½ ì •ë³´(ê°œìˆ˜ ë“±) ë°˜í™˜
 string BottledWhiskyManager::getSummary() {
     int totalCount = 0;
     double totalPrice = 0;
@@ -198,14 +201,14 @@ string BottledWhiskyManager::getSummary() {
         totalCount += w.getBottleCount();
         totalPrice += w.getPricePerBottle();
     }
-    string result = "º´ÀÔ: " + to_string(totalCount) + "º´";
+    string result = "ë³‘ì…: " + to_string(totalCount) + "ë³‘";
     if (!inventory.empty()) {
-        result += " / Æò±Õ°¡: " + to_string(static_cast<int>(totalPrice / inventory.size())) + "¿ø";
+        result += " / í‰ê· ê°€: " + to_string(static_cast<int>(totalPrice / inventory.size())) + "ì›";
     }
     return result;
 }
 
-// ´ë½Ãº¸µå/¸Ş´º¿ë Á¤º¸ ¿ä¾à ¶óÀÎ ¹İÈ¯
+// ëŒ€ì‹œë³´ë“œ/ë©”ë‰´ìš© ì •ë³´ ìš”ì•½ ë¼ì¸ ë°˜í™˜
 vector<string> BottledWhiskyManager::getPageInfoLines() {
     vector<string> lines;
     int totalCount = 0;
@@ -215,23 +218,23 @@ vector<string> BottledWhiskyManager::getPageInfoLines() {
         totalVolume += w.getTotalVolume();
         totalValue += w.getBottleCount() * w.getPricePerBottle();
     }
-    lines.push_back("ÀüÃ¼ º´ ¼ö·®: " + to_string(totalCount) + "º´");
-    lines.push_back("ÀüÃ¼ ¿ë·®: " + to_string((int)totalVolume) + "ml");
+    lines.push_back("ì „ì²´ ë³‘ ìˆ˜ëŸ‰: " + to_string(totalCount) + "ë³‘");
+    lines.push_back("ì „ì²´ ìš©ëŸ‰: " + to_string((int)totalVolume) + "ml");
     if (totalCount > 0) {
-        lines.push_back("Æò±Õ º´´ç °¡°İ: " + to_string((int)(totalValue / totalCount)) + "¿ø");
+        lines.push_back("í‰ê·  ë³‘ë‹¹ ê°€ê²©: " + to_string((int)(totalValue / totalCount)) + "ì›");
     } else {
-        lines.push_back("Æò±Õ º´´ç °¡°İ: -");
+        lines.push_back("í‰ê·  ë³‘ë‹¹ ê°€ê²©: -");
     }
     return lines;
 }
 
-// ÀüÃ¼ º´ÀÔ À§½ºÅ° Àç°í Ãâ·Â
+// ì „ì²´ ë³‘ì… ìœ„ìŠ¤í‚¤ ì¬ê³  ì¶œë ¥
 void BottledWhiskyManager::showInventory() {
     if (inventory.empty()) {
-        cout << "ÇöÀç Àç°í°¡ ¾ø½À´Ï´Ù.\n";
+        cout << "í˜„ì¬ ì¬ê³ ê°€ ì—†ìŠµë‹ˆë‹¤.\n";
         return;
     }
-    cout << "\n[º´ÀÔ À§½ºÅ° Àç°í ¸ñ·Ï]\n";
+    cout << "\n[ë³‘ì… ìœ„ìŠ¤í‚¤ ì¬ê³  ëª©ë¡]\n";
     for (const auto& whisky : inventory) {
         whisky.ShowInfo();
         cout << "-----------------------------\n";
@@ -239,93 +242,93 @@ void BottledWhiskyManager::showInventory() {
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [4] CSV ³»º¸³»±â -----------------------------
+// ----------------------------- [4] CSV ë‚´ë³´ë‚´ê¸° -----------------------------
 
-// º´ÀÔ À§½ºÅ° Àç°í¸¦ CSV ÆÄÀÏ·Î ³»º¸³»±â
+// ë³‘ì… ìœ„ìŠ¤í‚¤ ì¬ê³ ë¥¼ CSV íŒŒì¼ë¡œ ë‚´ë³´ë‚´ê¸°
 void BottledWhiskyManager::exportInventoryToCSV(const string& filename) {
     saveInventoryToCSV(filename);
-    cout << "[ " << filename << " ] ÆÄÀÏ·Î ÀúÀå ¿Ï·á!\n";
+    cout << "[ " << filename << " ] íŒŒì¼ë¡œ ì €ì¥ ì™„ë£Œ!\n";
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [5] ÀÔ·Â/¼öÁ¤/»èÁ¦/°Ë»ö -----------------------------
+// ----------------------------- [5] ì…ë ¥/ìˆ˜ì •/ì‚­ì œ/ê²€ìƒ‰ -----------------------------
 
-// º´ÀÔ À§½ºÅ° ½Å±Ô Ãß°¡
+// ë³‘ì… ìœ„ìŠ¤í‚¤ ì‹ ê·œ ì¶”ê°€
 void BottledWhiskyManager::addWhisky() {
     BottledWhisky w;
-    w.setProductId(inputString("Á¦Ç° ID: "));
-    w.setName(inputString("Á¦Ç°¸í: "));
-    w.setLabelName(inputString("¶óº§¸í: "));
-    w.setBatchNumber(inputString("¹èÄ¡ ¹øÈ£: "));
-    w.setExportTarget(inputString("Ãâ°í ´ë»ó: "));
-    w.setOakId(inputString("¿ÀÅ©Åë ID: "));
-    w.setShipmentDate(inputString("Ãâ°í ÀÏÀÚ (YYYY-MM-DD): "));
-    w.setSerialNumber(inputString("Á¦Á¶ ¹øÈ£: "));
-    w.setBottlingManager(inputString("º´ÀÔ ´ã´çÀÚ: "));
-    w.setBottleCount(inputInt("¼ö·®(º´): "));
-    w.setTotalVolume(inputDouble("ÃÑ ¿ë·®(ml): "));
-    w.setPricePerBottle(inputDouble("º´´ç °¡°İ: "));
-    w.setLabeled(inputInt("¶óº§ ºÎÂø ¿©ºÎ (1: O, 0: X): ") == 1);
+    w.setProductId(inputString("ì œí’ˆ ID: "));
+    w.setName(inputString("ì œí’ˆëª…: "));
+    w.setLabelName(inputString("ë¼ë²¨ëª…: "));
+    w.setBatchNumber(inputString("ë°°ì¹˜ ë²ˆí˜¸: "));
+    w.setExportTarget(inputString("ì¶œê³  ëŒ€ìƒ: "));
+    w.setOakId(inputString("ì˜¤í¬í†µ ID: "));
+    w.setShipmentDate(inputString("ì¶œê³  ì¼ì (YYYY-MM-DD): "));
+    w.setSerialNumber(inputString("ì œì¡° ë²ˆí˜¸: "));
+    w.setBottlingManager(inputString("ë³‘ì… ë‹´ë‹¹ì: "));
+    w.setBottleCount(inputInt("ìˆ˜ëŸ‰(ë³‘): "));
+    w.setTotalVolume(inputDouble("ì´ ìš©ëŸ‰(ml): "));
+    w.setPricePerBottle(inputDouble("ë³‘ë‹¹ ê°€ê²©: "));
+    w.setLabeled(inputInt("ë¼ë²¨ ë¶€ì°© ì—¬ë¶€ (1: O, 0: X): ") == 1);
 
     inventory.push_back(w);
     saveInventoryToCSV(BOTTLED_CSV);
-    cout << "Á¦Ç°ÀÌ Ãß°¡µÇ¾ú½À´Ï´Ù.\n";
+    cout << "ì œí’ˆì´ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤.\n";
     UIUtils::pauseConsole();
 }
 
-// Á¦Ç° Á¤º¸ ¼öÁ¤
+// ì œí’ˆ ì •ë³´ ìˆ˜ì •
 void BottledWhiskyManager::updateWhisky() {
-    string name = inputString("¼öÁ¤ÇÒ Á¦Ç°¸í ÀÔ·Â: ");
+    string name = inputString("ìˆ˜ì •í•  ì œí’ˆëª… ì…ë ¥: ");
     for (auto& w : inventory) {
         if (w.getName() == name) {
-            cout << "=== Á¦Ç° Á¤º¸ ¼öÁ¤ ===\n";
-            w.setName(inputString("Á¦Ç°¸í (" + w.getName() + "): "));
-            w.setLabelName(inputString("¶óº§¸í (" + w.getLabelName() + "): "));
-            w.setBatchNumber(inputString("¹èÄ¡ ¹øÈ£ (" + w.getBatchNumber() + "): "));
-            w.setExportTarget(inputString("Ãâ°í ´ë»ó (" + w.getExportTarget() + "): "));
-            w.setBottleCount(inputInt("¼ö·®(º´) (" + to_string(w.getBottleCount()) + "): "));
-            w.setTotalVolume(inputDouble("ÃÑ ¿ë·®(ml) (" + to_string(w.getTotalVolume()) + "): "));
-            w.setPricePerBottle(inputDouble("º´´ç °¡°İ (" + to_string(w.getPricePerBottle()) + "): "));
-            w.setLabeled(inputInt("¶óº§ ºÎÂø ¿©ºÎ (" + string(w.isLabeled() ? "1" : "0") + "): ") == 1);
-            w.setOakId(inputString("¿ÀÅ©Åë ID (" + w.getOakId() + "): "));
-            w.setShipmentDate(inputString("Ãâ°í ÀÏÀÚ (" + w.getShipmentDate() + "): "));
-            w.setSerialNumber(inputString("Á¦Á¶ ¹øÈ£ (" + w.getSerialNumber() + "): "));
-            w.setBottlingManager(inputString("º´ÀÔ ´ã´çÀÚ (" + w.getBottlingManager() + "): "));
-            w.setProductId(inputString("Á¦Ç° ID (" + w.getProductId() + "): "));
+            cout << "=== ì œí’ˆ ì •ë³´ ìˆ˜ì • ===\n";
+            w.setName(inputString("ì œí’ˆëª… (" + w.getName() + "): "));
+            w.setLabelName(inputString("ë¼ë²¨ëª… (" + w.getLabelName() + "): "));
+            w.setBatchNumber(inputString("ë°°ì¹˜ ë²ˆí˜¸ (" + w.getBatchNumber() + "): "));
+            w.setExportTarget(inputString("ì¶œê³  ëŒ€ìƒ (" + w.getExportTarget() + "): "));
+            w.setBottleCount(inputInt("ìˆ˜ëŸ‰(ë³‘) (" + to_string(w.getBottleCount()) + "): "));
+            w.setTotalVolume(inputDouble("ì´ ìš©ëŸ‰(ml) (" + to_string(w.getTotalVolume()) + "): "));
+            w.setPricePerBottle(inputDouble("ë³‘ë‹¹ ê°€ê²© (" + to_string(w.getPricePerBottle()) + "): "));
+            w.setLabeled(inputInt("ë¼ë²¨ ë¶€ì°© ì—¬ë¶€ (" + string(w.isLabeled() ? "1" : "0") + "): ") == 1);
+            w.setOakId(inputString("ì˜¤í¬í†µ ID (" + w.getOakId() + "): "));
+            w.setShipmentDate(inputString("ì¶œê³  ì¼ì (" + w.getShipmentDate() + "): "));
+            w.setSerialNumber(inputString("ì œì¡° ë²ˆí˜¸ (" + w.getSerialNumber() + "): "));
+            w.setBottlingManager(inputString("ë³‘ì… ë‹´ë‹¹ì (" + w.getBottlingManager() + "): "));
+            w.setProductId(inputString("ì œí’ˆ ID (" + w.getProductId() + "): "));
             saveInventoryToCSV(BOTTLED_CSV);
-            cout << "¼öÁ¤ ¿Ï·á.\n";
+            cout << "ìˆ˜ì • ì™„ë£Œ.\n";
             UIUtils::pauseConsole();
             return;
         }
     }
-    cout << "ÇØ´ç Á¦Ç°À» Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+    cout << "í•´ë‹¹ ì œí’ˆì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
     UIUtils::pauseConsole();
 }
 
-// Á¦Ç° »èÁ¦
+// ì œí’ˆ ì‚­ì œ
 void BottledWhiskyManager::deleteWhisky() {
-    string name = inputString("»èÁ¦ÇÒ Á¦Ç°¸í ÀÔ·Â: ");
+    string name = inputString("ì‚­ì œí•  ì œí’ˆëª… ì…ë ¥: ");
     auto it = remove_if(inventory.begin(), inventory.end(), [&](const BottledWhisky& w) { return w.getName() == name; });
     if (it != inventory.end()) {
         inventory.erase(it, inventory.end());
         saveInventoryToCSV(BOTTLED_CSV);
-        cout << "»èÁ¦µÇ¾ú½À´Ï´Ù.\n";
+        cout << "ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.\n";
     } else {
-        cout << "ÇØ´ç Á¦Ç°À» Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+        cout << "í•´ë‹¹ ì œí’ˆì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
     }
     UIUtils::pauseConsole();
 }
 
-// Ãâ°í ±â·Ï »ı¼º ¹× Àç°í °¨¼Ò
+// ì¶œê³  ê¸°ë¡ ìƒì„± ë° ì¬ê³  ê°ì†Œ
 void BottledWhiskyManager::shipWhisky() {
-    string name = inputString("Ãâ°íÇÒ Á¦Ç°¸í: ");
-    int qty = inputInt("Ãâ°í ¼ö·®(º´): ");
-    string date = inputString("Ãâ°í ³¯Â¥ (YYYY-MM-DD): ");
+    string name = inputString("ì¶œê³ í•  ì œí’ˆëª…: ");
+    int qty = inputInt("ì¶œê³  ìˆ˜ëŸ‰(ë³‘): ");
+    string date = inputString("ì¶œê³  ë‚ ì§œ (YYYY-MM-DD): ");
 
     for (auto& whisky : inventory) {
         if (whisky.getName() == name) {
             if (qty > whisky.getBottleCount()) {
-                cout << "Ãâ°í ¼ö·®ÀÌ Àç°íº¸´Ù ¸¹½À´Ï´Ù.\n";
+                cout << "ì¶œê³  ìˆ˜ëŸ‰ì´ ì¬ê³ ë³´ë‹¤ ë§ìŠµë‹ˆë‹¤.\n";
                 UIUtils::pauseConsole();
                 return;
             }
@@ -341,22 +344,22 @@ void BottledWhiskyManager::shipWhisky() {
             whisky.decreaseStock(qty);
 
             saveInventoryToCSV(BOTTLED_CSV);
-            cout << "Ãâ°í ±â·ÏÀÌ µî·ÏµÇ¾ú½À´Ï´Ù.\n";
+            cout << "ì¶œê³  ê¸°ë¡ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.\n";
             UIUtils::pauseConsole();
             return;
         }
     }
-    cout << "ÇØ´ç Á¦Ç°À» Ã£À» ¼ö ¾ø½À´Ï´Ù.\n";
+    cout << "í•´ë‹¹ ì œí’ˆì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n";
     UIUtils::pauseConsole();
 }
 
-// Ãâ°í ±â·Ï Ãâ·Â
+// ì¶œê³  ê¸°ë¡ ì¶œë ¥
 void BottledWhiskyManager::showShipmentLog() {
     if (shipmentLog.empty()) {
-        cout << "Ãâ°í ±â·ÏÀÌ ¾ø½À´Ï´Ù.\n";
+        cout << "ì¶œê³  ê¸°ë¡ì´ ì—†ìŠµë‹ˆë‹¤.\n";
         return;
     }
-    cout << "\n[Ãâ°í ±â·Ï ¸ñ·Ï]\n";
+    cout << "\n[ì¶œê³  ê¸°ë¡ ëª©ë¡]\n";
     for (const auto& record : shipmentLog) {
         record.ShowInfo();
         cout << "-----------------------------\n";
@@ -364,9 +367,9 @@ void BottledWhiskyManager::showShipmentLog() {
     UIUtils::pauseConsole();
 }
 
-// ----------------------------- [6] ¸ŞÀÎ ¸Ş´º ·çÇÁ -----------------------------
+// ----------------------------- [6] ë©”ì¸ ë©”ë‰´ ë£¨í”„ -----------------------------
 
-// º´ÀÔ À§½ºÅ° °ü¸® ¸ŞÀÎ ¸Ş´º (·¹½ÃÇÇ ¿¬µ¿ Æ÷ÇÔ)
+// ë³‘ì… ìœ„ìŠ¤í‚¤ ê´€ë¦¬ ë©”ì¸ ë©”ë‰´ (ë ˆì‹œí”¼ ì—°ë™ í¬í•¨)
 void BottledWhiskyManager::showBottledWhiskyPage() {
     loadInventoryFromCSV(BOTTLED_CSV);
 
@@ -378,19 +381,19 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
         system("cls");
         vector<string> infoLines = getPageInfoLines();
         vector<string> menu = {
-            "[1] Àç°í ¸ñ·Ï º¸±â",
-            "[2] Á¦Ç° Ãß°¡",
-            "[3] Á¦Ç° Ãâ°í",
-            "[4] Ãâ°í ±â·Ï º¸±â",
-            "[5] ¿ÏÁ¦Ç° ¼öÁ¤",
-            "[6] ¿ÏÁ¦Ç° »èÁ¦",
-            "[7] CSV·Î ÀúÀå",
-            "[8] ·¹½ÃÇÇ ±â¹İ º´ÀÔ »ı»ê",
-            "[9] ESP32 µ¥ÀÌÅÍ ¼ö½Å",
-            "[0] ¸ŞÀÎ ¸Ş´º·Î µ¹¾Æ°¡±â"
+            "[1] ì¬ê³  ëª©ë¡ ë³´ê¸°",
+            "[2] ì œí’ˆ ì¶”ê°€",
+            "[3] ì œí’ˆ ì¶œê³ ",
+            "[4] ì¶œê³  ê¸°ë¡ ë³´ê¸°",
+            "[5] ì™„ì œí’ˆ ìˆ˜ì •",
+            "[6] ì™„ì œí’ˆ ì‚­ì œ",
+            "[7] CSVë¡œ ì €ì¥",
+            "[8] ë ˆì‹œí”¼ ê¸°ë°˜ ë³‘ì… ìƒì‚°",
+            "[9] ESP32 ë°ì´í„° ìˆ˜ì‹ ",
+            "[0] ë©”ì¸ ë©”ë‰´ë¡œ ëŒì•„ê°€ê¸°"
         };
         UIUtils::drawDashboard(infoLines, menu, 72, 30);
-        cout << "\nÀÔ·Â >> ";
+        cout << "\nì…ë ¥ >> ";
         cin >> choice;
         cin.ignore();
 
@@ -404,20 +407,20 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
         case 7: exportInventoryToCSV(BOTTLED_CSV); break;
         case 8: produceBottledByRecipe(recipeMgr); break;
         case 9: receiveWhiskyFromESP32(); break;
-        case 0: cout << "¸ŞÀÎ ¸Ş´º·Î µ¹¾Æ°©´Ï´Ù...\n"; break;
-        default: cout << "Àß¸øµÈ ÀÔ·ÂÀÔ´Ï´Ù.\n"; break;
+        case 0: cout << "ë©”ì¸ ë©”ë‰´ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤...\n"; break;
+        default: cout << "ì˜ëª»ëœ ì…ë ¥ì…ë‹ˆë‹¤.\n"; break;
         }
 
         if (choice != 0) {
-            cout << "\n°è¼ÓÇÏ·Á¸é Enter¸¦ ´©¸£¼¼¿ä...";
+            cout << "\nê³„ì†í•˜ë ¤ë©´ Enterë¥¼ ëˆ„ë¥´ì„¸ìš”...";
             cin.get();
         }
     } while (choice != 0);
 }
 
-// ----------------------------- [7] ESP32 ¿¬µ¿ ¹× È¯°æ ¼¾¼­ ¼ö½Å -----------------------------
+// ----------------------------- [7] ESP32 ì—°ë™ ë° í™˜ê²½ ì„¼ì„œ ìˆ˜ì‹  -----------------------------
 
-// ESP32·ÎºÎÅÍ º´ÀÔ À§½ºÅ° µ¥ÀÌÅÍ(TCP) ¼ö½Å ¹× µî·Ï
+// ESP32ë¡œë¶€í„° ë³‘ì… ìœ„ìŠ¤í‚¤ ë°ì´í„°(TCP) ìˆ˜ì‹  ë° ë“±ë¡
 void BottledWhiskyManager::receiveWhiskyFromESP32() {
     WSADATA wsaData;
     SOCKET serverSocket, clientSocket;
@@ -425,34 +428,34 @@ void BottledWhiskyManager::receiveWhiskyFromESP32() {
     int clientSize = sizeof(clientAddr);
 
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        cout << "WSAStartup ½ÇÆĞ" << endl;
+        cout << "WSAStartup ì‹¤íŒ¨" << endl;
         return;
     }
 
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == INVALID_SOCKET) {
-        cout << "¼ÒÄÏ »ı¼º ½ÇÆĞ" << endl;
+        cout << "ì†Œì¼“ ìƒì„± ì‹¤íŒ¨" << endl;
         WSACleanup();
         return;
     }
 
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(5001); // BottledWhisky Àü¿ë Æ÷Æ®
+    serverAddr.sin_port = htons(5001); // BottledWhisky ì „ìš© í¬íŠ¸
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(serverSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        cout << "bind ½ÇÆĞ" << endl;
+        cout << "bind ì‹¤íŒ¨" << endl;
         closesocket(serverSocket);
         WSACleanup();
         return;
     }
 
     listen(serverSocket, 1);
-    cout << "[TCP ¼­¹ö] ESP32 ¿¬°á ´ë±â Áß...\n";
+    cout << "[TCP ì„œë²„] ESP32 ì—°ê²° ëŒ€ê¸° ì¤‘...\n";
 
     clientSocket = accept(serverSocket, (SOCKADDR*)&clientAddr, &clientSize);
     if (clientSocket == INVALID_SOCKET) {
-        cout << "accept ½ÇÆĞ" << endl;
+        cout << "accept ì‹¤íŒ¨" << endl;
         closesocket(serverSocket);
         WSACleanup();
         return;
@@ -463,7 +466,7 @@ void BottledWhiskyManager::receiveWhiskyFromESP32() {
 
     if (bytesReceived > 0) {
         string data(buffer);
-        cout << "[¼ö½Å µ¥ÀÌÅÍ] " << data << endl;
+        cout << "[ìˆ˜ì‹  ë°ì´í„°] " << data << endl;
 
         istringstream ss(data);
         string token;
@@ -490,11 +493,11 @@ void BottledWhiskyManager::receiveWhiskyFromESP32() {
             whisky.setLabeled(fields[12] == "1" || fields[12] == "Yes");
 
             inventory.push_back(whisky);
-            cout << "º´ÀÔ À§½ºÅ° ÀúÀå ¿Ï·á!\n";
+            cout << "ë³‘ì… ìœ„ìŠ¤í‚¤ ì €ì¥ ì™„ë£Œ!\n";
             saveInventoryToCSV(BOTTLED_CSV);
         }
         else {
-            cout << "ÇÊµå ¼ö ¿À·ù: " << fields.size() << "°³" << endl;
+            cout << "í•„ë“œ ìˆ˜ ì˜¤ë¥˜: " << fields.size() << "ê°œ" << endl;
         }
     }
 

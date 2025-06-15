@@ -5,19 +5,21 @@
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include "EncodingUtils.h"
 
 using namespace std;
 
-// CSVø°º≠ ∑πΩ√«« ∏Ò∑œ ∫“∑Øø¿±‚
+// CSVÏóêÏÑú Î†àÏãúÌîº Î™©Î°ù Î∂àÎü¨Ïò§Í∏∞
 void RecipeManager::loadRecipesFromCSV(const string& filename) {
     recipes.clear();
     ifstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
-        cout << "[∞Ê∞Ì] ∑πΩ√«« CSV ∆ƒ¿œ¿ª ø≠ ºˆ æ¯Ω¿¥œ¥Ÿ: " << filename << endl;
+        cout << "[Í≤ΩÍ≥†] Î†àÏãúÌîº CSV ÌååÏùºÏùÑ Ïó¥ Ïàò ÏóÜÏäµÎãàÎã§: " << filename << endl;
         return;
     }
     string line;
-    getline(file, line); // «Ï¥ı Ω∫≈µ
+    getline(file, line); // Ìó§Îçî Ïä§ÌÇµ
     while (getline(file, line)) {
         if (line.empty()) continue;
         recipes.push_back(Recipe::fromCSV(line));
@@ -25,14 +27,15 @@ void RecipeManager::loadRecipesFromCSV(const string& filename) {
     file.close();
 }
 
-// ∑πΩ√«« ∏Ò∑œ¿ª CSV∑Œ ¿˙¿Â
+// Î†àÏãúÌîº Î™©Î°ùÏùÑ CSVÎ°ú Ï†ÄÏû•
 void RecipeManager::saveRecipesToCSV(const string& filename) {
     ofstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
-        cout << "[ø¿∑˘] ∑πΩ√«« CSV ¿˙¿Â Ω«∆–: " << filename << endl;
+        cout << "[Ïò§Î•ò] Î†àÏãúÌîº CSV Ï†ÄÏû• Ïã§Ìå®: " << filename << endl;
         return;
     }
-    // «Ï¥ı
+    // Ìó§Îçî
     file << "ID,Name,RawMaterialRatio,YeastType,FermentationTemp,FermentationHours,DistillationABV,DistillationCount,OakType,AgingMonths,BottledName,BottleCount,BottleVolume,BottlePrice\n";
     for (const auto& r : recipes) {
         file << r.toCSV() << "\n";
@@ -40,19 +43,19 @@ void RecipeManager::saveRecipesToCSV(const string& filename) {
     file.close();
 }
 
-// ∑πΩ√«« ∏Ò∑œ √‚∑¬
+// Î†àÏãúÌîº Î™©Î°ù Ï∂úÎ†•
 void RecipeManager::listRecipes() const {
-    cout << "\n=== µÓ∑œµ» ∑πΩ√«« ∏Ò∑œ ===\n";
+    cout << "\n=== Îì±Î°ùÎêú Î†àÏãúÌîº Î™©Î°ù ===\n";
     if (recipes.empty()) {
-        cout << "µÓ∑œµ» ∑πΩ√««∞° æ¯Ω¿¥œ¥Ÿ.\n";
+        cout << "Îì±Î°ùÎêú Î†àÏãúÌîºÍ∞Ä ÏóÜÏäµÎãàÎã§.\n";
         return;
     }
     for (const auto& r : recipes) {
-        cout << "ID: " << r.recipeId << " | ¿Ã∏ß: " << r.name << "\n";
+        cout << "ID: " << r.recipeId << " | Ïù¥Î¶Ñ: " << r.name << "\n";
     }
 }
 
-// ID∑Œ ∑πΩ√«« √£±‚
+// IDÎ°ú Î†àÏãúÌîº Ï∞æÍ∏∞
 bool RecipeManager::getRecipeById(const string& id, Recipe& out) const {
     for (const auto& r : recipes) {
         if (r.recipeId == id) {
@@ -63,17 +66,17 @@ bool RecipeManager::getRecipeById(const string& id, Recipe& out) const {
     return false;
 }
 
-// ∑πΩ√«« √ﬂ∞°
+// Î†àÏãúÌîº Ï∂îÍ∞Ä
 void RecipeManager::addRecipe() {
     cin.ignore();
     Recipe r;
-    cout << "\n=== ∑πΩ√«« √ﬂ∞° ===\n";
+    cout << "\n=== Î†àÏãúÌîº Ï∂îÍ∞Ä ===\n";
     cout << "ID: "; getline(cin, r.recipeId);
-    if (r.recipeId.empty()) { cout << "ID¥¬ « ºˆ¿‘¥œ¥Ÿ.\n"; return; }
-    cout << "¿Ã∏ß: "; getline(cin, r.name);
+    if (r.recipeId.empty()) { cout << "IDÎäî ÌïÑÏàòÏûÖÎãàÎã§.\n"; return; }
+    cout << "Ïù¥Î¶Ñ: "; getline(cin, r.name);
 
-    // ø¯¿Á∑· ∫Ò¿≤ ¿‘∑¬
-    cout << "ø¯¿Á∑· ∫Ò¿≤ ¿‘∑¬ (øπ: ∫∏∏Æ:60;»£π–:10;π∞:30): ";
+    // ÏõêÏû¨Î£å ÎπÑÏú® ÏûÖÎ†•
+    cout << "ÏõêÏû¨Î£å ÎπÑÏú® ÏûÖÎ†• (Ïòà: Î≥¥Î¶¨:60;Ìò∏Î∞Ä:10;Î¨º:30): ";
     string ratioStr; getline(cin, ratioStr);
     istringstream iss(ratioStr);
     string token;
@@ -88,170 +91,170 @@ void RecipeManager::addRecipe() {
         }
     }
     if (abs(sum - 100.0) > 1e-3) {
-        cout << "ø¯¿Á∑· ∫Ò¿≤¿« «’¿Ã 100%∞° æ∆¥’¥œ¥Ÿ.\n";
+        cout << "ÏõêÏû¨Î£å ÎπÑÏú®Ïùò Ìï©Ïù¥ 100%Í∞Ä ÏïÑÎãôÎãàÎã§.\n";
         return;
     }
 
-    cout << "»ø∏: "; getline(cin, r.yeastType);
-    cout << "πﬂ»ø ø¬µµ(°…): "; cin >> r.fermentationTemp; cin.ignore();
-    cout << "πﬂ»ø Ω√∞£(Ω√∞£): "; cin >> r.fermentationHours; cin.ignore();
-    cout << "¡ı∑˘ µµºˆ(%): "; cin >> r.distillationABV; cin.ignore();
-    cout << "¡ı∑˘ »Ωºˆ: "; cin >> r.distillationCount; cin.ignore();
-    cout << "ø¿≈©≈Î ¡æ∑˘: "; getline(cin, r.oakType);
-    cout << "º˜º∫ ±‚∞£(ø˘): "; cin >> r.agingMonths; cin.ignore();
-    cout << "∫¥¿‘ ¡¶«∞∏Ì: "; getline(cin, r.bottledName);
-    cout << "∫¥ ºˆ∑Æ: "; cin >> r.bottleCount; cin.ignore();
-    cout << "∫¥¥Á øÎ∑Æ(ml): "; cin >> r.bottleVolume; cin.ignore();
-    cout << "∫¥¥Á ∞°∞›: "; cin >> r.bottlePrice; cin.ignore();
+    cout << "Ìö®Î™®: "; getline(cin, r.yeastType);
+    cout << "Î∞úÌö® Ïò®ÎèÑ(‚ÑÉ): "; cin >> r.fermentationTemp; cin.ignore();
+    cout << "Î∞úÌö® ÏãúÍ∞Ñ(ÏãúÍ∞Ñ): "; cin >> r.fermentationHours; cin.ignore();
+    cout << "Ï¶ùÎ•ò ÎèÑÏàò(%): "; cin >> r.distillationABV; cin.ignore();
+    cout << "Ï¶ùÎ•ò ÌöüÏàò: "; cin >> r.distillationCount; cin.ignore();
+    cout << "Ïò§ÌÅ¨ÌÜµ Ï¢ÖÎ•ò: "; getline(cin, r.oakType);
+    cout << "ÏàôÏÑ± Í∏∞Í∞Ñ(Ïõî): "; cin >> r.agingMonths; cin.ignore();
+    cout << "Î≥ëÏûÖ Ï†úÌíàÎ™Ö: "; getline(cin, r.bottledName);
+    cout << "Î≥ë ÏàòÎüâ: "; cin >> r.bottleCount; cin.ignore();
+    cout << "Î≥ëÎãπ Ïö©Îüâ(ml): "; cin >> r.bottleVolume; cin.ignore();
+    cout << "Î≥ëÎãπ Í∞ÄÍ≤©: "; cin >> r.bottlePrice; cin.ignore();
 
     recipes.push_back(r);
     saveRecipesToCSV("recipe_list.csv");
-    cout << "∑πΩ√««∞° √ﬂ∞°µ«æ˙Ω¿¥œ¥Ÿ.\n";
+    cout << "Î†àÏãúÌîºÍ∞Ä Ï∂îÍ∞ÄÎêòÏóàÏäµÎãàÎã§.\n";
 }
 
-// ∑πΩ√«« ºˆ¡§
+// Î†àÏãúÌîº ÏàòÏ†ï
 void RecipeManager::updateRecipe() {
     cin.ignore();
-    cout << "\nºˆ¡§«“ ∑πΩ√«« ID ¿‘∑¬: ";
+    cout << "\nÏàòÏ†ïÌï† Î†àÏãúÌîº ID ÏûÖÎ†•: ";
     string id; getline(cin, id);
     for (auto& r : recipes) {
         if (r.recipeId == id) {
-            cout << "ªı ¿Ã∏ß(" << r.name << "): ";
+            cout << "ÏÉà Ïù¥Î¶Ñ(" << r.name << "): ";
             string name; getline(cin, name);
             if (!name.empty()) r.name = name;
-            // (« ø‰Ω√ ≥™∏”¡ˆ « µÂµµ ºˆ¡§ ¿‘∑¬)
+            // (ÌïÑÏöîÏãú ÎÇòÎ®∏ÏßÄ ÌïÑÎìúÎèÑ ÏàòÏ†ï ÏûÖÎ†•)
             saveRecipesToCSV("recipe_list.csv");
-            cout << "ºˆ¡§ øœ∑·.\n";
+            cout << "ÏàòÏ†ï ÏôÑÎ£å.\n";
             return;
         }
     }
-    cout << "«ÿ¥Á ID¿« ∑πΩ√««∏¶ √£¿ª ºˆ æ¯Ω¿¥œ¥Ÿ.\n";
+    cout << "Ìï¥Îãπ IDÏùò Î†àÏãúÌîºÎ•º Ï∞æÏùÑ Ïàò ÏóÜÏäµÎãàÎã§.\n";
 }
 
-// ∑πΩ√«« ªË¡¶
+// Î†àÏãúÌîº ÏÇ≠Ï†ú
 void RecipeManager::deleteRecipe() {
     cin.ignore();
-    cout << "\nªË¡¶«“ ∑πΩ√«« ID ¿‘∑¬: ";
+    cout << "\nÏÇ≠Ï†úÌï† Î†àÏãúÌîº ID ÏûÖÎ†•: ";
     string id; getline(cin, id);
     auto it = remove_if(recipes.begin(), recipes.end(), [&](const Recipe& r) { return r.recipeId == id; });
     if (it != recipes.end()) {
         recipes.erase(it, recipes.end());
         saveRecipesToCSV("recipe_list.csv");
-        cout << "ªË¡¶ øœ∑·.\n";
+        cout << "ÏÇ≠Ï†ú ÏôÑÎ£å.\n";
     } else {
-        cout << "«ÿ¥Á ID¿« ∑πΩ√««∏¶ √£¿ª ºˆ æ¯Ω¿¥œ¥Ÿ.\n";
+        cout << "Ìï¥Îãπ IDÏùò Î†àÏãúÌîºÎ•º Ï∞æÏùÑ Ïàò ÏóÜÏäµÎãàÎã§.\n";
     }
 }
 
-// ∑πΩ√«« ∞Àªˆ
+// Î†àÏãúÌîº Í≤ÄÏÉâ
 void RecipeManager::searchRecipe() const {
     cin.ignore();
-    cout << "\n∞Àªˆ«“ ∑πΩ√«« ¿Ã∏ß ¿‘∑¬: ";
+    cout << "\nÍ≤ÄÏÉâÌï† Î†àÏãúÌîº Ïù¥Î¶Ñ ÏûÖÎ†•: ";
     string name; getline(cin, name);
     bool found = false;
     for (const auto& r : recipes) {
         if (r.name.find(name) != string::npos) {
-            cout << "ID: " << r.recipeId << " | ¿Ã∏ß: " << r.name << "\n";
+            cout << "ID: " << r.recipeId << " | Ïù¥Î¶Ñ: " << r.name << "\n";
             found = true;
         }
     }
-    if (!found) cout << "∞Àªˆ ∞·∞˙∞° æ¯Ω¿¥œ¥Ÿ.\n";
+    if (!found) cout << "Í≤ÄÏÉâ Í≤∞Í≥ºÍ∞Ä ÏóÜÏäµÎãàÎã§.\n";
 }
 
-// Ω«¡¶ ∞¯¡§ Ω««‡ π◊ √ﬂ¿˚
+// Ïã§Ï†ú Í≥µÏ†ï Ïã§Ìñâ Î∞è Ï∂îÏ†Å
 void RecipeManager::runRecipeProcess(const std::string& recipeId, RawMaterialManager& rawMgr) {
     Recipe recipe;
     if (!getRecipeById(recipeId, recipe)) {
-        cout << "«ÿ¥Á ID¿« ∑πΩ√««∏¶ √£¿ª ºˆ æ¯Ω¿¥œ¥Ÿ.\n";
+        cout << "Ìï¥Îãπ IDÏùò Î†àÏãúÌîºÎ•º Ï∞æÏùÑ Ïàò ÏóÜÏäµÎãàÎã§.\n";
         return;
     }
 
     double batchSize;
-    cout << "ª˝ªÍ«“ πËƒ°∑Æ(kg): ";
+    cout << "ÏÉùÏÇ∞Ìï† Î∞∞ÏπòÎüâ(kg): ";
     if (!(cin >> batchSize) || batchSize <= 0) {
-        cout << "¿Ø»ø«— πËƒ°∑Æ¿ª ¿‘∑¬«œººø‰.\n";
+        cout << "Ïú†Ìö®Ìïú Î∞∞ÏπòÎüâÏùÑ ÏûÖÎ†•ÌïòÏÑ∏Ïöî.\n";
         cin.clear(); cin.ignore(1000, '\n');
         return;
     }
     cin.ignore();
 
-    // 1. ø¯¿Á∑· ∞À¡ı π◊ πËƒ° ª˝ªÍ
+    // 1. ÏõêÏû¨Î£å Í≤ÄÏ¶ù Î∞è Î∞∞Ïπò ÏÉùÏÇ∞
     if (!recipe.validateRawMaterialStock(rawMgr, batchSize)) {
-        cout << "¿Á∞Ì∞° ∫Œ¡∑«œø© πËƒ° ª˝ªÍ¿Ã ∫“∞°«’¥œ¥Ÿ.\n";
+        cout << "Ïû¨Í≥†Í∞Ä Î∂ÄÏ°±ÌïòÏó¨ Î∞∞Ïπò ÏÉùÏÇ∞Ïù¥ Î∂àÍ∞ÄÌï©ÎãàÎã§.\n";
         return;
     }
     recipe.produceBatch(rawMgr, batchSize);
     rawMgr.saveMaterialsToCSV("rawmaterial_dummy.csv");
 
-    // 2. ¡ı∑˘ (ºˆ¿≤/∫–»π∫Ò¿≤ ¿‘∑¬)
+    // 2. Ï¶ùÎ•ò (ÏàòÏú®/Î∂ÑÌöçÎπÑÏú® ÏûÖÎ†•)
     double yieldRate = 0.8, headPct = 10, tailPct = 10;
-    cout << "¡ı∑˘ ºˆ¿≤(0~1, ±‚∫ª 0.8): ";
+    cout << "Ï¶ùÎ•ò ÏàòÏú®(0~1, Í∏∞Î≥∏ 0.8): ";
     if (!(cin >> yieldRate) || yieldRate <= 0 || yieldRate > 1) {
-        cout << "±‚∫ª∞™ 0.8 ªÁøÎ\n"; yieldRate = 0.8;
+        cout << "Í∏∞Î≥∏Í∞í 0.8 ÏÇ¨Ïö©\n"; yieldRate = 0.8;
         cin.clear(); cin.ignore(1000, '\n');
     }
-    cout << "Head ∫Ò¿≤(%): ";
+    cout << "Head ÎπÑÏú®(%): ";
     if (!(cin >> headPct) || headPct < 0 || headPct > 100) {
-        cout << "±‚∫ª∞™ 10 ªÁøÎ\n"; headPct = 10;
+        cout << "Í∏∞Î≥∏Í∞í 10 ÏÇ¨Ïö©\n"; headPct = 10;
         cin.clear(); cin.ignore(1000, '\n');
     }
-    cout << "Tail ∫Ò¿≤(%): ";
+    cout << "Tail ÎπÑÏú®(%): ";
     if (!(cin >> tailPct) || tailPct < 0 || tailPct > 100) {
-        cout << "±‚∫ª∞™ 10 ªÁøÎ\n"; tailPct = 10;
+        cout << "Í∏∞Î≥∏Í∞í 10 ÏÇ¨Ïö©\n"; tailPct = 10;
         cin.clear(); cin.ignore(1000, '\n');
     }
     cin.ignore();
     recipe.distillBatch(yieldRate, headPct, tailPct);
 
-    // 3. º˜º∫ (¡ıπﬂ∑¸ ¿‘∑¬)
+    // 3. ÏàôÏÑ± (Ï¶ùÎ∞úÎ•† ÏûÖÎ†•)
     double evaporationRate = 2.5;
-    cout << "º˜º∫ ¡ıπﬂ∑¸(%): ";
+    cout << "ÏàôÏÑ± Ï¶ùÎ∞úÎ•†(%): ";
     if (!(cin >> evaporationRate) || evaporationRate < 0) {
-        cout << "±‚∫ª∞™ 2.5 ªÁøÎ\n"; evaporationRate = 2.5;
+        cout << "Í∏∞Î≥∏Í∞í 2.5 ÏÇ¨Ïö©\n"; evaporationRate = 2.5;
         cin.clear(); cin.ignore(1000, '\n');
     }
     cin.ignore();
     recipe.ageSpirit(evaporationRate);
 
-    // 4. ∫¥¿‘ (∫¥ ºˆ/øÎ∑Æ ¿‘∑¬)
-    cout << "∫¥ ºˆ: ";
+    // 4. Î≥ëÏûÖ (Î≥ë Ïàò/Ïö©Îüâ ÏûÖÎ†•)
+    cout << "Î≥ë Ïàò: ";
     if (!(cin >> recipe.bottleCount) || recipe.bottleCount <= 0) {
-        cout << "¿Ø»ø«— ∫¥ ºˆ∏¶ ¿‘∑¬«œººø‰.\n";
+        cout << "Ïú†Ìö®Ìïú Î≥ë ÏàòÎ•º ÏûÖÎ†•ÌïòÏÑ∏Ïöî.\n";
         cin.clear(); cin.ignore(1000, '\n');
         return;
     }
-    cout << "∫¥¥Á øÎ∑Æ(ml): ";
+    cout << "Î≥ëÎãπ Ïö©Îüâ(ml): ";
     if (!(cin >> recipe.bottleVolume) || recipe.bottleVolume <= 0) {
-        cout << "¿Ø»ø«— ∫¥¥Á øÎ∑Æ¿ª ¿‘∑¬«œººø‰.\n";
+        cout << "Ïú†Ìö®Ìïú Î≥ëÎãπ Ïö©ÎüâÏùÑ ÏûÖÎ†•ÌïòÏÑ∏Ïöî.\n";
         cin.clear(); cin.ignore(1000, '\n');
         return;
     }
     cin.ignore();
     recipe.bottleProduct();
 
-    // 5. ¿¸√º ∞¯¡§ ∑Œ±◊ √‚∑¬
+    // 5. Ï†ÑÏ≤¥ Í≥µÏ†ï Î°úÍ∑∏ Ï∂úÎ†•
     showRecipeProcessLog(recipe);
 
-    // 6. (º±≈√) ∞¯¡§ ∞·∞˙∏¶ CSV∑Œ ¿˙¿Â
+    // 6. (ÏÑ†ÌÉù) Í≥µÏ†ï Í≤∞Í≥ºÎ•º CSVÎ°ú Ï†ÄÏû•
     ofstream flog("last_recipe_process_log.txt");
     if (flog.is_open()) {
         for (const auto& line : recipe.getProcessLog()) {
             flog << line << "\n";
         }
         flog.close();
-        cout << "[last_recipe_process_log.txt] ∆ƒ¿œ∑Œ ∞¯¡§ ∑Œ±◊∞° ¿˙¿Âµ«æ˙Ω¿¥œ¥Ÿ.\n";
+        cout << "[last_recipe_process_log.txt] ÌååÏùºÎ°ú Í≥µÏ†ï Î°úÍ∑∏Í∞Ä Ï†ÄÏû•ÎêòÏóàÏäµÎãàÎã§.\n";
     }
 }
 
-// ¿¸√º ∞¯¡§ ∑Œ±◊ √‚∑¬
+// Ï†ÑÏ≤¥ Í≥µÏ†ï Î°úÍ∑∏ Ï∂úÎ†•
 void RecipeManager::showRecipeProcessLog(const Recipe& recipe) const {
-    cout << "\n=== ª˝ªÍ ∞¯¡§ ∑Œ±◊ ===\n";
+    cout << "\n=== ÏÉùÏÇ∞ Í≥µÏ†ï Î°úÍ∑∏ ===\n";
     for (const auto& line : recipe.getProcessLog()) {
         cout << line << "\n";
     }
 }
 
-// ∑πΩ√«« ∞¸∏Æ ∆‰¿Ã¡ˆ UI
+// Î†àÏãúÌîº Í¥ÄÎ¶¨ ÌéòÏù¥ÏßÄ UI
 void RecipeManager::showRecipePage() {
     loadRecipesFromCSV("recipe_list.csv");
     int choice;
@@ -260,12 +263,12 @@ void RecipeManager::showRecipePage() {
 
     do {
         system("cls");
-        cout << "=== ∑πΩ√«« ∞¸∏Æ ∏ﬁ¥∫ ===\n";
-        cout << "[1] ∑πΩ√«« ∏Ò∑œ\n[2] ∑πΩ√«« √ﬂ∞°\n[3] ∑πΩ√«« ºˆ¡§\n[4] ∑πΩ√«« ªË¡¶\n[5] ∑πΩ√«« ∞Àªˆ\n[6] ∑πΩ√«« ∞¯¡§ Ω««‡\n[0] ∏ﬁ¿Œ¿∏∑Œ\n";
-        cout << "¿‘∑¬ >> ";
+        cout << "=== Î†àÏãúÌîº Í¥ÄÎ¶¨ Î©îÎâ¥ ===\n";
+        cout << "[1] Î†àÏãúÌîº Î™©Î°ù\n[2] Î†àÏãúÌîº Ï∂îÍ∞Ä\n[3] Î†àÏãúÌîº ÏàòÏ†ï\n[4] Î†àÏãúÌîº ÏÇ≠Ï†ú\n[5] Î†àÏãúÌîº Í≤ÄÏÉâ\n[6] Î†àÏãúÌîº Í≥µÏ†ï Ïã§Ìñâ\n[0] Î©îÏù∏ÏúºÎ°ú\n";
+        cout << "ÏûÖÎ†• >> ";
         if (!(cin >> choice)) {
             cin.clear(); cin.ignore(1000, '\n');
-            cout << "º˝¿⁄∏¶ ¿‘∑¬«œººø‰.\n";
+            cout << "Ïà´ÏûêÎ•º ÏûÖÎ†•ÌïòÏÑ∏Ïöî.\n";
             continue;
         }
         cin.ignore();
@@ -276,14 +279,14 @@ void RecipeManager::showRecipePage() {
         case 4: deleteRecipe(); break;
         case 5: searchRecipe(); break;
         case 6: {
-            cout << "\n∞¯¡§¿ª Ω««‡«“ ∑πΩ√«« ID ¿‘∑¬: ";
+            cout << "\nÍ≥µÏ†ïÏùÑ Ïã§ÌñâÌï† Î†àÏãúÌîº ID ÏûÖÎ†•: ";
             string id; getline(cin, id);
             runRecipeProcess(id, rawMgr);
             break;
         }
-        case 0: cout << "∏ﬁ¿Œ¿∏∑Œ µπæ∆∞©¥œ¥Ÿ.\n"; break;
-        default: cout << "¿ﬂ∏¯µ» ¿‘∑¬¿‘¥œ¥Ÿ.\n"; break;
+        case 0: cout << "Î©îÏù∏ÏúºÎ°ú ÎèåÏïÑÍ∞ëÎãàÎã§.\n"; break;
+        default: cout << "ÏûòÎ™ªÎêú ÏûÖÎ†•ÏûÖÎãàÎã§.\n"; break;
         }
-        if (choice != 0) { cout << "\n∞Ëº”«œ∑¡∏È Enter..."; cin.get(); }
+        if (choice != 0) { cout << "\nÍ≥ÑÏÜçÌïòÎ†§Î©¥ Enter..."; cin.get(); }
     } while (choice != 0);
 }

@@ -4,6 +4,7 @@
 // -----------------------------------------------------------------------------
 
 #include "BatchManager.h"
+#include "EncodingUtils.h"
 #include "RecipeManager.h"
 #include "Recipe.h"
 #include "RawMaterialManager.h"
@@ -135,6 +136,7 @@ FermentationBatch FermentationBatch::fromCSV(const string& line) {
 void BatchManager::loadBatchesFromCSV(const string& filename) {
     batches.clear();
     ifstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
         cout << "[경고] 배치 CSV 파일을 열 수 없습니다: " << filename << endl;
         return;
@@ -151,6 +153,7 @@ void BatchManager::loadBatchesFromCSV(const string& filename) {
 // batches 벡터의 모든 배치 정보를 지정한 CSV 파일로 저장
 void BatchManager::saveBatchesToCSV(const string& filename) {
     ofstream file(filename);
+    applyCP949Locale(file);
     if (!file.is_open()) {
         cout << "[오류] 파일 저장 실패: " << filename << endl;
         return;
