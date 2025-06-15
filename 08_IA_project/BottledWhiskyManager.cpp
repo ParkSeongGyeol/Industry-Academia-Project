@@ -1,7 +1,11 @@
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
+
 #include "BottledWhiskyManager.h"
 #include "UIUtils.h"
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -407,6 +411,7 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
             "[5] 완제품 수정",
             "[6] 완제품 삭제",
             "[7] CSV로 저장",
+            "[8] ESP32에서 병입 데이터 수신",
             "[0] 메인 메뉴로 돌아가기"
         };
 
@@ -424,6 +429,7 @@ void BottledWhiskyManager::showBottledWhiskyPage() {
         case 5: updateWhisky(); break;
         case 6: deleteWhisky(); break;
         case 7: exportInventoryToCSV("bottled_inventory.csv"); break;
+        case 8: receiveWhiskyFromESP32(); break;
         case 0: cout << "메인 메뉴로 돌아갑니다...\n"; break;
         default: cout << "잘못된 입력입니다.\n"; break;
         }
@@ -467,4 +473,90 @@ void BottledWhiskyManager::exportInventoryToCSV(const string& filename) {
 
     file.close();
     cout << "[ " << filename << " ] 파일로 저장 완료!\n";
+}
+
+void BottledWhiskyManager::receiveWhiskyFromESP32() {
+    WSADATA wsaData;
+    SOCKET serverSocket, clientSocket;
+    SOCKADDR_IN serverAddr, clientAddr;
+    int clientSize = sizeof(clientAddr);
+
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        cout << "WSAStartup 실패" << endl;
+        return;
+    }
+
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == INVALID_SOCKET) {
+        cout << "소켓 생성 실패" << endl;
+        WSACleanup();
+        return;
+    }
+
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(5001);  // 포트번호 다르게 설정해줘 (OakAging과 겹치지 않게)
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(serverSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        cout << "bind 실패" << endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return;
+    }
+
+    listen(serverSocket, 1);
+    cout << "[TCP 서버] ESP32 연결 대기 중...\n";
+
+    clientSocket = accept(serverSocket, (SOCKADDR*)&clientAddr, &clientSize);
+    if (clientSocket == INVALID_SOCKET) {
+        cout << "accept 실패" << endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return;
+    }
+
+    char buffer[1024] = { 0 };
+    int bytesReceived = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+
+    if (bytesReceived > 0) {
+        string data(buffer);
+        cout << "[수신 데이터] " << data << endl;
+
+        istringstream ss(data);
+        string token;
+        vector<string> fields;
+
+        while (getline(ss, token, ',')) {
+            fields.push_back(token);
+        }
+
+        if (fields.size() == 13) {
+            BottledWhisky whisky;
+            whisky.setProductId(fields[0]);
+            whisky.setName(fields[1]);
+            whisky.setLabelName(fields[2]);
+            whisky.setBatchNumber(fields[3]);
+            whisky.setExportTarget(fields[4]);
+            whisky.setOakId(fields[5]);
+            whisky.setShipmentDate(fields[6]);
+            whisky.setSerialNumber(fields[7]);
+            whisky.setBottlingManager(fields[8]);
+            whisky.setBottleCount(stoi(fields[9]));
+            whisky.setTotalVolume(stod(fields[10]));
+            whisky.setPricePerBottle(stod(fields[11]));
+            whisky.setLabeled(fields[12] == "1" || fields[12] == "Yes");
+
+            inventory.push_back(whisky);
+            cout << "병입 위스키 저장 완료!\n";
+
+            exportInventoryToCSV("bottled_inventory.csv");
+        }
+        else {
+            cout << "필드 수 오류: " << fields.size() << "개" << endl;
+        }
+    }
+
+    closesocket(clientSocket);
+    closesocket(serverSocket);
+    WSACleanup();
 }
