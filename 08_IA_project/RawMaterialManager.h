@@ -87,7 +87,7 @@ public:
     void showUninspectedMaterials(); // 품질 검사 미완료 재료 목록 보기
     void showMaterialsByManager(); // 담당자별 입출고 이력 보기
 
-    double getStock(const string& name); // 현재 재고 조회
+    double getStock(const string& materialId) const; // 현재 재고 조회
     void consumeMaterial(const string& name, double amount); // 재고 차감
     bool processFermentationBatch(double totalBatchKg); // 발효 배치용 원재료 처리
     bool exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList); // 사용 재료 저장
