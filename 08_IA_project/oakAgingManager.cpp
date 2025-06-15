@@ -1,9 +1,22 @@
-#include "OakAgingManager.h"
-#include "UIUtils.h"
+#define WIN32_LEAN_AND_MEAN      // windows 헤더 최소화
+#define NOMINMAX                 // min/max 매크로 충돌 방지
+
+#include <windows.h>            // byte 충돌 발생하는 헤더
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
+
+#include <sstream>
 #include <fstream>
 #include <iostream>
+#include <vector>
+#include <string>
+
+#include "OakAgingManager.h"
+#include "UIUtils.h"
+
 
 using namespace std;
+
 
 
 // 오크통 정보 출력
@@ -82,6 +95,7 @@ void OakAgingManager::showOakAgingPage() {
             "[3] 오크통 수정",
             "[4] 오크통 삭제",
             "[5] CSV로 저장",
+            "[6] ESP32에서 수신",
             "[0] 메인으로 돌아가기"
         };
 
@@ -95,6 +109,7 @@ void OakAgingManager::showOakAgingPage() {
         case 3: updateOakBox(); break;
         case 4: deleteOakBox(); break;
         case 5: exportOakBoxesToCSV("oak_boxes.csv"); break;
+        case 6: receiveOakBoxFromESP32(); break;
         case 0: cout << "메인으로 돌아갑니다.\n"; break;
         default: cout << "잘못된 입력입니다.\n"; break;
         }
@@ -394,4 +409,92 @@ void OakAgingManager::exportOakBoxesToCSV(const string& filename) {
 
     file.close();
     cout << "[ " << filename << " ] 파일로 저장 완료!\n";
+}
+
+void OakAgingManager::receiveOakBoxFromESP32() {
+    WSADATA wsaData;
+    SOCKET serverSocket, clientSocket;
+    SOCKADDR_IN serverAddr, clientAddr;
+    int clientSize = sizeof(clientAddr);
+
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        cout << "WSAStartup 실패" << endl;
+        return;
+    }
+
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == INVALID_SOCKET) {
+        cout << "소켓 생성 실패" << endl;
+        WSACleanup();
+        return;
+    }
+
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(5000);
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(serverSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        cout << "bind 실패" << endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return;
+    }
+
+    listen(serverSocket, 1);
+    cout << "[TCP 서버] ESP32 연결 대기 중...\n";
+
+    clientSocket = accept(serverSocket, (SOCKADDR*)&clientAddr, &clientSize);
+    if (clientSocket == INVALID_SOCKET) {
+        cout << "accept 실패" << endl;
+        closesocket(serverSocket);
+        WSACleanup();
+        return;
+    }
+
+    char buffer[1024] = { 0 };
+    int bytesReceived = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+
+    if (bytesReceived > 0) {
+        string data(buffer);
+        cout << "[수신 데이터] " << data << endl;
+
+        istringstream ss(data);
+        string token;
+        vector<string> fields;
+
+        while (getline(ss, token, ',')) {
+            fields.push_back(token);
+        }
+
+        if (fields.size() == 15) {
+            OakBox box;
+            box.setId(fields[0]);
+            box.setName(fields[1]);
+            box.setType(fields[2]);
+            box.setOrigin(fields[3]);
+            box.setWoodType(fields[4]);
+            box.setSpiritId(fields[5]);
+            box.setAgingStartDate(fields[6]);
+            box.setAgingEndDate(fields[7]);
+            box.setRipeningPeriod(stoi(fields[8]));
+            box.setAgingCount(stoi(fields[9]));
+            box.setWaterAbsorptionTime(stoi(fields[10]));
+            box.setEvaporationRate(stod(fields[11]));
+            box.setTemperature(stod(fields[12]));
+            box.setHumidity(stod(fields[13]));
+            box.setRoasted(fields[14] == "1" || fields[14] == "Yes");
+
+            oakList.push_back(box);
+            cout << "OakBox 저장 완료!\n";
+
+            exportOakBoxesToCSV("oak_boxes.csv");
+        }
+        else {
+            cout << "필드 수 오류: " << fields.size() << "개" << endl;
+        }
+    }
+
+    closesocket(clientSocket);
+    closesocket(serverSocket);
+    WSACleanup();
 }
