@@ -64,7 +64,7 @@ public:
     void saveBatchesToCSV(const string& filename);
 
     // [2] 내부 연산/레시피 연동
-    void produceBatchByRecipe(class RecipeManager& recipeMgr);
+    void produceBatchByRecipe(class RecipeManager& recipeMgr, class RawMaterialManager& rawMgr);
 
     // [3] 정보 요약/조회/출력
     string getSummary();
@@ -86,7 +86,7 @@ public:
     void predictBatchFermentation();
 
     // [7] 메인 메뉴
-    void showBatchPage();
+    void showBatchPage(class RecipeManager& recipeMgr, class RawMaterialManager& rawMgr);
 
 private:
     vector<FermentationBatch> batches;

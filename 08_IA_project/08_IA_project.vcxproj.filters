@@ -112,5 +112,6 @@
     <None Include="bottledwhisky_dummy.csv">
       <Filter>리소스 파일</Filter>
     </None>
+    <None Include="README_structure.md" />
   </ItemGroup>
 </Project>

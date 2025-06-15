@@ -169,12 +169,7 @@ void BatchManager::saveBatchesToCSV(const string& filename) {
  * - 원재료 재고 검증 및 차감은 RawMaterialManager에서 처리
  * - 배치 정보는 FermentationBatch로 기록
  */
-void BatchManager::produceBatchByRecipe(RecipeManager& recipeMgr) {
-    // RawMaterialManager 연동
-    RawMaterialManager rawMgr;
-    rawMgr.loadMaterialsFromCSV(RAW_MATERIAL_CSV);
-
-    // 1. 레시피 목록 출력 및 선택
+void BatchManager::produceBatchByRecipe(RecipeManager& recipeMgr, RawMaterialManager& rawMgr) {
     recipeMgr.listRecipes();
     string recipeId = inputString("\n사용할 레시피 ID 입력: ");
     Recipe recipe;
@@ -183,26 +178,18 @@ void BatchManager::produceBatchByRecipe(RecipeManager& recipeMgr) {
         UIUtils::pauseConsole();
         return;
     }
-
-    // 2. 배치 생산량 입력
     double batchSize = inputDouble("생산할 배치량(kg): ");
-
-    // 3. 원재료 재고 검증
     if (!recipe.validateRawMaterialStock(rawMgr, batchSize)) {
         cout << "재고가 부족하여 배치 생산이 불가합니다.\n";
         UIUtils::pauseConsole();
         return;
     }
-
-    // 4. 배치 생산(원재료 차감 및 배치ID 생성)
     string batchId = recipe.produceBatch(rawMgr, batchSize);
-    rawMgr.saveMaterialsToCSV(RAW_MATERIAL_CSV);
+    rawMgr.saveMaterialsToCSV("rawmaterial_dummy.csv"); // 원재료 차감 후 저장
 
-    // 5. FermentationBatch 객체 생성 및 기록
     FermentationBatch b;
     b.setBatchId(batchId);
     b.setYeastType(recipe.yeastType);
-    // 원재료 조성 문자열 생성 (예: "보리:60;호밀:10;물:30")
     ostringstream oss;
     for (auto it = recipe.rawMaterialUsed.begin(); it != recipe.rawMaterialUsed.end(); ++it) {
         if (it != recipe.rawMaterialUsed.begin()) oss << ";";
@@ -212,15 +199,14 @@ void BatchManager::produceBatchByRecipe(RecipeManager& recipeMgr) {
     b.setStartDate(getCurrentDate());
     b.setDurationHours(recipe.fermentationHours);
     b.setTemperature(recipe.fermentationTemp);
-    b.setAmountLiters(recipe.batchOutput); // 발효 후 실제 생산량(L)
-    // 완료일, 유통기한, 입자크기, 배치종료일은 임의/기본값
+    b.setAmountLiters(recipe.batchOutput); // 레시피에서 출력량 계산
     b.setEndDate(getCurrentDate());
     b.setExpiryDate("-");
     b.setParticleSize("중");
     b.setBatchFinishDate(getCurrentDate());
 
     batches.push_back(b);
-    saveBatchesToCSV(BATCH_CSV);
+    saveBatchesToCSV("batch_dummy.csv"); // 배치 정보 저장
 
     cout << "레시피 기반 배치가 생성되었습니다. (배치ID: " << batchId << ")\n";
     UIUtils::pauseConsole();
@@ -418,13 +404,8 @@ void BatchManager::predictBatchFermentation() {
 // ----------------------------- [7] 메인 메뉴 루프 -----------------------------
 
 // 발효 배치 관리 메인 메뉴 (레시피 연동 포함)
-void BatchManager::showBatchPage() {
-    loadBatchesFromCSV(BATCH_CSV);
-
-    // 레시피 매니저 객체 생성 (실제 구현에서는 싱글턴/전역 등으로 관리 가능)
-    RecipeManager recipeMgr;
-    recipeMgr.loadRecipesFromCSV(RECIPE_CSV);
-
+void BatchManager::showBatchPage(RecipeManager& recipeMgr, RawMaterialManager& rawMgr) {
+    loadBatchesFromCSV("batch_dummy.csv");
     int choice;
     do {
         UIUtils::clearConsole();
@@ -452,10 +433,15 @@ void BatchManager::showBatchPage() {
         case 5: deleteBatch(); break;
         case 6: searchBatch(); break;
         case 7: predictBatchFermentation(); break;
-        case 8: produceBatchByRecipe(recipeMgr); break;
+        case 8: produceBatchByRecipe(recipeMgr, rawMgr); break;
         case 9: exportBatchesToCSV(); break;
         case 0: cout << "메인 메뉴로 돌아갑니다.\n"; break;
         default: UIUtils::printError("잘못된 입력입니다."); UIUtils::pauseConsole(); break;
         }
     } while (choice != 0);
 }
+
+void RawMaterialManager::showRawMaterialPage(RecipeManager& recipeMgr);
+void SpiritManager::showSpiritPage(RecipeManager& recipeMgr);
+void OakAgingManager::showOakAgingPage(RecipeManager& recipeMgr);
+void BottledWhiskyManager::showBottledWhiskyPage(RecipeManager& recipeMgr);
