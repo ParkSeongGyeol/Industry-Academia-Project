@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <string>
 #include <vector>
 
@@ -6,24 +6,24 @@ using namespace std;
 
 class OakBox {
 private:
-	string boxId;                 // ¿ÀÅ©Åë °íÀ¯ ¾ÆÀÌµğ
-	string name;                  // ¿ÀÅ©Åë º°Äª
-	string type;                  // Á¾·ù (¹ö¹øÅë, ¼Î¸®Åë µî)
-	string origin;                // Ãâ½ÅÁö¿ª
-	string woodType;              // ³ª¹« Á¾·ù (È­ÀÌÆ® ¿ÀÅ© µî)
-	string spiritId;              // ¼÷¼ºµÈ ½ºÇÇ¸´ ID 
-	string agingStartDate;        // ¼÷¼º ½ÃÀÛÀÏ 
-	string agingEndDate;          // ¼÷¼º Á¾·áÀÏ
+	string boxId;                 // ì˜¤í¬í†µ ê³ ìœ  ì•„ì´ë””
+	string name;                  // ì˜¤í¬í†µ ë³„ì¹­
+	string type;                  // ì¢…ë¥˜ (ë²„ë²ˆí†µ, ì…°ë¦¬í†µ ë“±)
+	string origin;                // ì¶œì‹ ì§€ì—­
+	string woodType;              // ë‚˜ë¬´ ì¢…ë¥˜ (í™”ì´íŠ¸ ì˜¤í¬ ë“±)
+	string spiritId;              // ìˆ™ì„±ëœ ìŠ¤í”¼ë¦¿ ID 
+	string agingStartDate;        // ìˆ™ì„± ì‹œì‘ì¼ 
+	string agingEndDate;          // ìˆ™ì„± ì¢…ë£Œì¼
 
-	int ripeningPeriod = 0;       // ¼÷¼º ±â°£ (ÀÏ¼ö)
-	int agingCount = 0;           // ¼÷¼º È½¼ö
-	int waterAbsorptionTime = 0;  // ¹°À» ¸Ó±İÀº ½Ã°£
+	int ripeningPeriod = 0;       // ìˆ™ì„± ê¸°ê°„ (ì¼ìˆ˜)
+	int agingCount = 0;           // ìˆ™ì„± íšŸìˆ˜
+	int waterAbsorptionTime = 0;  // ë¬¼ì„ ë¨¸ê¸ˆì€ ì‹œê°„
 
-	double evaporationRate = 0.0; // Áõ¹ß·ü
-	double temperature = 0.0;     // ¿Âµµ
-	double humidity = 0.0;        // ½Àµµ
+	double evaporationRate = 0.0; // ì¦ë°œë¥ 
+	double temperature = 0.0;     // ì˜¨ë„
+	double humidity = 0.0;        // ìŠµë„
 
-	bool roasted = false;         // ·Î½ºÆÃ ¿©ºÎ
+	bool roasted = false;         // ë¡œìŠ¤íŒ… ì—¬ë¶€
 
 public:
 	OakBox() = default;
@@ -77,7 +77,7 @@ private:
 	vector<OakBox> oakList;
 
 public:
-	string getSummary(); // ¿ä¾à Á¤º¸ ¹İÈ¯
+	string getSummary(); // ìš”ì•½ ì •ë³´ ë°˜í™˜
 	vector<string> getPageInfoLines();
 
 	void showOakAgingPage();
@@ -85,5 +85,7 @@ public:
 	void addOakBox();
 	void updateOakBox();
 	void deleteOakBox();
+
+	void receiveOakBoxFromESP32();              
 	void exportOakBoxesToCSV(const string& filename);
 };
