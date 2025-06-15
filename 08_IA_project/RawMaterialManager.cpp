@@ -23,14 +23,15 @@ string getCurrentDate() {
 }
 
 // 특정 원재료 이름에 대해 현재 출고되지 않은 총 재고량을 계산하여 반환하는 함수
-double RawMaterialManager::getStock(const string& name) {
+double RawMaterialManager::getStock(const string& materialId) const {
     double total = 0;
     for (const auto& m : materials) {
-        if (m.getName() == name && m.getExitDate().empty())
+        if (m.getName() == materialId && m.getExitDate().empty())
             total += m.getWeightKg();
     }
     return total;
 }
+
 
 
 // 주어진 이름의 원재료에서 지정된 양을 차감하여 출고하는 함수
