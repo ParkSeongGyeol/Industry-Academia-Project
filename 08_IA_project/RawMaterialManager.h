@@ -70,6 +70,11 @@ public:
 };
 
 // -----------------------------------------------------------------------------
+// [RecipeManager] 레시피 관리 클래스 (전방 선언)
+// -----------------------------------------------------------------------------
+class RecipeManager; // 전방 선언 필요
+
+// -----------------------------------------------------------------------------
 // [RawMaterialManager] 원재료 전체 목록 및 기능 관리 클래스
 // -----------------------------------------------------------------------------
 class RawMaterialManager {
@@ -82,7 +87,7 @@ public:
     // [2] 내부 연산
     double getStock(const string& materialId) const; // 현재 재고 조회
     void consumeMaterial(const string& name, double amount); // 재고 차감
-    bool processFermentationBatch(double totalBatchKg); // 발효 배치용 원재료 처리
+    void produceBatchByRecipe(RecipeManager& recipeMgr); // 레시피 기반 배치 생산
 
     // [3] 정보 요약/조회/출력
     string getSummary();   // 대시보드용 요약 문자열 반환

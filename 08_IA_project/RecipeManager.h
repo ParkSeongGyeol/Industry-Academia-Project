@@ -23,7 +23,7 @@ public:
     void runRecipeProcess(const std::string& recipeId, class RawMaterialManager& rawMgr);
 
     // 전체 공정 로그 출력
-    void showRecipeProcessLog(const std::string& recipeId) const;
+    void showRecipeProcessLog(const Recipe& recipe) const;
 
     void showRecipePage();
 };

@@ -443,8 +443,3 @@ void BatchManager::showBatchPage(RecipeManager& recipeMgr, RawMaterialManager& r
         }
     } while (choice != 0);
 }
-
-void RawMaterialManager::showRawMaterialPage(RecipeManager& recipeMgr);
-void SpiritManager::showSpiritPage(RecipeManager& recipeMgr);
-void OakAgingManager::showOakAgingPage(RecipeManager& recipeMgr);
-void BottledWhiskyManager::showBottledWhiskyPage(RecipeManager& recipeMgr);
