@@ -9,6 +9,7 @@
 #include <ctime>
 #include <string>
 #include <vector>
+#include <sstream>
 
 using namespace std;
 
@@ -17,7 +18,7 @@ string getCurrentDate() {
     time_t now = time(nullptr); // 현재 시간(초 단위) 가져오기
     tm t;
     localtime_s(&t, &now); // (time_t)를 지역 시간 구조체 tm으로 변환
-	char buf[11]; // 날짜 형식: "YYYY-MM-DD" (10자 + 널 종료)
+    char buf[11]; // 날짜 형식: "YYYY-MM-DD" (10자 + 널 종료)
     strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
     return string(buf);
 }
@@ -32,8 +33,6 @@ double RawMaterialManager::getStock(const string& materialId) const {
     return total;
 }
 
-
-
 // 주어진 이름의 원재료에서 지정된 양을 차감하여 출고하는 함수
 void RawMaterialManager::consumeMaterial(const string& name, double amount) {
     for (auto& m : materials) {
@@ -43,8 +42,7 @@ void RawMaterialManager::consumeMaterial(const string& name, double amount) {
                 if (m.getWeightKg() == 0)
                     m.setExitDate(getCurrentDate());
                 break;
-            }
-            else {
+            } else {
                 amount -= m.getWeightKg();
                 m.setExitDate(getCurrentDate());
                 m.setWeightKg(0);
@@ -52,7 +50,6 @@ void RawMaterialManager::consumeMaterial(const string& name, double amount) {
         }
     }
 }
-
 
 // 사용된 원재료 목록을 지정된 파일 이름의 CSV 파일로 저장하는 함수
 bool RawMaterialManager::exportUsedMaterialsToCSV(const string& filename, const vector<RawMaterial>& usedList) {
@@ -76,7 +73,54 @@ bool RawMaterialManager::exportUsedMaterialsToCSV(const string& filename, const 
     return true;
 }
 
+// CSV 파일에서 원재료 목록을 읽어 materials 벡터를 초기화하는 함수
+void RawMaterialManager::loadMaterialsFromCSV(const string& filename) {
+    materials.clear();
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "[경고] 원재료 CSV 파일을 열 수 없습니다: " << filename << endl;
+        return;
+    }
 
+    string line;
+    getline(file, line); // 헤더 스킵
+
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+        stringstream ss(line);
+        string token;
+        vector<string> fields;
+
+        // CSV 필드 분리
+        while (getline(ss, token, ',')) {
+            fields.push_back(token);
+        }
+        if (fields.size() < 17) continue; // 필드 개수 확인
+
+        RawMaterial m;
+        m.setMaterialId(fields[0]);
+        m.setName(fields[1]);
+        m.setType(fields[2]);
+        m.setOrigin(fields[3]);
+        m.setWeightKg(stod(fields[4]));
+        m.setStorageLocation(fields[5]);
+        m.setStorageMethod(fields[6]);
+        m.setExpiryDate(fields[7]);
+        m.setEntryDate(fields[8]);
+        m.setExitDate(fields[9]);
+        m.setStatus(fields[10]);
+        m.setUnit(fields[11]);
+        m.setUnitPrice(stod(fields[12]));
+        m.setEntryManager(fields[13]);
+        m.setExitManager(fields[14]);
+        m.setQualityCheck(fields[15]);
+        m.setQualityCheckDate(fields[16]);
+        materials.push_back(m);
+    }
+    file.close();
+}
+
+// 얘는 안쓸 듯 함. Recipe에서 대체될 듯
 // 발효 배치 생산을 위한 원재료 소모 처리 함수
 // totalBatchKg: 총 배치 생산량(kg)
 // 필요한 원재료 비율: 보리 60%, 호밀 10%, 물 30%
@@ -166,8 +210,7 @@ bool RawMaterialManager::processFermentationBatch(double totalBatchKg) {
     return true;
 }
 
-
-
+// 수정 필요해 보임
 // 현재 재고 요약 문자열 생성
 string RawMaterialManager::getSummary() {
     double totalKg = 0;
@@ -178,7 +221,7 @@ string RawMaterialManager::getSummary() {
     return "원재료: " + to_string(materials.size()) + "종 / " + to_string((int)totalKg) + "kg";
 }
 
-
+// 수정 필요해 보임
 // 원재료 페이지 상단 정보 요약 (종류, 무게, 종류별 수량, 보관 위치 등)
 vector<string> RawMaterialManager::getPageInfoLines() {
     int totalKinds = 0;
@@ -211,92 +254,7 @@ vector<string> RawMaterialManager::getPageInfoLines() {
     return lines;
 }
 
-
-// 더미 데이터 초기화 (샘플 원재료 입력)
-void RawMaterialManager::initializeDummyData() {
-    materials.clear();
-
-    RawMaterial m1;
-    m1.setMaterialId("RM001");
-    m1.setName("보리");
-    m1.setType("곡물");
-    m1.setOrigin("스코틀랜드");
-    m1.setWeightKg(1200);
-    m1.setStorageLocation("창고 A");
-    m1.setStorageMethod("저온 건조");
-    m1.setExpiryDate("2025-12-01");
-    m1.setEntryDate("2025-03-01");
-    m1.setExitDate("");
-    m1.setStatus("정상");
-    m1.setUnit("kg");
-    m1.setUnitPrice(950.0);
-    m1.setEntryManager("김입고");
-    m1.setExitManager("");
-    m1.setQualityCheck("통과");
-    m1.setQualityCheckDate("2025-03-01");
-
-    RawMaterial m2;
-    m2.setMaterialId("RM002");
-    m2.setName("호밀");
-    m2.setType("곡물");
-    m2.setOrigin("미국");
-    m2.setWeightKg(800);
-    m2.setStorageLocation("창고 A");
-    m2.setStorageMethod("상온 보관");
-    m2.setExpiryDate("2025-11-15");
-    m2.setEntryDate("2025-03-03");
-    m2.setExitDate("");
-    m2.setStatus("정상");
-    m2.setUnit("kg");
-    m2.setUnitPrice(900.0);
-    m2.setEntryManager("박입고");
-    m2.setExitManager("");
-    m2.setQualityCheck("통과");
-    m2.setQualityCheckDate("2025-03-03");
-
-    RawMaterial m3;
-    m3.setMaterialId("RM003");
-    m3.setName("물");
-    m3.setType("기타");
-    m3.setOrigin("제조 현장");
-    m3.setWeightKg(5000);
-    m3.setStorageLocation("탱크 B");
-    m3.setStorageMethod("청결 밀봉");
-    m3.setExpiryDate("-");
-    m3.setEntryDate("2025-03-02");
-    m3.setExitDate("");
-    m3.setStatus("정상");
-    m3.setUnit("L");
-    m3.setUnitPrice(100.0);
-    m3.setEntryManager("최입고");
-    m3.setExitManager("");
-    m3.setQualityCheck("검사 없음");
-    m3.setQualityCheckDate("-");
-
-    RawMaterial m4;
-    m4.setMaterialId("RM004");
-    m4.setName("보리");
-    m4.setType("곡물");
-    m4.setOrigin("스코틀랜드");
-    m4.setWeightKg(900);
-    m4.setStorageLocation("창고 A");
-    m4.setStorageMethod("저온 건조");
-    m4.setExpiryDate("2025-10-10");
-    m4.setEntryDate("2025-01-10");
-    m4.setExitDate("2025-03-01");
-    m4.setStatus("출고");
-    m4.setUnit("kg");
-    m4.setUnitPrice(950.0);
-    m4.setEntryManager("김입고");
-    m4.setExitManager("이출고");
-    m4.setQualityCheck("통과");
-    m4.setQualityCheckDate("2025-01-10");
-
-    materials = { m1, m2, m3, m4 };
-}
-
-
-
+// CSV 파일로 내용 확인해서 출력해야 함
 // 출고되지 않은 원재료만 출력
 void RawMaterialManager::showInventory() {
     cout << "\n=== 현재 보유 원재료 목록 ===\n";
@@ -319,8 +277,7 @@ void RawMaterialManager::showInventory() {
     }
 }
 
-
-
+// 전체 이력을 확인할 수 있는 방안 마련 후 내용 확인해서 출력해야 함
 // 전체 이력 출력 (출고된 항목 포함)
 void RawMaterialManager::showAllMaterials() {
     cout << "\n=== 전체 원재료 입출고 이력 ===\n";
@@ -344,11 +301,9 @@ void RawMaterialManager::showAllMaterials() {
     }
 }
 
-
-
 // 원재료 관리 메뉴 루프
 void RawMaterialManager::showRawMaterialPage() {
-    initializeDummyData();  // 더미 데이터 로드
+    loadMaterialsFromCSV("rawmaterial_dummy.csv");  // CSV에서 데이터 로드
 
     int choice;
     do {
@@ -488,7 +443,6 @@ void RawMaterialManager::addMaterial() {
     cout << "원재료가 추가되었습니다.\n";
 }
 
-
 // 원재료 수정
 void RawMaterialManager::updateMaterial() {
     string name;
@@ -534,7 +488,6 @@ void RawMaterialManager::updateMaterial() {
     cout << "해당 이름의 원재료(재고)를 찾을 수 없습니다.\n";
 }
 
-
 // 출고 처리 (exit_date 설정)
 void RawMaterialManager::deleteMaterial() {
     string name;
@@ -555,7 +508,6 @@ void RawMaterialManager::deleteMaterial() {
 
     cout << "해당 이름의 원재료(재고)를 찾을 수 없습니다.\n";
 }
-
 
 // 이름으로 검색
 void RawMaterialManager::searchMaterial() {
@@ -584,7 +536,6 @@ void RawMaterialManager::searchMaterial() {
     if (!found)
         cout << "해당 이름의 원재료를 찾을 수 없습니다.\n";
 }
-
 
 // 보관 장소의 환경 정보 출력
 void RawMaterialManager::showStorageEnvironment() {
@@ -627,7 +578,6 @@ void RawMaterialManager::exportUsedInventoryToCSV() {
     }
 }
 
-
 // 출고되지 않은 원재료 목록을 CSV 파일로 내보내기
 void RawMaterialManager::exportRemainingStockToCSV() {
     vector<RawMaterial> stockList;
@@ -650,7 +600,6 @@ void RawMaterialManager::exportRemainingStockToCSV() {
         cout << "\nCSV 저장에 실패했습니다.\n";
     }
 }
-
 
 // 품질 검사 미완료 원재료 목록 출력
 void RawMaterialManager::showUninspectedMaterials() {
