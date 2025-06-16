@@ -170,6 +170,7 @@
     <None Include="oakaging_dummy.csv" />
     <None Include="rawmaterial_dummy.csv" />
     <None Include="README_structure.md" />
+    <None Include="recipe_list.csv" />
     <None Include="spirit_dummy.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

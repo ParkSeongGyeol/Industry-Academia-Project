@@ -209,8 +209,11 @@ void RawMaterialManager::consumeMaterial(const string& name, double amount) {
  * - 재고 부족 시 안내 메시지 출력, 성공 시 배치ID 출력 및 재고 CSV 저장
  */
 void RawMaterialManager::produceBatchByRecipe(RecipeManager& recipeMgr) {
-    // 1. 레시피 목록 출력 및 선택
+    // 1. 레시피 목록 출력
     recipeMgr.listRecipes();
+
+    // 2. 입력 버퍼 정리 후 레시피 ID 입력
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     string recipeId = inputString("\n사용할 레시피 ID 입력: ");
     Recipe recipe;
     if (!recipeMgr.getRecipeById(recipeId, recipe)) {
@@ -218,18 +221,18 @@ void RawMaterialManager::produceBatchByRecipe(RecipeManager& recipeMgr) {
         return;
     }
 
-    // 2. 배치 생산량 입력
+    // 3. 배치 생산량 입력
     double batchSize = inputDouble("생산할 배치량(kg): ");
 
-    // 3. 재고 검증
+    // 4. 재고 검증
     if (!recipe.validateRawMaterialStock(*this, batchSize)) {
         cout << "재고가 부족하여 배치 생산이 불가합니다.\n";
         return;
     }
 
-    // 4. 배치 생산(원재료 차감 및 배치ID 생성)
+    // 5. 배치 생산(원재료 차감 및 배치ID 생성)
     string batchId = recipe.produceBatch(*this, batchSize);
-    saveMaterialsToCSV(RAW_MATERIAL_CSV);
+    saveMaterialsToCSV("rawmaterial_dummy.csv");
 
     cout << "배치 생산 완료! 배치ID: " << batchId << "\n";
 }

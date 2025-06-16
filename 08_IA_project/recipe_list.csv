@@ -1,0 +1,4 @@
+ID,Name,RawMaterialRatio,YeastType,FermentationTemp,FermentationHours,DistillationABV,DistillationCount,OakType,AgingMonths,BottledName,BottleCount,BottleVolume,BottlePrice
+RCP001,클래식 몰트,보리:70;호밀:20;물:10,사카리노,25,72,65,2,아메리칸오크,24,클래식 위스키,100,500,35000
+RCP002,라이트 그레인,옥수수:60;보리:30;물:10,라반도,22,60,62,1,프렌치오크,12,라이트 위스키,80,700,28000
+RCP003,스모키 피트,보리:80;피트:10;물:10,에든버러,28,96,68,2,셰리오크,36,스모키 위스키,120,500,42000

@@ -1,5 +1,6 @@
 #include "RecipeManager.h"
 #include "RawMaterialManager.h"
+#include "UIUtils.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -254,21 +255,34 @@ void RecipeManager::showRecipeProcessLog(const Recipe& recipe) const {
 // 레시피 관리 페이지 UI
 void RecipeManager::showRecipePage() {
     loadRecipesFromCSV("recipe_list.csv");
-    int choice;
     RawMaterialManager rawMgr;
     rawMgr.loadMaterialsFromCSV("rawmaterial_dummy.csv");
 
+    int choice;
     do {
         system("cls");
-        cout << "=== 레시피 관리 메뉴 ===\n";
-        cout << "[1] 레시피 목록\n[2] 레시피 추가\n[3] 레시피 수정\n[4] 레시피 삭제\n[5] 레시피 검색\n[6] 레시피 공정 실행\n[0] 메인으로\n";
-        cout << "입력 >> ";
-        if (!(cin >> choice)) {
-            cin.clear(); cin.ignore(1000, '\n');
-            cout << "숫자를 입력하세요.\n";
+        // 정보 요약 (레시피 수 등)
+        std::vector<std::string> infoLines = {
+            "등록된 레시피 수: " + std::to_string(recipes.size())
+        };
+        std::vector<std::string> menu = {
+            "[1] 레시피 목록",
+            "[2] 레시피 추가",
+            "[3] 레시피 수정",
+            "[4] 레시피 삭제",
+            "[5] 레시피 검색",
+            "[6] 레시피 공정 실행",
+            "[0] 메인으로"
+        };
+        // 대시보드 출력 (UIUtils::drawDashboard 사용)
+        UIUtils::drawDashboard(infoLines, menu, 72, 30);
+        std::cout << "\n입력 >> ";
+        if (!(std::cin >> choice)) {
+            std::cin.clear(); std::cin.ignore(1000, '\n');
+            std::cout << "숫자를 입력하세요.\n";
             continue;
         }
-        cin.ignore();
+        std::cin.ignore();
         switch (choice) {
         case 1: listRecipes(); break;
         case 2: addRecipe(); break;
@@ -276,14 +290,14 @@ void RecipeManager::showRecipePage() {
         case 4: deleteRecipe(); break;
         case 5: searchRecipe(); break;
         case 6: {
-            cout << "\n공정을 실행할 레시피 ID 입력: ";
-            string id; getline(cin, id);
+            std::cout << "\n공정을 실행할 레시피 ID 입력: ";
+            std::string id; std::getline(std::cin, id);
             runRecipeProcess(id, rawMgr);
             break;
         }
-        case 0: cout << "메인으로 돌아갑니다.\n"; break;
-        default: cout << "잘못된 입력입니다.\n"; break;
+        case 0: std::cout << "메인으로 돌아갑니다.\n"; break;
+        default: std::cout << "잘못된 입력입니다.\n"; break;
         }
-        if (choice != 0) { cout << "\n계속하려면 Enter..."; cin.get(); }
+        if (choice != 0) { std::cout << "\n계속하려면 Enter..."; std::cin.get(); }
     } while (choice != 0);
 }

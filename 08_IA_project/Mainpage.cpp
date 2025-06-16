@@ -52,6 +52,7 @@ void MainPage::displayDashboard(BatchManager& batch, RawMaterialManager& raw, Sp
         "[3] 스피릿 관리",
         "[4] 오크통 숙성 관리",
         "[5] 병입 및 완성품 관리",
+        "[6] 레시피 관리", // 추가
         "[0] 종료"
     };
 #ifdef _WIN32
@@ -80,11 +81,14 @@ void MainPage::handleSelection(int choice, RawMaterialManager& rawMgr, BatchMana
     case 5:
         bottleMgr.showBottledWhiskyPage();
         break;
+    case 6:
+        recipeMgr.showRecipePage(); // 추가
+        break;
     case 0:
         cout << "프로그램을 종료합니다.\n";
         break;
     default:
-        cout << "잘못된 선택입니다. 0~5 사이의 번호를 입력하세요.\n";
+        cout << "잘못된 입력입니다. 0~6 사이의 번호를 입력하세요.\n";
         pauseConsole();
         break;
     }

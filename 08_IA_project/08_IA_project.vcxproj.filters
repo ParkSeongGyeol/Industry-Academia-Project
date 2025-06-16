@@ -113,5 +113,8 @@
       <Filter>리소스 파일</Filter>
     </None>
     <None Include="README_structure.md" />
+    <None Include="recipe_list.csv">
+      <Filter>리소스 파일</Filter>
+    </None>
   </ItemGroup>
 </Project>
