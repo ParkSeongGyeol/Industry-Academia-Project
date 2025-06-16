@@ -14,11 +14,18 @@ namespace UIUtils {
         return std::string(padLeft, ' ') + text + std::string(padRight, ' ');
     }
 
+    //  텍스트 좌측 정렬
+    std::string leftAlignText(const std::string& text, int width) {
+        if (static_cast<int>(text.length()) >= width)
+            return text.substr(0, width); // 길면 자르기
+        return text + std::string(width - text.length(), ' ');
+    }
+
     //  단일 박스 출력
     void drawBox(const std::string& content, int width) {
-        std::string centered = centerText(content, width - 2);
+        std::string aligned = leftAlignText(content, width - 2);
         std::cout << "+" << std::string(width - 2, '-') << "+\n";
-        std::cout << "|" << centered << "|\n";
+        std::cout << "|" << aligned << "|\n";
         std::cout << "+" << std::string(width - 2, '-') << "+\n";
     }
 
@@ -29,7 +36,7 @@ namespace UIUtils {
         std::cout << "+\n";
 
         for (const auto& content : contents)
-            std::cout << "|" << centerText(content, width - 2);
+            std::cout << "|" << leftAlignText(content, width - 2);
         std::cout << "|\n";
 
         for (const auto& content : contents)
@@ -63,8 +70,8 @@ namespace UIUtils {
         std::cout << leftBorder << rightBorder << "\n";
 
         for (size_t i = 0; i < maxLines; ++i) {
-            std::string leftContent = centerText(left[i], leftWidth - 2);
-            std::string rightContent = centerText(right[i], rightWidth - 2);
+            std::string leftContent = leftAlignText(left[i], leftWidth - 2);
+            std::string rightContent = leftAlignText(right[i], rightWidth - 2);
             std::cout << "|" << leftContent << "|" << rightContent << "|\n";
         }
 
@@ -72,7 +79,7 @@ namespace UIUtils {
     }
 
     //  문자열 집합을 하나의 문자열로 연결 (delimiter로 구분)
-    std::string UIUtils::joinStrings(const std::set<std::string>& items, const std::string& delimiter) {
+    std::string joinStrings(const std::set<std::string>& items, const std::string& delimiter) {
         std::ostringstream oss;
         for (auto it = items.begin(); it != items.end(); ++it) {
             oss << *it;

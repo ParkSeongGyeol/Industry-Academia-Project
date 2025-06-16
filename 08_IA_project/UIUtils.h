@@ -10,22 +10,26 @@ namespace UIUtils {
     // 문자열을 지정된 너비에 맞춰 가운데 정렬한 결과를 반환
     std::string centerText(const std::string& text, int width);
 
+    //  텍스트 좌측 정렬
+    // 문자열을 지정된 너비에 맞춰 좌측 정렬한 결과를 반환
+    std::string leftAlignText(const std::string& text, int width);
+
     //  단일 박스 출력
     // 문자열을 박스 형태로 출력
-    void drawBox(const std::string& content, int width = 20);
+    void drawBox(const std::string& content, int width = 40);
 
     //  한 줄에 여러 박스 출력
-    void drawRow(const std::vector<std::string>& contents, int width = 20);
+    void drawRow(const std::vector<std::string>& contents, int width = 40);
 
     // 2차원 그리드 박스 출력
-    void drawGrid(const std::vector<std::vector<std::string>>& grid, int width = 20);
+    void drawGrid(const std::vector<std::vector<std::string>>& grid, int width = 40);
 
     //  대시보드 출력 (정보/메뉴를 양쪽으로 나눠서 출력)
     void drawDashboard(
         const std::vector<std::string>& infoLines,
         const std::vector<std::string>& menuLines,
         int leftWidth = 72,
-        int rightWidth = 30
+        int rightWidth = 55
     );
 
     //  콘솔 화면 정리
