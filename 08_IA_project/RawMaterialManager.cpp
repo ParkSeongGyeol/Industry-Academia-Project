@@ -11,6 +11,7 @@
 #include <iostream>
 #include <set>
 #include <map>
+#include "CommonUtils.h"
 #include <fstream>
 #include <ctime>
 #include <string>
@@ -32,40 +33,7 @@ namespace {
 
 // ----------------------------- 유틸리티 함수 -----------------------------
 
-// 현재 시스템 날짜를 "YYYY-MM-DD" 형식으로 반환
-string getCurrentDate() {
-    time_t now = time(nullptr);
-    tm t;
-    localtime_s(&t, &now);
-    char buf[11];
-    strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
-    return string(buf);
-}
-
-// 안전한 double 입력 함수
-double inputDouble(const string& prompt) {
-    double val;
-    while (true) {
-        cout << prompt;
-        if (cin >> val) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return val;
-        }
-        cout << "숫자를 입력하세요.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-}
-
-// 안전한 string 입력 함수
-string inputString(const string& prompt) {
-    cout << prompt;
-    string val;
-    getline(cin, val);
-    return val;
-}
-
-// CSV 헤더를 파일에 출력
+// RawMaterial 객체의 CSV 헤더를 파일에 출력
 void writeCSVHeader(ofstream& file, bool withUsedDate = false) {
     file << "ID,Name,Type,Origin,Weight(kg),Storage,StorageMethod,ExpiryDate,EntryDate,ExitDate,"
          << "Status,Unit,UnitPrice,EntryManager,ExitManager,QualityCheck,QualityCheckDate";
@@ -93,6 +61,46 @@ RawMaterial* findMaterialById(vector<RawMaterial>& materials, const string& id) 
     }
     return nullptr;
 }
+
+// ----------------------------- [RawMaterial] Getter/Setter 구현 -----------------------------
+
+// Getter
+string RawMaterial::getMaterialId() const { return material_id; }
+string RawMaterial::getName() const { return name; }
+string RawMaterial::getType() const { return type; }
+string RawMaterial::getOrigin() const { return origin; }
+double RawMaterial::getWeightKg() const { return weight_kg; }
+string RawMaterial::getStorageLocation() const { return storage_location; }
+string RawMaterial::getStorageMethod() const { return storage_method; }
+string RawMaterial::getExpiryDate() const { return expiry_date; }
+string RawMaterial::getEntryDate() const { return entry_date; }
+string RawMaterial::getExitDate() const { return exit_date; }
+string RawMaterial::getStatus() const { return status; }
+string RawMaterial::getUnit() const { return unit; }
+double RawMaterial::getUnitPrice() const { return unit_price; }
+string RawMaterial::getEntryManager() const { return entry_manager; }
+string RawMaterial::getExitManager() const { return exit_manager; }
+string RawMaterial::getQualityCheck() const { return quality_check; }
+string RawMaterial::getQualityCheckDate() const { return quality_check_date; }
+
+// Setter
+void RawMaterial::setMaterialId(const string& val) { material_id = val; }
+void RawMaterial::setName(const string& val) { name = val; }
+void RawMaterial::setType(const string& val) { type = val; }
+void RawMaterial::setOrigin(const string& val) { origin = val; }
+void RawMaterial::setWeightKg(double val) { weight_kg = val; }
+void RawMaterial::setStorageLocation(const string& val) { storage_location = val; }
+void RawMaterial::setStorageMethod(const string& val) { storage_method = val; }
+void RawMaterial::setExpiryDate(const string& val) { expiry_date = val; }
+void RawMaterial::setEntryDate(const string& val) { entry_date = val; }
+void RawMaterial::setExitDate(const string& val) { exit_date = val; }
+void RawMaterial::setStatus(const string& val) { status = val; }
+void RawMaterial::setUnit(const string& val) { unit = val; }
+void RawMaterial::setUnitPrice(double val) { unit_price = val; }
+void RawMaterial::setEntryManager(const string& val) { entry_manager = val; }
+void RawMaterial::setExitManager(const string& val) { exit_manager = val; }
+void RawMaterial::setQualityCheck(const string& val) { quality_check = val; }
+void RawMaterial::setQualityCheckDate(const string& val) { quality_check_date = val; }
 
 // ----------------------------- [1] 데이터 입출력 -----------------------------
 

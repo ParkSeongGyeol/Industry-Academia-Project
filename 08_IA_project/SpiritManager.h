@@ -57,9 +57,6 @@ public:
     void setBatchId(const std::string& val);
     void setCutYield(const std::string& val);
 
-    // CSV 직렬화/역직렬화 (필요시)
-    std::string toCSV() const;
-    static Spirit fromCSV(const std::string& line);
 };
 
 // -----------------------------------------------------------------------------

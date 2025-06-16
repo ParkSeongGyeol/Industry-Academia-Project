@@ -14,62 +14,13 @@
 #include <iomanip>
 #include <ctime>
 #include <vector>
+#include "CommonUtils.h"
 
 using namespace std;
 
 // ----------------------------- 상수 정의 -----------------------------
 namespace {
     constexpr char SPIRIT_CSV[] = "spirit_dummy.csv";
-}
-
-// ----------------------------- 유틸리티 함수 -----------------------------
-
-// 현재 시스템 날짜를 "YYYY-MM-DD" 형식으로 반환
-string getCurrentDate() {
-    time_t now = time(nullptr);
-    tm t;
-    localtime_s(&t, &now);
-    char buf[11];
-    strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
-    return string(buf);
-}
-
-// 안전한 double 입력 함수
-double inputDouble(const string& prompt) {
-    double val;
-    while (true) {
-        cout << prompt;
-        if (cin >> val) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return val;
-        }
-        cout << "숫자를 입력하세요.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-}
-
-// 안전한 int 입력 함수
-int inputInt(const string& prompt) {
-    int val;
-    while (true) {
-        cout << prompt;
-        if (cin >> val) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return val;
-        }
-        cout << "정수를 입력하세요.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-}
-
-// 안전한 string 입력 함수
-string inputString(const string& prompt) {
-    cout << prompt;
-    string val;
-    getline(cin, val);
-    return val;
 }
 
 // ----------------------------- [1] 데이터 입출력 -----------------------------
@@ -128,6 +79,41 @@ void SpiritManager::saveSpiritsToCSV(const string& filename) {
     }
     file.close();
 }
+
+// ----------------------------- [Spirit] Getter/Setter 구현 -----------------------------
+
+// Getter
+std::string Spirit::getId() const { return id; }
+std::string Spirit::getStorageLocation() const { return storage_location; }
+std::string Spirit::getTransferHistory() const { return transfer_history; }
+std::string Spirit::getProductionDate() const { return production_date; }
+double Spirit::getAlcoholPercentage() const { return alcohol_percentage; }
+double Spirit::getYieldLiters() const { return yield_liters; }
+std::string Spirit::getRawMaterialRatio() const { return raw_material_ratio; }
+int Spirit::getFermentationDays() const { return fermentation_days; }
+std::string Spirit::getFirstCutTime() const { return first_cut_time; }
+std::string Spirit::getLastCutTime() const { return last_cut_time; }
+int Spirit::getDistillationCount() const { return distillation_count; }
+std::string Spirit::getParticleSize() const { return particle_size; }
+std::string Spirit::getBatchId() const { return batch_id; }
+std::string Spirit::getCutYield() const { return cut_yield; }
+
+// Setter
+void Spirit::setId(const std::string& val) { id = val; }
+void Spirit::setStorageLocation(const std::string& val) { storage_location = val; }
+void Spirit::setTransferHistory(const std::string& val) { transfer_history = val; }
+void Spirit::setProductionDate(const std::string& val) { production_date = val; }
+void Spirit::setAlcoholPercentage(double val) { alcohol_percentage = val; }
+void Spirit::setYieldLiters(double val) { yield_liters = val; }
+void Spirit::setRawMaterialRatio(const std::string& val) { raw_material_ratio = val; }
+void Spirit::setFermentationDays(int val) { fermentation_days = val; }
+void Spirit::setFirstCutTime(const std::string& val) { first_cut_time = val; }
+void Spirit::setLastCutTime(const std::string& val) { last_cut_time = val; }
+void Spirit::setDistillationCount(int val) { distillation_count = val; }
+void Spirit::setParticleSize(const std::string& val) { particle_size = val; }
+void Spirit::setBatchId(const std::string& val) { batch_id = val; }
+void Spirit::setCutYield(const std::string& val) { cut_yield = val; }
+
 
 // ----------------------------- [2] 레시피 기반 스피릿 생산 -----------------------------
 /**

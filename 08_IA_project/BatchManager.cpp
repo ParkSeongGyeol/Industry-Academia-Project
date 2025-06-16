@@ -8,6 +8,7 @@
 #include "Recipe.h"
 #include "RawMaterialManager.h"
 #include "UIUtils.h"
+#include "CommonUtils.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -24,56 +25,6 @@ namespace {
     constexpr char BATCH_CSV[] = "batch_dummy.csv";
     constexpr char RECIPE_CSV[] = "recipe_list.csv";
     constexpr char RAW_MATERIAL_CSV[] = "rawmaterial_dummy.csv";
-}
-
-// ----------------------------- 유틸리티 함수 -----------------------------
-
-// 현재 시스템 날짜를 "YYYY-MM-DD" 형식으로 반환
-string getCurrentDate() {
-    time_t now = time(nullptr);
-    tm t;
-    localtime_s(&t, &now);
-    char buf[11];
-    strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
-    return string(buf);
-}
-
-// 안전한 double 입력 함수
-double inputDouble(const string& prompt) {
-    double val;
-    while (true) {
-        cout << prompt;
-        if (cin >> val) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return val;
-        }
-        cout << "숫자를 입력하세요.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-}
-
-// 안전한 int 입력 함수
-int inputInt(const string& prompt) {
-    int val;
-    while (true) {
-        cout << prompt;
-        if (cin >> val) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return val;
-        }
-        cout << "정수를 입력하세요.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-}
-
-// 안전한 string 입력 함수
-string inputString(const string& prompt) {
-    cout << prompt;
-    string val;
-    getline(cin, val);
-    return val;
 }
 
 // ----------------------------- [FermentationBatch 구현] -----------------------------

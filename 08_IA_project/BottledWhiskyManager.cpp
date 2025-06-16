@@ -7,6 +7,7 @@
 #include "RecipeManager.h"
 #include "Recipe.h"
 #include "UIUtils.h"
+#include "CommonUtils.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -23,55 +24,6 @@ namespace {
     constexpr char BOTTLED_CSV[] = "bottledwhisky_dummy.csv";
 }
 
-// ----------------------------- 유틸리티 함수 -----------------------------
-
-// 현재 시스템 날짜를 "YYYY-MM-DD" 형식으로 반환
-string getCurrentDate() {
-    time_t now = time(nullptr);
-    tm t;
-    localtime_s(&t, &now);
-    char buf[11];
-    strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
-    return string(buf);
-}
-
-// 안전한 double 입력 함수
-double inputDouble(const string& prompt) {
-    double val;
-    while (true) {
-        cout << prompt;
-        if (cin >> val) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return val;
-        }
-        cout << "숫자를 입력하세요.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-}
-
-// 안전한 int 입력 함수
-int inputInt(const string& prompt) {
-    int val;
-    while (true) {
-        cout << prompt;
-        if (cin >> val) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return val;
-        }
-        cout << "정수를 입력하세요.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-}
-
-// 안전한 string 입력 함수
-string inputString(const string& prompt) {
-    cout << prompt;
-    string val;
-    getline(cin, val);
-    return val;
-}
 
 // ----------------------------- [1] 데이터 입출력 -----------------------------
 
@@ -133,6 +85,83 @@ void BottledWhiskyManager::saveInventoryToCSV(const string& filename) {
             << w.getBottlingManager() << "\n";
     }
     file.close();
+}
+
+// ----------------------------- [BottledWhisky] Getter/Setter/ShowInfo 구현 -----------------------------
+
+// Getter
+string BottledWhisky::getProductId() const { return productId; }
+string BottledWhisky::getName() const { return productName; }
+string BottledWhisky::getLabelName() const { return labelName; }
+string BottledWhisky::getBatchNumber() const { return batchNumber; }
+string BottledWhisky::getExportTarget() const { return exportTarget; }
+string BottledWhisky::getOakId() const { return oakId; }
+string BottledWhisky::getShipmentDate() const { return shipmentDate; }
+string BottledWhisky::getSerialNumber() const { return serialNumber; }
+string BottledWhisky::getBottlingManager() const { return bottlingManager; }
+int BottledWhisky::getBottleCount() const { return bottleCount; }
+double BottledWhisky::getTotalVolume() const { return totalVolume; }
+double BottledWhisky::getPricePerBottle() const { return pricePerBottle; }
+bool BottledWhisky::isLabeled() const { return labeled; }
+
+// Setter
+void BottledWhisky::setProductId(const string& id) { productId = id; }
+void BottledWhisky::setName(const string& name) { productName = name; }
+void BottledWhisky::setLabelName(const string& name) { labelName = name; }
+void BottledWhisky::setBatchNumber(const string& num) { batchNumber = num; }
+void BottledWhisky::setExportTarget(const string& target) { exportTarget = target; }
+void BottledWhisky::setOakId(const string& id) { oakId = id; }
+void BottledWhisky::setShipmentDate(const string& date) { shipmentDate = date; }
+void BottledWhisky::setSerialNumber(const string& serial) { serialNumber = serial; }
+void BottledWhisky::setBottlingManager(const string& manager) { bottlingManager = manager; }
+void BottledWhisky::setBottleCount(int count) { bottleCount = count; }
+void BottledWhisky::setTotalVolume(double volume) { totalVolume = volume; }
+void BottledWhisky::setPricePerBottle(double price) { pricePerBottle = price; }
+void BottledWhisky::setLabeled(bool value) { labeled = value; }
+
+// 재고 차감
+void BottledWhisky::decreaseStock(int count) {
+    if (count > bottleCount) bottleCount = 0;
+    else bottleCount -= count;
+}
+
+// 정보 출력
+void BottledWhisky::ShowInfo() const {
+    cout << "제품 ID: " << productId << "\n"
+        << "제품명: " << productName << "\n"
+        << "라벨명: " << labelName << "\n"
+        << "배치 번호: " << batchNumber << "\n"
+        << "출고 대상: " << exportTarget << "\n"
+        << "오크통 ID: " << oakId << "\n"
+        << "출고 일자: " << shipmentDate << "\n"
+        << "제조 번호: " << serialNumber << "\n"
+        << "병입 담당자: " << bottlingManager << "\n"
+        << "수량(병): " << bottleCount << "\n"
+        << "총 용량(ml): " << totalVolume << "\n"
+        << "병당 가격: " << pricePerBottle << "원\n"
+        << "라벨 부착: " << (labeled ? "O" : "X") << "\n";
+}
+
+// ----------------------------- [ShipmentRecord] Getter/Setter/ShowInfo 구현 -----------------------------
+
+// Getter
+string ShipmentRecord::getProductName() const { return productName; }
+string ShipmentRecord::getDate() const { return date; }
+int ShipmentRecord::getQuantity() const { return quantity; }
+double ShipmentRecord::getTotalPrice() const { return totalPrice; }
+
+// Setter
+void ShipmentRecord::setProductName(const string& name) { productName = name; }
+void ShipmentRecord::setDate(const string& d) { date = d; }
+void ShipmentRecord::setQuantity(int q) { quantity = q; }
+void ShipmentRecord::setTotalPrice(double price) { totalPrice = price; }
+
+// 정보 출력
+void ShipmentRecord::ShowInfo() const {
+    cout << "제품명: " << productName << "\n"
+        << "출고 날짜: " << date << "\n"
+        << "출고 수량: " << quantity << "병\n"
+        << "총 가격: " << totalPrice << "원\n";
 }
 
 // ----------------------------- [2] 레시피 기반 병입 생산 -----------------------------

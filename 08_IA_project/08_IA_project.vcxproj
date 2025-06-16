@@ -135,6 +135,7 @@
   <ItemGroup>
     <ClCompile Include="BatchManager.cpp" />
     <ClCompile Include="BottledWhiskyManager.cpp" />
+    <ClCompile Include="CommonUtils.cpp" />
     <ClCompile Include="Recipe.cpp" />
     <ClCompile Include="RecipeManager.cpp" />
     <ClCompile Include="StorageEnvironment.cpp" />
@@ -149,6 +150,7 @@
   <ItemGroup>
     <ClInclude Include="BatchManager.h" />
     <ClInclude Include="BottledWhiskyManager.h" />
+    <ClInclude Include="CommonUtils.h" />
     <ClInclude Include="Recipe.h" />
     <ClInclude Include="RecipeManager.h" />
     <ClInclude Include="StorageEnvironment.h" />

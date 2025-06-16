@@ -71,10 +71,6 @@ public:
     void setHumidity(double h);
 
     void setRoasted(bool r);
-
-    // CSV 직렬화/역직렬화 (필요시)
-    std::string toCSV() const;
-    static OakBox fromCSV(const std::string& line);
 };
 
 // -----------------------------------------------------------------------------

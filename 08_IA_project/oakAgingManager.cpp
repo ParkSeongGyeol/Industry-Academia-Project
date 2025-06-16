@@ -17,62 +17,13 @@
 #include "UIUtils.h"
 #include "RecipeManager.h"
 #include "Recipe.h"
+#include "CommonUtils.h"
 
 using namespace std;
 
 // ----------------------------- 상수 정의 -----------------------------
 namespace {
     constexpr char OAKAGING_CSV[] = "oakaging_dummy.csv";
-}
-
-// ----------------------------- 유틸리티 함수 -----------------------------
-
-// 현재 시스템 날짜를 "YYYY-MM-DD" 형식으로 반환
-string getCurrentDate() {
-    time_t now = time(nullptr);
-    tm t;
-    localtime_s(&t, &now);
-    char buf[11];
-    strftime(buf, sizeof(buf), "%Y-%m-%d", &t);
-    return string(buf);
-}
-
-// 안전한 double 입력 함수
-double inputDouble(const string& prompt) {
-    double val;
-    while (true) {
-        cout << prompt;
-        if (cin >> val) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return val;
-        }
-        cout << "숫자를 입력하세요.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-}
-
-// 안전한 int 입력 함수
-int inputInt(const string& prompt) {
-    int val;
-    while (true) {
-        cout << prompt;
-        if (cin >> val) {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return val;
-        }
-        cout << "정수를 입력하세요.\n";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-}
-
-// 안전한 string 입력 함수
-string inputString(const string& prompt) {
-    cout << prompt;
-    string val;
-    getline(cin, val);
-    return val;
 }
 
 // ----------------------------- [1] 데이터 입출력 -----------------------------
@@ -143,6 +94,67 @@ void OakAgingManager::saveOakBoxesToCSV(const string& filename) {
             << b.getAgingEndDate() << "\n";
     }
     file.close();
+}
+
+// ----------------------------- [OakBox] Getter/Setter/ShowInfo 구현 -----------------------------
+
+// Getter
+std::string OakBox::getId() const { return boxId; }
+std::string OakBox::getName() const { return name; }
+std::string OakBox::getType() const { return type; }
+std::string OakBox::getOrigin() const { return origin; }
+std::string OakBox::getWoodType() const { return woodType; }
+std::string OakBox::getSpiritId() const { return spiritId; }
+std::string OakBox::getAgingStartDate() const { return agingStartDate; }
+std::string OakBox::getAgingEndDate() const { return agingEndDate; }
+
+int OakBox::getRipeningPeriod() const { return ripeningPeriod; }
+int OakBox::getAgingCount() const { return agingCount; }
+int OakBox::getWaterAbsorptionTime() const { return waterAbsorptionTime; }
+
+double OakBox::getEvaporationRate() const { return evaporationRate; }
+double OakBox::getTemperature() const { return temperature; }
+double OakBox::getHumidity() const { return humidity; }
+
+bool OakBox::isRoasted() const { return roasted; }
+
+// Setter
+void OakBox::setId(const std::string& id) { boxId = id; }
+void OakBox::setName(const std::string& n) { name = n; }
+void OakBox::setType(const std::string& t) { type = t; }
+void OakBox::setOrigin(const std::string& o) { origin = o; }
+void OakBox::setWoodType(const std::string& wood) { woodType = wood; }
+void OakBox::setSpiritId(const std::string& id) { spiritId = id; }
+void OakBox::setAgingStartDate(const std::string& date) { agingStartDate = date; }
+void OakBox::setAgingEndDate(const std::string& date) { agingEndDate = date; }
+
+void OakBox::setAgingCount(int count) { agingCount = count; }
+void OakBox::setWaterAbsorptionTime(int t) { waterAbsorptionTime = t; }
+void OakBox::setRipeningPeriod(int p) { ripeningPeriod = p; }
+
+void OakBox::setEvaporationRate(double e) { evaporationRate = e; }
+void OakBox::setTemperature(double t) { temperature = t; }
+void OakBox::setHumidity(double h) { humidity = h; }
+
+void OakBox::setRoasted(bool r) { roasted = r; }
+
+// 정보 출력
+void OakBox::ShowInfo() const {
+    std::cout << "오크통 ID: " << boxId << "\n"
+        << "별칭: " << name << "\n"
+        << "종류: " << type << "\n"
+        << "출신지역: " << origin << "\n"
+        << "나무 종류: " << woodType << "\n"
+        << "스피릿 ID: " << spiritId << "\n"
+        << "숙성 시작일: " << agingStartDate << "\n"
+        << "숙성 종료일: " << agingEndDate << "\n"
+        << "숙성 기간: " << ripeningPeriod << "일\n"
+        << "숙성 횟수: " << agingCount << "\n"
+        << "물을 머금은 시간: " << waterAbsorptionTime << "시간\n"
+        << "증발률: " << evaporationRate << "%\n"
+        << "온도: " << temperature << "℃\n"
+        << "습도: " << humidity << "%\n"
+        << "로스팅 여부: " << (roasted ? "있음" : "없음") << "\n";
 }
 
 // ----------------------------- [2] 레시피 기반 오크 숙성 -----------------------------
