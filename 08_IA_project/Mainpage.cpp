@@ -12,7 +12,7 @@ using namespace std;
 using namespace UIUtils;
 
 void MainPage::run() {
-    // [1] ¸ğµç ¸Å´ÏÀú ÀÎ½ºÅÏ½º »ı¼º(°øÀ¯)
+    // [1] ëª¨ë“  ë§¤ë‹ˆì € ì¸ìŠ¤í„´ìŠ¤ ìƒì„±(ê³µìœ )
     RawMaterialManager rawMgr;
     BatchManager batchMgr;
     SpiritManager spiritMgr;
@@ -20,7 +20,7 @@ void MainPage::run() {
     BottledWhiskyManager bottleMgr;
     RecipeManager recipeMgr;
 
-    // [2] CSV µ¥ÀÌÅÍ ·Îµå
+    // [2] CSV ë°ì´í„° ë¡œë“œ
     rawMgr.loadMaterialsFromCSV("rawmaterial_dummy.csv");
     batchMgr.loadBatchesFromCSV("batch_dummy.csv");
     spiritMgr.loadSpiritsFromCSV("spirit_dummy.csv");
@@ -31,7 +31,7 @@ void MainPage::run() {
     int choice;
     do {
         displayDashboard(batchMgr, rawMgr, spiritMgr, oakMgr, bottleMgr);
-        cout << "\n¸Ş´º ¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä >> ";
+        cout << "\në©”ë‰´ ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì„¸ìš” >> ";
         cin >> choice;
         cin.ignore();
         handleSelection(choice, rawMgr, batchMgr, spiritMgr, oakMgr, bottleMgr, recipeMgr);
@@ -47,19 +47,19 @@ void MainPage::displayDashboard(BatchManager& batch, RawMaterialManager& raw, Sp
         bottle.getSummary()
     };
     vector<string> menu = {
-        "[1] ¿øÀç·á °ü¸®",
-        "[2] ¹èÄ¡ °ü¸®",
-        "[3] ½ºÇÇ¸´ °ü¸®",
-        "[4] ¿ÀÅ©Åë ¼÷¼º °ü¸®",
-        "[5] º´ÀÔ ¹× ¿Ï¼ºÇ° °ü¸®",
-        "[0] Á¾·á"
+        rawMgr.showRawMaterialPage();
+        spiritMgr.showSpiritPage();
+        oakMgr.showOakAgingPage();
+        bottleMgr.showBottledWhiskyPage();
+        "[5] ë³‘ì… ë° ì™„ì„±í’ˆ ê´€ë¦¬",
+        "[0] ì¢…ë£Œ"
     };
 #ifdef _WIN32
     system("cls");
 #else
     system("clear");
 #endif
-    cout << "=== À§½ºÅ° »ı»ê °ü¸® ½Ã½ºÅÛ ===\n\n";
+    cout << "=== ìœ„ìŠ¤í‚¤ ìƒì‚° ê´€ë¦¬ ì‹œìŠ¤í…œ ===\n\n";
     UIUtils::drawDashboard(infoLines, menu, 72, 30);
 }
 
@@ -81,10 +81,10 @@ void MainPage::handleSelection(int choice, RawMaterialManager& rawMgr, BatchMana
         bottleMgr.showBottledWhiskyPage(recipeMgr);
         break;
     case 0:
-        cout << "ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n";
+        cout << "í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n";
         break;
     default:
-        cout << "Àß¸øµÈ ¼±ÅÃÀÔ´Ï´Ù. 0~5 »çÀÌÀÇ ¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä.\n";
+        cout << "ì˜ëª»ëœ ì„ íƒì…ë‹ˆë‹¤. 0~5 ì‚¬ì´ì˜ ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì„¸ìš”.\n";
         pauseConsole();
         break;
     }
